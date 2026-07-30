@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Ngapori Ranch — Field Data Entry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EAEAD6;
+    --paper-card:#F4F3E7;
+    --ink:#221F19;
+    --ink-soft:#5A5646;
+    --rule:#C7C0A3;
+    --pasture:#2B4A3C;
+    --pasture-light:#3E6350;
+    --moss:#5C7F4F;
+    --barn:#7A2E2A;
+    --ochre:#A9791F;
+    --gold:#C9A227;
+    --cream-hi:#FBFAF3;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:20px 18px 100px;}
+
+  header{
+    border-bottom:2px solid var(--ink);
+    padding-bottom:16px;margin-bottom:18px;
+  }
+  .brand-eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--pasture);margin:0 0 6px;
+  }
+  h1{
+    font-family:'Fraunces',serif;font-weight:700;
+    font-size:clamp(24px,6vw,32px);margin:0 0 4px;line-height:1.05;letter-spacing:-.01em;
+  }
+  .subhead{font-size:13px;color:var(--ink-soft);}
+
+  .setup-warning{
+    background:#F1E4C2;border:1px solid var(--ochre);border-left:4px solid var(--ochre);
+    padding:12px 14px;margin-bottom:18px;font-size:12.5px;line-height:1.5;
+    font-family:'IBM Plex Mono',monospace;color:#5A4415;
+  }
+  .setup-warning code{background:rgba(0,0,0,.06);padding:1px 4px;border-radius:2px;}
+
+  /* Mode tabs */
+  .mode-tabs{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--rule);border-radius:3px;overflow:hidden;}
+  .mode-tabs button{
+    flex:1;padding:13px 10px;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13.5px;
+    background:var(--paper-card);color:var(--ink-soft);border:none;cursor:pointer;
+    border-right:1px solid var(--rule);transition:background .15s ease,color .15s ease;
+  }
+  .mode-tabs button:last-child{border-right:none;}
+  .mode-tabs button.active{background:var(--pasture);color:var(--cream-hi);}
+
+  .panel{display:none;}
+  .panel.active{display:block;animation:fade .2s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  .card{background:var(--paper-card);border:1px solid var(--rule);padding:18px 16px;border-radius:3px;margin-bottom:16px;}
+  .card h2{font-family:'Fraunces',serif;font-weight:600;font-size:16px;margin:0 0 4px;}
+  .card .hint{font-size:12px;color:var(--ink-soft);margin:0 0 16px;line-height:1.4;}
+
+  label{
+    display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.03em;
+    text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px;
+  }
+  label .req{color:var(--barn);}
+  .field{margin-bottom:16px;}
+  input[type=text], input[type=number], input[type=date], select{
+    width:100%;padding:12px 12px;font-size:16px;font-family:'IBM Plex Sans',sans-serif;
+    border:1px solid var(--rule);border-radius:3px;background:var(--cream-hi);color:var(--ink);
+  }
+  input:focus, select:focus{outline:2px solid var(--pasture);outline-offset:1px;}
+  select{appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'><path fill='%235A5646' d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat:no-repeat;background-position:right 12px center;padding-right:34px;
+  }
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:420px){.grid-2{grid-template-columns:1fr;}}
+
+  .milestone-note{
+    font-size:11.5px;color:var(--ink-soft);margin:-6px 0 14px;line-height:1.4;
+    background:var(--paper);border-left:3px solid var(--moss);padding:8px 10px;
+  }
+
+  button.submit{
+    width:100%;padding:15px;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:15px;
+    background:var(--pasture);color:var(--cream-hi);border:none;border-radius:3px;cursor:pointer;
+    transition:background .15s ease;
+  }
+  button.submit:hover{background:var(--pasture-light);}
+  button.submit:disabled{background:var(--rule);color:var(--ink-soft);cursor:not-allowed;}
+
+  button.secondary{
+    width:100%;padding:13px;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13.5px;
+    background:var(--cream-hi);color:var(--pasture);border:1px solid var(--pasture);border-radius:3px;cursor:pointer;
+    margin-bottom:14px;
+  }
+  button.secondary:disabled{opacity:.5;cursor:not-allowed;}
+
+  .status{
+    margin-top:14px;padding:12px 14px;border-radius:3px;font-size:13px;line-height:1.5;
+    font-family:'IBM Plex Sans',sans-serif;display:none;
+  }
+  .status.show{display:block;}
+  .status.ok{background:#DDE6D6;color:var(--pasture);border:1px solid var(--pasture);}
+  .status.err{background:#EFD2CE;color:var(--barn);border:1px solid var(--barn);}
+  .status.pending{background:#F1E4C2;color:#5A4415;border:1px solid var(--ochre);}
+
+  .lookup-row{display:flex;gap:8px;margin-bottom:4px;}
+  .lookup-row input{flex:1;}
+  .lookup-row button{
+    flex-shrink:0;padding:0 18px;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13px;
+    background:var(--ink);color:var(--cream-hi);border:none;border-radius:3px;cursor:pointer;
+  }
+  .lookup-row button:disabled{background:var(--rule);cursor:not-allowed;}
+
+  .loaded-tag{
+    display:none;align-items:center;gap:6px;font-size:11.5px;color:var(--pasture);
+    font-family:'IBM Plex Mono',monospace;margin:6px 0 14px;
+  }
+  .loaded-tag.show{display:flex;}
+
+  .log{margin-top:22px;}
+  .log h3{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px;}
+  .log-entry{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);
+    padding:7px 0;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;gap:10px;
+  }
+  .log-entry:last-child{border-bottom:none;}
+  .log-entry .ok-dot{color:var(--pasture);}
+  .log-entry .err-dot{color:var(--barn);}
+
+  fieldset{border:none;padding:0;margin:0;}
+  fieldset:disabled{opacity:.55;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="brand-eyebrow">Ngapori Ranch &nbsp;·&nbsp; Field Operations</p>
+    <h1>Animal Data Entry</h1>
+    <p class="subhead">Writes directly to the Lifecycle_Engine sheet. Stage, age, and harvest windows calculate themselves — you only enter what you observe.</p>
+  </header>
+
+  <div class="setup-warning" id="setupWarning">
+    <b>⚠ One-time setup needed.</b> Open <code>Code.gs</code> in this Sheet's Apps Script editor, deploy it as a Web App, then paste the deployment URL into <code>APPS_SCRIPT_URL</code> near the top of this file's script and re-upload.
+  </div>
+
+  <div class="mode-tabs">
+    <button class="active" data-mode="add">Add New Animal</button>
+    <button data-mode="update">Update Existing</button>
+  </div>
+
+  <!-- ============ ADD NEW ANIMAL ============ -->
+  <div class="panel active" id="panel-add">
+    <form id="formAdd">
+      <fieldset id="fieldsetAdd">
+        <div class="card">
+          <h2>Core info</h2>
+          <p class="hint">Every new animal needs an ID, species, birth date, and starting weight.</p>
+
+          <div class="field">
+            <label>Animal ID <span class="req">*</span></label>
+            <input type="text" id="add_id" placeholder="e.g. NR-CTL-019" required autocomplete="off">
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label>Species <span class="req">*</span></label>
+              <select id="add_species" required>
+                <option value="" disabled selected>Select…</option>
+                <option>Cattle</option>
+                <option>Sheep</option>
+                <option>Goats</option>
+                <option>Poultry</option>
+                <option>Ducks</option>
+                <option>Rabbits</option>
+                <option>Fish</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Date of birth <span class="req">*</span></label>
+              <input type="date" id="add_dob" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Current weight (kg) <span class="req">*</span></label>
+            <input type="number" id="add_weight" step="0.1" min="0" placeholder="e.g. 35" required>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Lifecycle milestones</h2>
+          <div class="milestone-note">Optional. Leave blank until each one actually happens — the sheet uses these dates to move an animal through its stages.</div>
+
+          <div class="field">
+            <label>Weaning date</label>
+            <input type="date" id="add_weaning">
+          </div>
+          <div class="field">
+            <label>Breeding date</label>
+            <input type="date" id="add_breeding">
+          </div>
+          <div class="field">
+            <label>Calving date</label>
+            <input type="date" id="add_calving">
+          </div>
+          <div class="field">
+            <label>Harvest date</label>
+            <input type="date" id="add_harvest">
+          </div>
+        </div>
+
+        <button type="submit" class="submit" id="btnAdd">Add Animal</button>
+      </fieldset>
+    </form>
+    <div class="status" id="statusAdd"></div>
+
+    <div class="log" id="logAdd" style="display:none;">
+      <h3>This session</h3>
+      <div id="logAddEntries"></div>
+    </div>
+  </div>
+
+  <!-- ============ UPDATE EXISTING ANIMAL ============ -->
+  <div class="panel" id="panel-update">
+    <div class="card">
+      <h2>Find the animal</h2>
+      <p class="hint">Type or pick an Animal ID, then load its current record before editing.</p>
+      <div class="lookup-row">
+        <input type="text" id="upd_search" list="animalList" placeholder="e.g. NR-CTL-003" autocomplete="off">
+        <button type="button" id="btnLoad">Load</button>
+      </div>
+      <datalist id="animalList"></datalist>
+      <div class="loaded-tag" id="loadedTag"><span>●</span><span id="loadedTagText"></span></div>
+    </div>
+
+    <form id="formUpdate">
+      <fieldset id="fieldsetUpdate" disabled>
+        <div class="card">
+          <h2>Core info</h2>
+          <div class="grid-2">
+            <div class="field">
+              <label>Species <span class="req">*</span></label>
+              <select id="upd_species" required>
+                <option value="" disabled>Select…</option>
+                <option>Cattle</option>
+                <option>Sheep</option>
+                <option>Goats</option>
+                <option>Poultry</option>
+                <option>Ducks</option>
+                <option>Rabbits</option>
+                <option>Fish</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Date of birth <span class="req">*</span></label>
+              <input type="date" id="upd_dob" required>
+            </div>
+          </div>
+          <div class="field">
+            <label>Current weight (kg) <span class="req">*</span></label>
+            <input type="number" id="upd_weight" step="0.1" min="0" required>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Lifecycle milestones</h2>
+          <div class="milestone-note">Fill in a date the moment it happens. Clearing a date removes it from the record.</div>
+          <div class="field"><label>Weaning date</label><input type="date" id="upd_weaning"></div>
+          <div class="field"><label>Breeding date</label><input type="date" id="upd_breeding"></div>
+          <div class="field"><label>Calving date</label><input type="date" id="upd_calving"></div>
+          <div class="field"><label>Harvest date</label><input type="date" id="upd_harvest"></div>
+        </div>
+
+        <button type="submit" class="submit" id="btnUpdate">Save Changes</button>
+      </fieldset>
+    </form>
+    <div class="status" id="statusUpdate"></div>
+
+    <div class="log" id="logUpdate" style="display:none;">
+      <h3>This session</h3>
+      <div id="logUpdateEntries"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — paste your deployed Apps Script Web App /exec URL here.
+   (Deploy Code.gs inside this Google Sheet: Extensions > Apps
+   Script > Deploy > New deployment > Web app > Execute as: Me,
+   Who has access: Anyone.)
+   ============================================================ */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwB13Pe150MG8gwEVAu7FXTNjjrul6m5_3QYwBKsEBXRd1JgfI53TZ5EFlEUgh7mAqB1A/exec';
+
+const isConfigured = APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf('PASTE_') !== 0;
+document.getElementById('setupWarning').style.display = isConfigured ? 'none' : 'block';
+
+/* ---------------- mode tabs ---------------- */
+document.querySelectorAll('.mode-tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode-tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.mode).classList.add('active');
+  });
+});
+
+/* ---------------- API helpers ---------------- */
+function postToSheet(payload){
+  return fetch(APPS_SCRIPT_URL, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'}, // avoids CORS preflight
+    body: JSON.stringify(payload)
+  }).then(r=>r.json());
+}
+function getFromSheet(params){
+  const url = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.indexOf('?')===-1 ? '?' : '&') + params;
+  return fetch(url).then(r=>r.json());
+}
+
+function setStatus(elId, kind, msg){
+  const el = document.getElementById(elId);
+  el.className = 'status show ' + kind;
+  el.textContent = msg;
+}
+function addLogEntry(logWrapId, entriesId, ok, msg){
+  document.getElementById(logWrapId).style.display = 'block';
+  const row = document.createElement('div');
+  row.className = 'log-entry';
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  row.innerHTML = `<span><span class="${ok?'ok-dot':'err-dot'}">●</span> ${msg}</span><span>${time}</span>`;
+  document.getElementById(entriesId).prepend(row);
+}
+
+/* ---------------- Add New Animal ---------------- */
+document.getElementById('formAdd').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!isConfigured){ setStatus('statusAdd','err','Not connected yet — set APPS_SCRIPT_URL first.'); return; }
+  const btn = document.getElementById('btnAdd');
+  const fieldset = document.getElementById('fieldsetAdd');
+  const payload = {
+    action:'add',
+    Animal_ID: document.getElementById('add_id').value.trim(),
+    Species: document.getElementById('add_species').value,
+    DOB: document.getElementById('add_dob').value,
+    Current_Weight: document.getElementById('add_weight').value,
+    Weaning_Date: document.getElementById('add_weaning').value,
+    Breeding_Date: document.getElementById('add_breeding').value,
+    Calving_Date: document.getElementById('add_calving').value,
+    Harvest_Date: document.getElementById('add_harvest').value
+  };
+  btn.disabled = true; fieldset.disabled = true;
+  setStatus('statusAdd','pending','Saving to the sheet…');
+  try{
+    const res = await postToSheet(payload);
+    if(res.success){
+      setStatus('statusAdd','ok', res.message || (payload.Animal_ID+' added.'));
+      addLogEntry('logAdd','logAddEntries', true, 'Added '+payload.Animal_ID+' ('+payload.Species+')');
+      document.getElementById('formAdd').reset();
+      refreshAnimalList();
+    } else {
+      setStatus('statusAdd','err', res.message || 'Could not save — try again.');
+      addLogEntry('logAdd','logAddEntries', false, 'Failed: '+payload.Animal_ID+' — '+(res.message||'error'));
+    }
+  } catch(err){
+    setStatus('statusAdd','err', 'Network error: '+err.message+'. Nothing was saved — try again once you have signal.');
+  } finally {
+    btn.disabled = false; fieldset.disabled = false;
+  }
+});
+
+/* ---------------- Update Existing Animal ---------------- */
+let animalListCache = [];
+async function refreshAnimalList(){
+  if(!isConfigured) return;
+  try{
+    const res = await getFromSheet('action=list');
+    if(res.success){
+      animalListCache = res.animals;
+      const dl = document.getElementById('animalList');
+      dl.innerHTML = res.animals.map(a=>`<option value="${a.Animal_ID}">${a.Species} · ${a.Current_Stage}</option>`).join('');
+    }
+  } catch(err){ /* silent — datalist is a convenience, not required */ }
+}
+refreshAnimalList();
+
+document.getElementById('btnLoad').addEventListener('click', async ()=>{
+  if(!isConfigured){ setStatus('statusUpdate','err','Not connected yet — set APPS_SCRIPT_URL first.'); return; }
+  const id = document.getElementById('upd_search').value.trim();
+  if(!id){ setStatus('statusUpdate','err','Enter an Animal ID first.'); return; }
+  const btn = document.getElementById('btnLoad');
+  btn.disabled = true;
+  setStatus('statusUpdate','pending','Loading '+id+'…');
+  try{
+    const res = await getFromSheet('action=lookup&id='+encodeURIComponent(id));
+    if(res.success){
+      const a = res.animal;
+      document.getElementById('upd_species').value = a.Species || '';
+      document.getElementById('upd_dob').value = a.DOB || '';
+      document.getElementById('upd_weight').value = a.Current_Weight || '';
+      document.getElementById('upd_weaning').value = a.Weaning_Date || '';
+      document.getElementById('upd_breeding').value = a.Breeding_Date || '';
+      document.getElementById('upd_calving').value = a.Calving_Date || '';
+      document.getElementById('upd_harvest').value = a.Harvest_Date || '';
+      document.getElementById('fieldsetUpdate').disabled = false;
+      const tag = document.getElementById('loadedTag');
+      tag.classList.add('show');
+      document.getElementById('loadedTagText').textContent = 'Editing '+a.Animal_ID+' ('+a.Species+')';
+      setStatus('statusUpdate','ok','Loaded. Edit any field below, then Save Changes.');
+    } else {
+      document.getElementById('fieldsetUpdate').disabled = true;
+      setStatus('statusUpdate','err', res.message || 'Animal not found.');
+    }
+  } catch(err){
+    setStatus('statusUpdate','err','Network error: '+err.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('formUpdate').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const id = document.getElementById('upd_search').value.trim();
+  if(!id){ setStatus('statusUpdate','err','No animal loaded.'); return; }
+  const btn = document.getElementById('btnUpdate');
+  const fieldset = document.getElementById('fieldsetUpdate');
+  const payload = {
+    action:'update',
+    Animal_ID: id,
+    Species: document.getElementById('upd_species').value,
+    DOB: document.getElementById('upd_dob').value,
+    Current_Weight: document.getElementById('upd_weight').value,
+    Weaning_Date: document.getElementById('upd_weaning').value,
+    Breeding_Date: document.getElementById('upd_breeding').value,
+    Calving_Date: document.getElementById('upd_calving').value,
+    Harvest_Date: document.getElementById('upd_harvest').value
+  };
+  btn.disabled = true; fieldset.disabled = true;
+  setStatus('statusUpdate','pending','Saving changes…');
+  try{
+    const res = await postToSheet(payload);
+    if(res.success){
+      setStatus('statusUpdate','ok', res.message || (id+' updated.'));
+      addLogEntry('logUpdate','logUpdateEntries', true, 'Updated '+id);
+      refreshAnimalList();
+    } else {
+      setStatus('statusUpdate','err', res.message || 'Could not save — try again.');
+      addLogEntry('logUpdate','logUpdateEntries', false, 'Failed: '+id+' — '+(res.message||'error'));
+    }
+  } catch(err){
+    setStatus('statusUpdate','err','Network error: '+err.message+'. Nothing was saved — try again once you have signal.');
+  } finally {
+    btn.disabled = false; fieldset.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
