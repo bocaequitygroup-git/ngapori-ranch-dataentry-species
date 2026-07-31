@@ -885,7 +885,12 @@ function commitAnimal(a){
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({action:'updateAnimal', animal:a})
-    }).catch(err => setSyncStatus('err', `Local change saved, but the sheet write failed (${err.message}).`));
+    })
+      .then(r => r.json())
+      .then(data => {
+        if(!data.success) setSyncStatus('err', `Sheet rejected the update for ${a.id}: ${data.error || 'unknown error'}`);
+      })
+      .catch(err => setSyncStatus('err', `Local change saved, but the sheet write failed (${err.message}).`));
   }
 }
 
@@ -1028,7 +1033,13 @@ document.getElementById('btnSaveAnimal').addEventListener('click', ()=>{
     fetch(APPS_SCRIPT_URL, {
       method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({action:'addAnimal', animal})
-    }).catch(err => setSyncStatus('err', `Animal added locally, but the sheet write failed (${err.message}).`));
+    })
+      .then(r => r.json())
+      .then(data => {
+        if(!data.success) setSyncStatus('err', `Animal shown locally, but the sheet rejected it: ${data.error || 'unknown error'}`);
+        else setSyncStatus('ok', `${id} saved to the sheet (row ${data.row}).`);
+      })
+      .catch(err => setSyncStatus('err', `Animal added locally, but the sheet write failed (${err.message}).`));
   }
   selectedAnimalId = id;
   activeSpeciesFilter = "All";
@@ -1078,7 +1089,13 @@ document.getElementById('btnSaveSpecies').addEventListener('click', ()=>{
     fetch(APPS_SCRIPT_URL, {
       method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({action:'addSpecies', species:name, gestation, weaning, returnBreed, stages})
-    }).catch(err => setSyncStatus('err', `Species added locally, but the sheet write failed (${err.message}).`));
+    })
+      .then(r => r.json())
+      .then(data => {
+        if(!data.success) setSyncStatus('err', `Species shown locally, but the sheet rejected it: ${data.error || 'unknown error'}`);
+        else setSyncStatus('ok', `${name} added to Lifecycle_Rules (${data.rowsAdded} rows).`);
+      })
+      .catch(err => setSyncStatus('err', `Species added locally, but the sheet write failed (${err.message}).`));
   }
   modalAddSpecies.classList.add('hidden');
   renderSpeciesFilters();
