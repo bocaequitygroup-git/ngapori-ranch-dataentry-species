@@ -2,512 +2,1101 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Ngapori Ranch — Field Data Entry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ngapori Ranch — Lifecycle Engine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
   :root{
-    --paper:#EAEAD6;
-    --paper-card:#F4F3E7;
-    --ink:#221F19;
-    --ink-soft:#5A5646;
-    --rule:#C7C0A3;
-    --pasture:#2B4A3C;
-    --pasture-light:#3E6350;
-    --moss:#5C7F4F;
-    --barn:#7A2E2A;
-    --ochre:#A9791F;
-    --gold:#C9A227;
-    --cream-hi:#FBFAF3;
+    --pasture-dark:#2C3524;
+    --pasture-darker:#212A1B;
+    --barn-red:#7A2E1E;
+    --barn-red-dark:#5E2216;
+    --ochre:#C08A2E;
+    --ochre-dark:#96691E;
+    --parchment:#F3EEE1;
+    --parchment-dim:#E9E2CE;
+    --card:#FFFFFF;
+    --ink:#2A2620;
+    --ink-dim:#6B6355;
+    --line:#DCD3BC;
+    --green-clear:#4C6B3C;
+    --amber-warn:#B5791E;
+    --red-alert:#A23A25;
+    --tag-cattle:#7A2E1E;
+    --tag-sheep:#5C6B8C;
+    --tag-goat:#8C6E3E;
+    --tag-chicken:#B5791E;
+    --tag-rabbit:#6B7A3D;
+    --tag-duck:#3E6B6B;
+    --tag-fish:#3E5C8C;
+    --radius:6px;
+    --shadow:0 1px 2px rgba(33,42,27,0.08), 0 2px 8px rgba(33,42,27,0.06);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background:var(--paper);
+    background:var(--parchment);
     color:var(--ink);
-    font-family:'IBM Plex Sans',sans-serif;
-    -webkit-font-smoothing:antialiased;
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
   }
-  .wrap{max-width:640px;margin:0 auto;padding:20px 18px 100px;}
+  .app{display:flex;flex-direction:column;min-height:100vh;}
 
-  header{
-    border-bottom:2px solid var(--ink);
-    padding-bottom:16px;margin-bottom:18px;
+  /* ---------- HEADER ---------- */
+  header.top{
+    background:var(--pasture-dark);
+    color:var(--parchment);
+    padding:14px 20px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+    border-bottom:3px solid var(--barn-red);
   }
-  .brand-eyebrow{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-    color:var(--pasture);margin:0 0 6px;
+  .brand{
+    font-family:'Roboto Slab',serif;
+    font-weight:700;
+    font-size:19px;
+    letter-spacing:0.2px;
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    white-space:nowrap;
   }
-  h1{
-    font-family:'Fraunces',serif;font-weight:700;
-    font-size:clamp(24px,6vw,32px);margin:0 0 4px;line-height:1.05;letter-spacing:-.01em;
+  .brand .mark{
+    display:inline-block;
+    width:10px;height:10px;
+    background:var(--ochre);
+    border-radius:2px;
+    transform:rotate(45deg);
   }
-  .subhead{font-size:13px;color:var(--ink-soft);}
+  .brand small{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:400;
+    font-size:11px;
+    color:#C9CBB8;
+    letter-spacing:0.5px;
+  }
+  .search-wrap{
+    flex:1;
+    min-width:200px;
+    position:relative;
+  }
+  .search-wrap input{
+    width:100%;
+    padding:9px 14px 9px 34px;
+    border-radius:20px;
+    border:1px solid #47523A;
+    background:#3A4530;
+    color:var(--parchment);
+    font-size:14px;
+    font-family:'Inter',sans-serif;
+    outline:none;
+  }
+  .search-wrap input::placeholder{color:#A9AE96;}
+  .search-wrap input:focus{border-color:var(--ochre);background:#414D34;}
+  .search-wrap::before{
+    content:"⌕";
+    position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    color:#A9AE96;font-size:16px;font-weight:700;
+  }
+  .hdr-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .icon-btn{
+    display:flex;align-items:center;gap:6px;
+    background:transparent;
+    border:1px solid #47523A;
+    color:var(--parchment);
+    padding:8px 12px;
+    border-radius:5px;
+    font-size:13px;
+    font-family:'Inter',sans-serif;
+    font-weight:500;
+    cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+  .icon-btn:hover{background:#3A4530;border-color:var(--ochre);}
+  .icon-btn.primary{background:var(--barn-red);border-color:var(--barn-red);}
+  .icon-btn.primary:hover{background:var(--barn-red-dark);}
+  .icon-btn.ghost{background:transparent;}
+  .view-toggle{display:flex;border:1px solid #47523A;border-radius:5px;overflow:hidden;}
+  .view-toggle button{
+    background:transparent;border:none;color:#C9CBB8;
+    padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .view-toggle button.active{background:var(--ochre);color:#211A0C;}
 
-  .setup-warning{
-    background:#F1E4C2;border:1px solid var(--ochre);border-left:4px solid var(--ochre);
-    padding:12px 14px;margin-bottom:18px;font-size:12.5px;line-height:1.5;
-    font-family:'IBM Plex Mono',monospace;color:#5A4415;
-  }
-  .setup-warning code{background:rgba(0,0,0,.06);padding:1px 4px;border-radius:2px;}
+  /* ---------- MAIN ---------- */
+  main{flex:1;padding:18px 20px 40px;max-width:1400px;width:100%;margin:0 auto;}
 
-  /* Mode tabs */
-  .mode-tabs{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--rule);border-radius:3px;overflow:hidden;}
-  .mode-tabs button{
-    flex:1;padding:13px 10px;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13.5px;
-    background:var(--paper-card);color:var(--ink-soft);border:none;cursor:pointer;
-    border-right:1px solid var(--rule);transition:background .15s ease,color .15s ease;
+  .panel-grid{
+    display:grid;
+    grid-template-columns:340px 1fr;
+    gap:18px;
+    align-items:start;
   }
-  .mode-tabs button:last-child{border-right:none;}
-  .mode-tabs button.active{background:var(--pasture);color:var(--cream-hi);}
-
-  .panel{display:none;}
-  .panel.active{display:block;animation:fade .2s ease;}
-  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
-
-  .card{background:var(--paper-card);border:1px solid var(--rule);padding:18px 16px;border-radius:3px;margin-bottom:16px;}
-  .card h2{font-family:'Fraunces',serif;font-weight:600;font-size:16px;margin:0 0 4px;}
-  .card .hint{font-size:12px;color:var(--ink-soft);margin:0 0 16px;line-height:1.4;}
-
-  label{
-    display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.03em;
-    text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px;
-  }
-  label .req{color:var(--barn);}
-  .field{margin-bottom:16px;}
-  input[type=text], input[type=number], input[type=date], select{
-    width:100%;padding:12px 12px;font-size:16px;font-family:'IBM Plex Sans',sans-serif;
-    border:1px solid var(--rule);border-radius:3px;background:var(--cream-hi);color:var(--ink);
-  }
-  input:focus, select:focus{outline:2px solid var(--pasture);outline-offset:1px;}
-  select{appearance:none;-webkit-appearance:none;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'><path fill='%235A5646' d='M7 10l5 5 5-5z'/></svg>");
-    background-repeat:no-repeat;background-position:right 12px center;padding-right:34px;
+  @media (max-width:900px){
+    .panel-grid{grid-template-columns:1fr;}
   }
 
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  @media (max-width:420px){.grid-2{grid-template-columns:1fr;}}
-
-  .milestone-note{
-    font-size:11.5px;color:var(--ink-soft);margin:-6px 0 14px;line-height:1.4;
-    background:var(--paper);border-left:3px solid var(--moss);padding:8px 10px;
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
   }
 
-  button.submit{
-    width:100%;padding:15px;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:15px;
-    background:var(--pasture);color:var(--cream-hi);border:none;border-radius:3px;cursor:pointer;
-    transition:background .15s ease;
+  /* species filter chips */
+  .chip-row{
+    display:flex;flex-wrap:wrap;gap:6px;
+    padding:14px 14px 10px;
   }
-  button.submit:hover{background:var(--pasture-light);}
-  button.submit:disabled{background:var(--rule);color:var(--ink-soft);cursor:not-allowed;}
+  .chip{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    font-weight:500;
+    padding:5px 10px;
+    border-radius:14px;
+    border:1px solid var(--line);
+    background:var(--parchment);
+    color:var(--ink-dim);
+    cursor:pointer;
+    user-select:none;
+    transition:all .12s;
+  }
+  .chip:hover{border-color:var(--ochre);}
+  .chip.active{background:var(--pasture-dark);color:var(--parchment);border-color:var(--pasture-dark);}
 
-  button.secondary{
-    width:100%;padding:13px;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13.5px;
-    background:var(--cream-hi);color:var(--pasture);border:1px solid var(--pasture);border-radius:3px;cursor:pointer;
-    margin-bottom:14px;
+  .list-wrap{padding:4px 8px 12px;max-height:calc(100vh - 260px);overflow-y:auto;}
+  .list-count{
+    padding:2px 10px 8px;
+    font-size:11px;
+    color:var(--ink-dim);
+    letter-spacing:0.3px;
+    text-transform:uppercase;
+    font-weight:600;
   }
-  button.secondary:disabled{opacity:.5;cursor:not-allowed;}
+  .animal-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 10px;
+    border-radius:5px;
+    cursor:pointer;
+    border:1px solid transparent;
+    margin-bottom:2px;
+  }
+  .animal-row:hover{background:var(--parchment-dim);}
+  .animal-row.selected{background:#EFE6D0;border-color:var(--ochre);}
 
-  .status{
-    margin-top:14px;padding:12px 14px;border-radius:3px;font-size:13px;line-height:1.5;
-    font-family:'IBM Plex Sans',sans-serif;display:none;
+  /* ear-tag badge — signature element */
+  .eartag{
+    position:relative;
+    flex-shrink:0;
+    width:46px;height:26px;
+    border-radius:5px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    font-weight:700;
+    color:#fff;
+    letter-spacing:0.3px;
   }
-  .status.show{display:block;}
-  .status.ok{background:#DDE6D6;color:var(--pasture);border:1px solid var(--pasture);}
-  .status.err{background:#EFD2CE;color:var(--barn);border:1px solid var(--barn);}
-  .status.pending{background:#F1E4C2;color:#5A4415;border:1px solid var(--ochre);}
+  .eartag::before{
+    content:"";
+    position:absolute;
+    left:-3px;top:50%;transform:translateY(-50%);
+    width:6px;height:6px;
+    background:var(--parchment);
+    border:1.5px solid currentColor;
+    border-radius:50%;
+  }
+  .eartag.lg{width:64px;height:36px;font-size:11px;border-radius:6px;}
+  .eartag.lg::before{width:8px;height:8px;left:-4px;}
 
-  .lookup-row{display:flex;gap:8px;margin-bottom:4px;}
-  .lookup-row input{flex:1;}
-  .lookup-row button{
-    flex-shrink:0;padding:0 18px;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13px;
-    background:var(--ink);color:var(--cream-hi);border:none;border-radius:3px;cursor:pointer;
+  .row-info{flex:1;min-width:0;}
+  .row-info .id{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--ink);}
+  .row-info .meta{font-size:11.5px;color:var(--ink-dim);margin-top:1px;}
+  .stage-pill{
+    font-size:10px;font-weight:700;
+    padding:3px 8px;border-radius:10px;
+    white-space:nowrap;
+    text-transform:uppercase;
+    letter-spacing:0.3px;
   }
-  .lookup-row button:disabled{background:var(--rule);cursor:not-allowed;}
 
-  .loaded-tag{
-    display:none;align-items:center;gap:6px;font-size:11.5px;color:var(--pasture);
-    font-family:'IBM Plex Mono',monospace;margin:6px 0 14px;
-  }
-  .loaded-tag.show{display:flex;}
+  .empty-state{padding:30px 20px;text-align:center;color:var(--ink-dim);font-size:13px;}
 
-  .log{margin-top:22px;}
-  .log h3{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px;}
-  .log-entry{
-    font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);
-    padding:7px 0;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;gap:10px;
+  /* ---------- RIGHT COLUMN ---------- */
+  .detail-card{padding:0;overflow:hidden;}
+  .detail-header{
+    background:var(--pasture-dark);
+    color:var(--parchment);
+    padding:18px 22px;
+    display:flex;
+    align-items:center;
+    gap:16px;
   }
-  .log-entry:last-child{border-bottom:none;}
-  .log-entry .ok-dot{color:var(--pasture);}
-  .log-entry .err-dot{color:var(--barn);}
+  .detail-header .name-block{flex:1;}
+  .detail-header .name-block .species-label{
+    font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:#B9C0A5;font-weight:600;
+  }
+  .detail-header .name-block h2{
+    margin:2px 0 0;
+    font-family:'Roboto Slab',serif;
+    font-size:22px;
+  }
+  .detail-body{padding:22px;}
+  .section-title{
+    font-size:12px;text-transform:uppercase;letter-spacing:0.6px;
+    color:var(--ink-dim);font-weight:700;
+    margin:0 0 10px;
+    padding-bottom:6px;
+    border-bottom:2px solid var(--line);
+  }
+  .section{margin-bottom:26px;}
+  .field-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:14px;
+  }
+  .field{display:flex;flex-direction:column;gap:3px;}
+  .field label{font-size:11px;color:var(--ink-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
+  .field .val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--ink);}
+  .field input[type=text], .field input[type=number], .field input[type=date], .field select{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    padding:7px 8px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--parchment);
+    color:var(--ink);
+  }
 
-  fieldset{border:none;padding:0;margin:0;}
-  fieldset:disabled{opacity:.55;}
+  .btn-grid{display:flex;flex-wrap:wrap;gap:8px;}
+  .evt-btn{
+    background:var(--card);
+    border:1.5px solid var(--barn-red);
+    color:var(--barn-red);
+    font-weight:600;
+    font-size:12.5px;
+    padding:9px 14px;
+    border-radius:5px;
+    cursor:pointer;
+    transition:all .12s;
+  }
+  .evt-btn:hover{background:var(--barn-red);color:#fff;}
+  .evt-btn:disabled{opacity:0.35;cursor:not-allowed;border-color:var(--line);color:var(--ink-dim);}
+  .evt-btn:disabled:hover{background:var(--card);color:var(--ink-dim);}
+  .evt-btn.done{background:var(--green-clear);border-color:var(--green-clear);color:#fff;}
 
-  .computed-card{
-    display:none;background:var(--paper);border:1px solid var(--moss);border-left:4px solid var(--moss);
-    padding:12px 14px;margin-top:14px;border-radius:3px;
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);}
+  .toggle-row:last-child{border-bottom:none;}
+  .toggle-row .label{font-size:13.5px;font-weight:500;}
+  .switch{
+    position:relative;width:42px;height:23px;border-radius:12px;
+    background:#D8CFB6;cursor:pointer;transition:background .15s;flex-shrink:0;
   }
-  .computed-card.show{display:block;}
-  .computed-card .computed-title{
-    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
-    color:var(--pasture);margin:0 0 8px;
+  .switch.on{background:var(--green-clear);}
+  .switch::after{
+    content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;
+    background:#fff;border-radius:50%;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,0.3);
   }
-  .computed-row{
-    display:flex;justify-content:space-between;gap:10px;padding:4px 0;
-    border-bottom:1px dashed var(--rule);font-family:'IBM Plex Mono',monospace;font-size:12.5px;
+  .switch.on::after{left:21px;}
+
+  textarea.notes{
+    width:100%;min-height:70px;
+    font-family:'Inter',sans-serif;font-size:13px;
+    padding:10px;border:1px solid var(--line);border-radius:5px;
+    background:var(--parchment);color:var(--ink);resize:vertical;
   }
-  .computed-row:last-child{border-bottom:none;}
-  .computed-row .k{color:var(--ink-soft);}
-  .computed-row .v{font-weight:600;color:var(--ink);}
+
+  .placeholder-panel{
+    display:flex;align-items:center;justify-content:center;
+    min-height:420px;color:var(--ink-dim);font-size:14px;flex-direction:column;gap:10px;
+  }
+  .placeholder-panel .big-tag{
+    width:80px;height:46px;border-radius:8px;background:var(--parchment-dim);
+    border:2px dashed var(--line);
+  }
+
+  /* ---------- MODALS ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(33,42,27,0.55);
+    display:flex;align-items:flex-start;justify-content:center;
+    padding:40px 16px;overflow-y:auto;z-index:50;
+  }
+  .overlay.hidden{display:none;}
+  .modal{
+    background:var(--card);border-radius:8px;max-width:560px;width:100%;
+    box-shadow:0 12px 40px rgba(0,0,0,0.3);
+  }
+  .modal-header{
+    background:var(--pasture-dark);color:var(--parchment);
+    padding:16px 22px;border-radius:8px 8px 0 0;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .modal-header h3{margin:0;font-family:'Roboto Slab',serif;font-size:17px;}
+  .modal-close{background:none;border:none;color:var(--parchment);font-size:20px;cursor:pointer;line-height:1;}
+  .modal-body{padding:22px;}
+  .modal-footer{padding:14px 22px 22px;display:flex;justify-content:flex-end;gap:10px;}
+  .btn{
+    padding:9px 18px;border-radius:5px;font-size:13.5px;font-weight:600;cursor:pointer;border:1px solid transparent;
+    font-family:'Inter',sans-serif;
+  }
+  .btn-primary{background:var(--barn-red);color:#fff;}
+  .btn-primary:hover{background:var(--barn-red-dark);}
+  .btn-secondary{background:transparent;border-color:var(--line);color:var(--ink);}
+  .btn-secondary:hover{background:var(--parchment-dim);}
+  .form-row{margin-bottom:14px;}
+  .form-row label{display:block;font-size:12px;font-weight:600;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:5px;}
+  .form-row input, .form-row select{
+    width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:5px;
+    background:var(--parchment);color:var(--ink);font-family:'Inter',sans-serif;font-size:13.5px;
+  }
+  .form-row .hint{font-size:11px;color:var(--ink-dim);margin-top:4px;}
+  .species-pick{display:flex;flex-wrap:wrap;gap:7px;}
+  .species-pick .chip{padding:7px 13px;font-size:12px;}
+  .toggle-inline{display:flex;gap:18px;flex-wrap:wrap;}
+
+  /* ---------- DASHBOARD ---------- */
+  .dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;}
+  .kpi-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+  .kpi-card h4{margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink-dim);
+    border-bottom:2px solid var(--line);padding-bottom:8px;}
+  .kpi-line{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13.5px;}
+  .kpi-line .n{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;}
+  .stage-bar-row{margin-bottom:10px;}
+  .stage-bar-row .lbl{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;}
+  .stage-bar-row .track{height:8px;background:var(--parchment-dim);border-radius:4px;overflow:hidden;}
+  .stage-bar-row .fill{height:100%;background:var(--ochre);}
+
+  ::-webkit-scrollbar{width:9px;height:9px;}
+  ::-webkit-scrollbar-thumb{background:#C9BE9E;border-radius:5px;}
+  ::-webkit-scrollbar-track{background:transparent;}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <p class="brand-eyebrow">Ngapori Ranch &nbsp;·&nbsp; Field Operations</p>
-    <h1>Animal Data Entry</h1>
-    <p class="subhead">Writes directly to the Lifecycle_Engine sheet. Stage, age, and harvest windows calculate themselves — you only enter what you observe.</p>
+<div class="app">
+
+  <header class="top">
+    <div class="brand"><span class="mark"></span>Ngapori Ranch <small>LIFECYCLE ENGINE</small></div>
+    <div class="search-wrap">
+      <input id="searchInput" type="text" placeholder="Search animals — try 'goat', 'brown', '45kg', 'born july', '002'…" autocomplete="off">
+    </div>
+    <div class="hdr-actions">
+      <div class="view-toggle">
+        <button id="tabAnimals" class="active">Animals</button>
+        <button id="tabDash">Dashboard</button>
+      </div>
+      <button class="icon-btn" id="btnRefresh" title="Refresh">🔄 Refresh</button>
+      <button class="icon-btn primary" id="btnAddAnimal">➕ Add Animal</button>
+      <button class="icon-btn" id="btnAddSpecies">🐾 Add Species</button>
+    </div>
   </header>
 
-  <div class="setup-warning" id="setupWarning">
-    <b>⚠ One-time setup needed.</b> Open <code>Code.gs</code> in this Sheet's Apps Script editor, deploy it as a Web App, then paste the deployment URL into <code>APPS_SCRIPT_URL</code> near the top of this file's script and re-upload.
+  <div id="syncStrip" style="background:var(--parchment-dim);border-bottom:1px solid var(--line);padding:6px 20px;font-size:11.5px;color:var(--ink-dim);display:flex;gap:8px;align-items:center;font-family:'JetBrains Mono',monospace;">
+    <span id="syncDot" style="width:7px;height:7px;border-radius:50%;background:var(--amber-warn);display:inline-block;"></span>
+    <span id="syncText">Connecting to Google Sheets…</span>
   </div>
 
-  <div class="mode-tabs">
-    <button class="active" data-mode="add">Add New Animal</button>
-    <button data-mode="update">Update Existing</button>
-  </div>
+  <main>
 
-  <!-- ============ ADD NEW ANIMAL ============ -->
-  <div class="panel active" id="panel-add">
-    <form id="formAdd">
-      <fieldset id="fieldsetAdd">
-        <div class="card">
-          <h2>Core info</h2>
-          <p class="hint">Every new animal needs an ID, species, birth date, and starting weight.</p>
-
-          <div class="field">
-            <label>Animal ID <span class="req">*</span></label>
-            <input type="text" id="add_id" placeholder="e.g. NR-CTL-019" required autocomplete="off">
-          </div>
-
-          <div class="grid-2">
-            <div class="field">
-              <label>Species <span class="req">*</span></label>
-              <select id="add_species" required>
-                <option value="" disabled selected>Select…</option>
-                <option>Cattle</option>
-                <option>Sheep</option>
-                <option>Goats</option>
-                <option>Poultry</option>
-                <option>Ducks</option>
-                <option>Rabbits</option>
-                <option>Fish</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Date of birth <span class="req">*</span></label>
-              <input type="date" id="add_dob" required>
-            </div>
-          </div>
-
-          <div class="field">
-            <label>Current weight (kg) <span class="req">*</span></label>
-            <input type="number" id="add_weight" step="0.1" min="0" placeholder="e.g. 35" required>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>Lifecycle milestones</h2>
-          <div class="milestone-note">Optional. Leave blank until each one actually happens — the sheet uses these dates to move an animal through its stages.</div>
-
-          <div class="field">
-            <label>Weaning date</label>
-            <input type="date" id="add_weaning">
-          </div>
-          <div class="field">
-            <label>Breeding date</label>
-            <input type="date" id="add_breeding">
-          </div>
-          <div class="field">
-            <label>Calving date</label>
-            <input type="date" id="add_calving">
-          </div>
-          <div class="field">
-            <label>Harvest date</label>
-            <input type="date" id="add_harvest">
-          </div>
-        </div>
-
-        <button type="submit" class="submit" id="btnAdd">Add Animal</button>
-      </fieldset>
-    </form>
-    <div class="status" id="statusAdd"></div>
-    <div class="computed-card" id="computedAdd"></div>
-
-    <div class="log" id="logAdd" style="display:none;">
-      <h3>This session</h3>
-      <div id="logAddEntries"></div>
-    </div>
-  </div>
-
-  <!-- ============ UPDATE EXISTING ANIMAL ============ -->
-  <div class="panel" id="panel-update">
-    <div class="card">
-      <h2>Find the animal</h2>
-      <p class="hint">Type or pick an Animal ID, then load its current record before editing.</p>
-      <div class="lookup-row">
-        <input type="text" id="upd_search" list="animalList" placeholder="e.g. NR-CTL-003" autocomplete="off">
-        <button type="button" id="btnLoad">Load</button>
+    <!-- ANIMALS VIEW -->
+    <div id="viewAnimals" class="panel-grid">
+      <div class="card">
+        <div class="chip-row" id="speciesFilters"></div>
+        <div class="list-count" id="listCount">0 animals</div>
+        <div class="list-wrap" id="animalList"></div>
       </div>
-      <datalist id="animalList"></datalist>
-      <div class="loaded-tag" id="loadedTag"><span>●</span><span id="loadedTagText"></span></div>
+
+      <div class="card detail-card" id="detailCard">
+        <div class="placeholder-panel">
+          <div class="big-tag"></div>
+          <div>Select an animal from the list, or add a new one.</div>
+        </div>
+      </div>
     </div>
 
-    <form id="formUpdate">
-      <fieldset id="fieldsetUpdate" disabled>
-        <div class="card">
-          <h2>Core info</h2>
-          <div class="grid-2">
-            <div class="field">
-              <label>Species <span class="req">*</span></label>
-              <select id="upd_species" required>
-                <option value="" disabled>Select…</option>
-                <option>Cattle</option>
-                <option>Sheep</option>
-                <option>Goats</option>
-                <option>Poultry</option>
-                <option>Ducks</option>
-                <option>Rabbits</option>
-                <option>Fish</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Date of birth <span class="req">*</span></label>
-              <input type="date" id="upd_dob" required>
-            </div>
-          </div>
-          <div class="field">
-            <label>Current weight (kg) <span class="req">*</span></label>
-            <input type="number" id="upd_weight" step="0.1" min="0" required>
-          </div>
+    <!-- DASHBOARD VIEW -->
+    <div id="viewDash" style="display:none;">
+      <div class="dash-grid" id="dashGrid"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ADD ANIMAL MODAL -->
+<div class="overlay hidden" id="modalAddAnimal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add New Animal</h3><button class="modal-close" data-close>&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>Species</label>
+        <div class="species-pick" id="addAnimalSpeciesPick"></div>
+      </div>
+      <div class="form-row"><label>Date of Birth</label><input type="date" id="fDob"></div>
+      <div class="form-row"><label>Intake Stage</label><select id="fIntakeStage"></select></div>
+      <div class="form-row"><label>Intake Date</label><input type="date" id="fIntakeDate"></div>
+      <div class="form-row"><label>Current Weight (kg)</label><input type="number" step="0.01" id="fWeight" placeholder="e.g. 45.0"></div>
+      <div class="form-row">
+        <label>Health / Withdrawal / Welfare Clearance</label>
+        <div class="toggle-inline">
+          <label><input type="checkbox" id="fHealth"> Health</label>
+          <label><input type="checkbox" id="fWithdrawal"> Withdrawal</label>
+          <label><input type="checkbox" id="fWelfare"> Welfare</label>
         </div>
+      </div>
+      <div class="form-row"><label>Notes (optional)</label><input type="text" id="fNotes" placeholder="Free text"></div>
+      <div class="hint" id="idPreview" style="margin-top:-4px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close>Cancel</button>
+      <button class="btn btn-primary" id="btnSaveAnimal">Save Animal</button>
+    </div>
+  </div>
+</div>
 
-        <div class="card">
-          <h2>Lifecycle milestones</h2>
-          <div class="milestone-note">Fill in a date the moment it happens. Clearing a date removes it from the record.</div>
-          <div class="field"><label>Weaning date</label><input type="date" id="upd_weaning"></div>
-          <div class="field"><label>Breeding date</label><input type="date" id="upd_breeding"></div>
-          <div class="field"><label>Calving date</label><input type="date" id="upd_calving"></div>
-          <div class="field"><label>Harvest date</label><input type="date" id="upd_harvest"></div>
-        </div>
-
-        <button type="submit" class="submit" id="btnUpdate">Save Changes</button>
-      </fieldset>
-    </form>
-    <div class="status" id="statusUpdate"></div>
-    <div class="computed-card" id="computedUpdate"></div>
-
-    <div class="log" id="logUpdate" style="display:none;">
-      <h3>This session</h3>
-      <div id="logUpdateEntries"></div>
+<!-- ADD SPECIES MODAL -->
+<div class="overlay hidden" id="modalAddSpecies">
+  <div class="modal">
+    <div class="modal-header"><h3>Add New Species</h3><button class="modal-close" data-close>&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Species Name</label><input type="text" id="sName" placeholder="e.g. Turkey"></div>
+      <div class="form-row"><label>Ear-tag Code Prefix</label><input type="text" id="sPrefix" placeholder="e.g. TRK" maxlength="4"></div>
+      <div class="hint" style="margin-bottom:14px;">Uses the standard 7-stage biological template: Birth/Hatch → Neonatal/Brooding → Pre-Weaning → Weaning → Grower → Finishing → Harvest. Set the day each stage begins below — weights can be tuned later in Lifecycle_Rules.</div>
+      <div class="form-row"><label>Stage start-day boundaries (comma-separated, 7 values)</label>
+        <input type="text" id="sBoundaries" placeholder="0, 1, 14, 60, 90, 150, 210">
+      </div>
+      <div class="form-row"><label>Gestation Days (optional)</label><input type="number" id="sGestation" placeholder="e.g. 150"></div>
+      <div class="form-row"><label>Weaning Days (optional)</label><input type="number" id="sWeaning" placeholder="e.g. 60"></div>
+      <div class="form-row"><label>Return-to-Breeding Days (optional)</label><input type="number" id="sReturn" placeholder="e.g. 30"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close>Cancel</button>
+      <button class="btn btn-primary" id="btnSaveSpecies">Save Species</button>
     </div>
   </div>
 </div>
 
 <script>
-/* ============================================================
-   CONFIG — paste your deployed Apps Script Web App /exec URL here.
-   (Deploy Code.gs inside this Google Sheet: Extensions > Apps
-   Script > Deploy > New deployment > Web app > Execute as: Me,
-   Who has access: Anyone.)
-   ============================================================ */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwB13Pe150MG8gwEVAu7FXTNjjrul6m5_3QYwBKsEBXRd1JgfI53TZ5EFlEUgh7mAqB1A/exec';
+/* =====================================================================
+   NGAPORI RANCH — DATA ENTRY GUI (live)
+   Single-file HTML/JS frontend, matching the ranch's standard portal
+   stack: reads live from the published Google Sheets CSVs below.
+   Writes are optimistic (update in-memory + re-render immediately) and
+   also POST to APPS_SCRIPT_URL when one is configured — every write is
+   isolated in functions marked "BACKEND WRITE". Until that URL is set,
+   writes are local-only for this browser session (the sync strip says
+   so plainly) so nothing pretends to be saved when it isn't.
+   ===================================================================== */
 
-const isConfigured = APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf('PASTE_') !== 0;
-document.getElementById('setupWarning').style.display = isConfigured ? 'none' : 'block';
+// ---------- CONFIG ----------
+const SHEET_URLS = {
+  rules:    "https://docs.google.com/spreadsheets/d/e/2PACX-1vR5LsFNHL2Z_903hwnVSU4iWHkWdAOS7Q6uEaqsV7RYRhnEIUHQmcbDUN8_ji52Et1EVNJSmoVl9aaw/pub?gid=445208535&single=true&output=csv",
+  engine:   "https://docs.google.com/spreadsheets/d/e/2PACX-1vR5LsFNHL2Z_903hwnVSU4iWHkWdAOS7Q6uEaqsV7RYRhnEIUHQmcbDUN8_ji52Et1EVNJSmoVl9aaw/pub?gid=1131435226&single=true&output=csv",
+};
+// Point this at your Apps Script Web App's /exec URL to make writes persist
+// back to the sheet (deploy code.gs, then paste the /exec URL here).
+// Leave blank to run read-only-live / write-local.
+const APPS_SCRIPT_URL = "";
 
-/* ---------------- mode tabs ---------------- */
-document.querySelectorAll('.mode-tabs button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.mode-tabs button').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-'+btn.dataset.mode).classList.add('active');
+const STAGE_TEMPLATE = ["Birth / Hatch","Neonatal / Brooding","Pre Weaning","Weaning","Grower","Finishing","Harvest"];
+const OPERATIONAL_STAGES = ["Harvest Candidate","Harvest Ready","Harvest Scheduled","Loading for Transport","Transport Departed"];
+const TAG_PALETTE = ["#7A2E1E","#5C6B8C","#8C6E3E","#B5791E","#6B7A3D","#3E6B6B","#3E5C8C","#6B4C8C","#8C4C6B","#4C6B7A"];
+
+let LIFECYCLE_RULES = {};   // species -> {gestation, weaning, returnBreed, stages:[{name,minAge,maxAge,minW,maxW}]}
+let SPECIES_LIST = [];
+let SPECIES_COLOR = {};
+let SPECIES_PREFIX = {};
+let ANIMALS = [];
+
+// ---------- HELPERS ----------
+function norm(s){ return String(s||"").trim().toLowerCase().replace(/[^a-z0-9]/g,""); }
+
+function normalizeRow(row){
+  const out = {};
+  Object.keys(row).forEach(k => out[norm(k)] = row[k]);
+  return out;
+}
+function pick(row, ...names){
+  for(const n of names){
+    const v = row[norm(n)];
+    if(v !== undefined && v !== null && String(v).trim() !== "") return String(v).trim();
+  }
+  return "";
+}
+function pickNum(row, ...names){
+  const v = pick(row, ...names);
+  const n = parseFloat(v);
+  return isNaN(n) ? null : n;
+}
+function toISODate(v){
+  if(!v) return null;
+  const s = String(v).trim();
+  if(!s) return null;
+  // Already ISO?
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  const d = new Date(s);
+  if(isNaN(d)) return null;
+  return d.toISOString().slice(0,10);
+}
+
+async function fetchCSV(url){
+  const res = await fetch(url, {cache:"no-store"});
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  const text = await res.text();
+  const parsed = Papa.parse(text, {header:true, skipEmptyLines:true});
+  return parsed.data.map(normalizeRow);
+}
+
+// ---------- LOAD: Lifecycle_Rules ----------
+function buildRulesFromRows(rows){
+  const rules = {};
+  const order = [];
+  rows.forEach(r=>{
+    const species = pick(r,"Species");
+    if(!species) return;
+    if(!rules[species]){
+      rules[species] = {
+        gestation: pickNum(r,"Gestation_Days"),
+        weaning: pickNum(r,"Weaning_Days"),
+        returnBreed: pickNum(r,"Return_To_Breeding_Days"),
+        stages: []
+      };
+      order.push(species);
+    }
+    rules[species].stages.push({
+      name: pick(r,"Stage"),
+      minAge: pickNum(r,"Min_Age_Days") ?? 0,
+      maxAge: pickNum(r,"Max_Age_Days") ?? 0,
+      minW: pickNum(r,"Min_Weight_Kg") ?? 0,
+      maxW: pickNum(r,"Max_Weight_Kg") ?? 0,
+    });
+  });
+  return {rules, order};
+}
+
+// ---------- LOAD: Lifecycle_Engine ----------
+function buildAnimalsFromRows(rows){
+  return rows.filter(r => pick(r,"Animal_ID")).map(r=>({
+    id: pick(r,"Animal_ID"),
+    species: pick(r,"Species"),
+    dob: toISODate(pick(r,"DOB")),
+    weight: pickNum(r,"Current_Weight") ?? 0,
+    intakeStage: pick(r,"Intake_Stage"),
+    intakeDate: toISODate(pick(r,"Intake_Date")),
+    weaningDate: toISODate(pick(r,"Weaning_Date")),
+    breedingDate: toISODate(pick(r,"Breeding_Date")),
+    calvingDate: toISODate(pick(r,"Calving_Date")),
+    harvestDate: toISODate(pick(r,"Harvest_Date")),
+    ageDaysSheet: pickNum(r,"Age_Days"),
+    biologicalCurrentStage: pick(r,"Biological_Current_Stage"),
+    biologicalNextStage: pick(r,"Biological_Next_Stage"),
+    harvestScheduled: toISODate(pick(r,"Harvest_Scheduled_Date")),
+    transportLoad: toISODate(pick(r,"Transport_Load_Date")),
+    transportDepart: toISODate(pick(r,"Transport_Departed_Date")),
+    unifiedCurrentStage: pick(r,"Unified_Current_Stage"),
+    unifiedNextStage: pick(r,"Unified_Next_Stage"),
+    health: /^(yes|y|true|1)$/i.test(pick(r,"Health_Clearance")),
+    withdrawal: /^(yes|y|true|1)$/i.test(pick(r,"Withdrawal_Clearance")),
+    welfare: /^(yes|y|true|1)$/i.test(pick(r,"Welfare_Clearance")),
+    expectedBirthDate: toISODate(pick(r,"Expected_Birth_Date")),
+    expectedWeaningDate: toISODate(pick(r,"Expected_Weaning_Date")),
+    nextBreedingWindowOpen: toISODate(pick(r,"Next_Breeding_Window_Open")),
+    notes: "",
+  }));
+}
+
+function assignSpeciesMeta(){
+  SPECIES_COLOR = {}; SPECIES_PREFIX = {};
+  SPECIES_LIST.forEach((s,i)=>{
+    SPECIES_COLOR[s] = TAG_PALETTE[i % TAG_PALETTE.length];
+    const existing = ANIMALS.find(a=>a.species===s);
+    SPECIES_PREFIX[s] = existing ? existing.id.split('-')[0] : s.slice(0,3).toUpperCase();
+  });
+}
+
+// ---------- STAGE HELPERS ----------
+function ageDays(animal){
+  if(animal.ageDaysSheet != null) return Math.round(animal.ageDaysSheet);
+  if(!animal.dob) return 0;
+  return Math.round((TODAY - new Date(animal.dob)) / 86400000);
+}
+function biologicalStage(animal){
+  if(animal.biologicalCurrentStage) return animal.biologicalCurrentStage;
+  const rules = LIFECYCLE_RULES[animal.species];
+  if(!rules) return "—";
+  const age = ageDays(animal);
+  let match = rules.stages.find(s => age >= s.minAge && age < s.maxAge);
+  if(!match) match = rules.stages[rules.stages.length-1];
+  return match.name;
+}
+function unifiedStage(animal){
+  if(animal.unifiedCurrentStage) return animal.unifiedCurrentStage;
+  if(animal.transportDepart) return "Transport Departed";
+  if(animal.transportLoad) return "Loading for Transport";
+  if(animal.harvestScheduled) return "Harvest Scheduled";
+  const bio = biologicalStage(animal);
+  return bio === "Harvest" ? "Harvest Candidate" : bio;
+}
+function stageColor(stage){
+  if(stage === "Harvest" || stage === "Harvest Candidate") return "var(--red-alert)";
+  if(["Harvest Ready","Harvest Scheduled","Loading for Transport"].includes(stage)) return "var(--amber-warn)";
+  if(stage === "Transport Departed") return "var(--ink-dim)";
+  if(stage === "Finishing") return "var(--ochre-dark)";
+  return "var(--green-clear)";
+}
+const TODAY = new Date();
+
+// ---------- STATE ----------
+let activeSpeciesFilter = "All";
+let selectedAnimalId = null;
+let searchQuery = "";
+let currentView = "animals";
+
+// ---------- SYNC STATUS ----------
+function setSyncStatus(mode, text){
+  const dot = document.getElementById('syncDot');
+  const label = document.getElementById('syncText');
+  const colors = {ok:"var(--green-clear)", warn:"var(--amber-warn)", err:"var(--red-alert)"};
+  dot.style.background = colors[mode] || colors.warn;
+  label.textContent = text;
+}
+
+// ---------- LOAD PIPELINE ----------
+async function loadLive(){
+  setSyncStatus('warn','Connecting to Google Sheets…');
+  try{
+    const [rulesRows, engineRows] = await Promise.all([
+      fetchCSV(SHEET_URLS.rules),
+      fetchCSV(SHEET_URLS.engine),
+    ]);
+    const {rules, order} = buildRulesFromRows(rulesRows);
+    LIFECYCLE_RULES = rules;
+    SPECIES_LIST = order;
+    ANIMALS = buildAnimalsFromRows(engineRows);
+    assignSpeciesMeta();
+    if(!selectedAnimalId && ANIMALS.length) selectedAnimalId = ANIMALS[0].id;
+    const stamp = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    setSyncStatus('ok', `Live — ${ANIMALS.length} animals, ${SPECIES_LIST.length} species · synced ${stamp}` +
+      (APPS_SCRIPT_URL ? "" : " · writes are local-only (no Apps Script URL set)"));
+    renderAll();
+  }catch(err){
+    console.error(err);
+    setSyncStatus('err', `Couldn't reach the published sheet (${err.message}). Showing last-loaded data.`);
+    if(ANIMALS.length === 0){
+      // Nothing ever loaded — leave the UI in an honest empty state rather than fake data.
+      renderAll();
+    }
+  }
+}
+
+function renderAll(){
+  renderSpeciesFilters();
+  renderList();
+  renderDetail();
+  if(currentView==='dash') renderDashboard();
+}
+
+// ---------- RENDER: SPECIES FILTERS ----------
+function renderSpeciesFilters(){
+  const wrap = document.getElementById('speciesFilters');
+  const all = ["All", ...SPECIES_LIST];
+  wrap.innerHTML = all.map(s =>
+    `<div class="chip ${activeSpeciesFilter===s?'active':''}" data-species="${s}">${s}</div>`
+  ).join('');
+  wrap.querySelectorAll('.chip').forEach(el=>{
+    el.addEventListener('click', ()=>{ activeSpeciesFilter = el.dataset.species; renderList(); renderSpeciesFilters(); });
+  });
+}
+
+// ---------- FUZZY SEARCH ----------
+function matchesQuery(animal, q){
+  if(!q) return true;
+  q = q.toLowerCase().trim();
+  const stage = unifiedStage(animal).toLowerCase();
+  const bio = biologicalStage(animal).toLowerCase();
+  const haystack = [
+    animal.id, animal.species, stage, bio,
+    animal.weight+"kg", animal.weight+" kg",
+    animal.notes||"",
+    animal.dob ? monthName(animal.dob) : ""
+  ].join(" ").toLowerCase();
+  return q.split(/\s+/).every(term => haystack.includes(term));
+}
+function monthName(dateStr){
+  return new Date(dateStr).toLocaleString('en-US',{month:'long'});
+}
+
+// ---------- RENDER: LIST ----------
+function renderList(){
+  const wrap = document.getElementById('animalList');
+  const countEl = document.getElementById('listCount');
+  let list = ANIMALS.filter(a => activeSpeciesFilter==="All" || a.species===activeSpeciesFilter);
+  list = list.filter(a => matchesQuery(a, searchQuery));
+  countEl.textContent = `${list.length} animal${list.length===1?'':'s'}`;
+
+  if(list.length===0){
+    wrap.innerHTML = `<div class="empty-state">${ANIMALS.length===0 ? 'No data loaded yet.' : 'No animals match. Try a different search, or add a new animal.'}</div>`;
+    return;
+  }
+
+  wrap.innerHTML = list.map(a=>{
+    const stage = unifiedStage(a);
+    const color = stageColor(stage);
+    const sel = a.id===selectedAnimalId ? 'selected':'';
+    const tagColor = SPECIES_COLOR[a.species] || "var(--ochre)";
+    return `<div class="animal-row ${sel}" data-id="${a.id}">
+      <div class="eartag" style="background:${tagColor};color:${tagColor}">${a.id}</div>
+      <div class="row-info">
+        <div class="id">${a.species} — ${ageDays(a)}d — ${a.weight}kg</div>
+        <div class="meta">DOB ${a.dob||'—'}</div>
+      </div>
+      <div class="stage-pill" style="background:${color}22;color:${color};border:1px solid ${color}55;">${stage}</div>
+    </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('.animal-row').forEach(el=>{
+    el.addEventListener('click', ()=>{ selectedAnimalId = el.dataset.id; renderList(); renderDetail(); });
+  });
+}
+
+// ---------- RENDER: DETAIL / DATA ENTRY ----------
+function renderDetail(){
+  const card = document.getElementById('detailCard');
+  const a = ANIMALS.find(x=>x.id===selectedAnimalId);
+  if(!a){
+    card.innerHTML = `<div class="placeholder-panel"><div class="big-tag"></div><div>${ANIMALS.length===0 ? 'Waiting on data from the sheet…' : 'Select an animal from the list, or add a new one.'}</div></div>`;
+    return;
+  }
+  const stage = unifiedStage(a);
+  const color = stageColor(stage);
+  const rules = LIFECYCLE_RULES[a.species] || {gestation:null,weaning:null,returnBreed:null};
+  const tagColor = SPECIES_COLOR[a.species] || "var(--ochre)";
+
+  card.innerHTML = `
+    <div class="detail-header">
+      <div class="eartag lg" style="background:${tagColor};color:${tagColor}">${a.id}</div>
+      <div class="name-block">
+        <div class="species-label">${a.species}</div>
+        <h2>${a.id}</h2>
+      </div>
+      <div class="stage-pill" style="background:${color};color:#fff;font-size:11.5px;padding:6px 12px;">${stage}</div>
+    </div>
+    <div class="detail-body">
+
+      <div class="section">
+        <div class="section-title">Animal Profile</div>
+        <div class="field-grid">
+          <div class="field"><label>DOB</label><div class="val">${a.dob||'—'}</div></div>
+          <div class="field"><label>Age</label><div class="val">${ageDays(a)} days</div></div>
+          <div class="field"><label>Current Weight</label><div class="val">${a.weight} kg</div></div>
+          <div class="field"><label>Biological Stage</label><div class="val">${biologicalStage(a)}</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Event Logging</div>
+        <div class="btn-grid">
+          <button class="evt-btn ${a.weaningDate?'done':''}" data-evt="weaningDate">${a.weaningDate? '✓ Weaned '+a.weaningDate : 'Record Weaning'}</button>
+          <button class="evt-btn ${a.breedingDate?'done':''}" data-evt="breedingDate">${a.breedingDate? '✓ Bred '+a.breedingDate : 'Record Breeding'}</button>
+          <button class="evt-btn ${a.calvingDate?'done':''}" data-evt="calvingDate">${a.calvingDate? '✓ Birth '+a.calvingDate : 'Record Birth'}</button>
+          <button class="evt-btn ${stage==='Harvest Candidate'?'done':''}" data-evt="markCandidate" ${biologicalStage(a)!=='Harvest'?'disabled':''}>Harvest Candidate</button>
+          <button class="evt-btn ${stage==='Harvest Ready'?'done':''}" data-evt="markReady">Harvest Ready</button>
+          <button class="evt-btn ${a.harvestScheduled?'done':''}" data-evt="harvestScheduled">${a.harvestScheduled? '✓ Scheduled '+a.harvestScheduled : 'Schedule Harvest'}</button>
+          <button class="evt-btn ${a.transportLoad?'done':''}" data-evt="transportLoad">${a.transportLoad? '✓ Loaded '+a.transportLoad : 'Load Transport'}</button>
+          <button class="evt-btn ${a.transportDepart?'done':''}" data-evt="transportDepart">${a.transportDepart? '✓ Departed '+a.transportDepart : 'Depart Transport'}</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Health &amp; Compliance</div>
+        <div class="toggle-row"><div class="label">Health Clearance</div><div class="switch ${a.health?'on':''}" data-toggle="health"></div></div>
+        <div class="toggle-row"><div class="label">Withdrawal Clearance</div><div class="switch ${a.withdrawal?'on':''}" data-toggle="withdrawal"></div></div>
+        <div class="toggle-row"><div class="label">Welfare Clearance</div><div class="switch ${a.welfare?'on':''}" data-toggle="welfare"></div></div>
+      </div>
+
+      ${rules.gestation ? `
+      <div class="section">
+        <div class="section-title">Breeding Forecast</div>
+        <div class="field-grid">
+          <div class="field"><label>Breeding Date</label><div class="val">${a.breedingDate||'—'}</div></div>
+          <div class="field"><label>Expected Birth</label><div class="val">${a.expectedBirthDate || (a.breedingDate? addDays(a.breedingDate,rules.gestation) : '—')}</div></div>
+          <div class="field"><label>Expected Weaning</label><div class="val">${a.expectedWeaningDate || (a.breedingDate? addDays(a.breedingDate,rules.gestation+(rules.weaning||0)) : '—')}</div></div>
+          <div class="field"><label>Next Breeding Window</label><div class="val">${a.nextBreedingWindowOpen || (a.breedingDate? addDays(a.breedingDate,rules.gestation+(rules.weaning||0)+(rules.returnBreed||0)) : '—')}</div></div>
+        </div>
+      </div>` : '' }
+
+      <div class="section" style="margin-bottom:4px;">
+        <div class="section-title">Notes</div>
+        <textarea class="notes" id="notesField" placeholder="Free text — feed changes, vet visits, temperament...">${a.notes||''}</textarea>
+      </div>
+
+    </div>
+  `;
+
+  card.querySelectorAll('[data-evt]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const evt = btn.dataset.evt;
+      const todayStr = new Date().toISOString().slice(0,10);
+      if(evt==='markCandidate'){ a.unifiedCurrentStage='Harvest Candidate'; commitAnimal(a); renderDetail(); renderList(); return; }
+      if(evt==='markReady'){ a.unifiedCurrentStage='Harvest Ready'; commitAnimal(a); renderDetail(); renderList(); return; }
+      a[evt] = todayStr;
+      if(evt==='harvestScheduled') a.unifiedCurrentStage='Harvest Scheduled';
+      if(evt==='transportLoad') a.unifiedCurrentStage='Loading for Transport';
+      if(evt==='transportDepart') a.unifiedCurrentStage='Transport Departed';
+      commitAnimal(a);
+      renderDetail(); renderList();
+    });
+  });
+
+  card.querySelectorAll('[data-toggle]').forEach(sw=>{
+    sw.addEventListener('click', ()=>{
+      const key = sw.dataset.toggle;
+      a[key] = !a[key];
+      commitAnimal(a);
+      renderDetail();
+    });
+  });
+
+  const notesField = card.querySelector('#notesField');
+  notesField.addEventListener('blur', ()=>{
+    a.notes = notesField.value;
+    commitAnimal(a);
+  });
+}
+
+function addDays(dateStr,days){
+  const d = new Date(dateStr);
+  d.setDate(d.getDate()+days);
+  return d.toISOString().slice(0,10);
+}
+
+// BACKEND WRITE — posts to your Apps Script Web App when APPS_SCRIPT_URL is set.
+// Always updates local state first so the UI never waits on the network.
+function commitAnimal(a){
+  const idx = ANIMALS.findIndex(x=>x.id===a.id);
+  ANIMALS[idx] = a;
+  if(APPS_SCRIPT_URL){
+    fetch(APPS_SCRIPT_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({action:'updateAnimal', animal:a})
+    }).catch(err => setSyncStatus('err', `Local change saved, but the sheet write failed (${err.message}).`));
+  }
+}
+
+// ---------- DASHBOARD (computed live from loaded Lifecycle_Engine) ----------
+function renderDashboard(){
+  const grid = document.getElementById('dashGrid');
+  if(ANIMALS.length===0){
+    grid.innerHTML = `<div class="empty-state">No data loaded yet.</div>`;
+    return;
+  }
+
+  const stageCounts = {};
+  ANIMALS.forEach(a=>{
+    const s = unifiedStage(a);
+    stageCounts[s] = (stageCounts[s]||0)+1;
+  });
+
+  const pipeline = OPERATIONAL_STAGES
+    .map(s=>`<div class="kpi-line"><span>${s}</span><span class="n">${stageCounts[s]||0}</span></div>`).join('');
+
+  const breedingActive = ANIMALS.filter(a=>a.breedingDate).length;
+  const weanedThisPeriod = ANIMALS.filter(a=>a.weaningDate).length;
+
+  const bioStages = STAGE_TEMPLATE;
+  const bioCounts = {};
+  ANIMALS.forEach(a=>{ const s=biologicalStage(a); bioCounts[s]=(bioCounts[s]||0)+1; });
+  const maxCount = Math.max(1,...Object.values(bioCounts));
+  const stageBars = bioStages.map(s=>{
+    const c = bioCounts[s]||0;
+    return `<div class="stage-bar-row"><div class="lbl"><span>${s}</span><span>${c}</span></div>
+      <div class="track"><div class="fill" style="width:${(c/maxCount*100)}%"></div></div></div>`;
+  }).join('');
+
+  const speciesCounts = {};
+  ANIMALS.forEach(a=>{ speciesCounts[a.species]=(speciesCounts[a.species]||0)+1; });
+  const speciesLines = SPECIES_LIST.map(s=>
+    `<div class="kpi-line"><span>${s}</span><span class="n">${speciesCounts[s]||0}</span></div>`).join('');
+
+  grid.innerHTML = `
+    <div class="kpi-card"><h4>Harvest Pipeline</h4>${pipeline}</div>
+    <div class="kpi-card"><h4>Breeding Forecasts</h4>
+      <div class="kpi-line"><span>Active Breeding Records</span><span class="n">${breedingActive}</span></div>
+      <div class="kpi-line"><span>Weaning Events Logged</span><span class="n">${weanedThisPeriod}</span></div>
+    </div>
+    <div class="kpi-card"><h4>Herd by Species</h4>${speciesLines}</div>
+    <div class="kpi-card" style="grid-column:1/-1;"><h4>Stage Distribution</h4>${stageBars}</div>
+  `;
+}
+
+// ---------- VIEW SWITCHING ----------
+document.getElementById('tabAnimals').addEventListener('click', ()=>{
+  currentView='animals';
+  document.getElementById('viewAnimals').style.display='grid';
+  document.getElementById('viewDash').style.display='none';
+  document.getElementById('tabAnimals').classList.add('active');
+  document.getElementById('tabDash').classList.remove('active');
+});
+document.getElementById('tabDash').addEventListener('click', ()=>{
+  currentView='dash';
+  document.getElementById('viewAnimals').style.display='none';
+  document.getElementById('viewDash').style.display='block';
+  document.getElementById('tabDash').classList.add('active');
+  document.getElementById('tabAnimals').classList.remove('active');
+  renderDashboard();
+});
+
+document.getElementById('searchInput').addEventListener('input', (e)=>{
+  searchQuery = e.target.value;
+  renderList();
+});
+
+document.getElementById('btnRefresh').addEventListener('click', loadLive);
+
+// ---------- ADD ANIMAL MODAL ----------
+const modalAddAnimal = document.getElementById('modalAddAnimal');
+let addAnimalSpecies = null;
+
+function openAddAnimal(){
+  if(SPECIES_LIST.length===0){ alert('Species list has not loaded yet — try Refresh.'); return; }
+  addAnimalSpecies = activeSpeciesFilter!=="All" ? activeSpeciesFilter : SPECIES_LIST[0];
+  renderAddAnimalSpeciesPick();
+  populateIntakeStages();
+  document.getElementById('fDob').value = '';
+  document.getElementById('fIntakeDate').value = '';
+  document.getElementById('fWeight').value = '';
+  document.getElementById('fHealth').checked=false;
+  document.getElementById('fWithdrawal').checked=false;
+  document.getElementById('fWelfare').checked=false;
+  document.getElementById('fNotes').value='';
+  updateIdPreview();
+  modalAddAnimal.classList.remove('hidden');
+}
+function renderAddAnimalSpeciesPick(){
+  const wrap = document.getElementById('addAnimalSpeciesPick');
+  wrap.innerHTML = SPECIES_LIST.map(s=>
+    `<div class="chip ${s===addAnimalSpecies?'active':''}" data-s="${s}">${s}</div>`).join('');
+  wrap.querySelectorAll('.chip').forEach(el=>{
+    el.addEventListener('click', ()=>{ addAnimalSpecies=el.dataset.s; renderAddAnimalSpeciesPick(); populateIntakeStages(); updateIdPreview(); });
+  });
+}
+function populateIntakeStages(){
+  const sel = document.getElementById('fIntakeStage');
+  const stages = (LIFECYCLE_RULES[addAnimalSpecies]?.stages || []).map(s=>s.name);
+  sel.innerHTML = stages.map(s=>`<option value="${s}">${s}</option>`).join('');
+}
+function nextIdFor(species){
+  const prefix = SPECIES_PREFIX[species] || species.slice(0,3).toUpperCase();
+  const existing = ANIMALS.filter(a=>a.species===species).map(a=>parseInt((a.id.split('-')[1]||''),10)).filter(n=>!isNaN(n));
+  const next = (existing.length? Math.max(...existing) : 0)+1;
+  return `${prefix}-${String(next).padStart(3,'0')}`;
+}
+function updateIdPreview(){
+  document.getElementById('idPreview').textContent = `Animal ID will be auto-generated: ${nextIdFor(addAnimalSpecies)}`;
+}
+
+document.getElementById('btnAddAnimal').addEventListener('click', openAddAnimal);
+
+document.getElementById('btnSaveAnimal').addEventListener('click', ()=>{
+  const dob = document.getElementById('fDob').value;
+  const weight = parseFloat(document.getElementById('fWeight').value);
+  if(!dob || isNaN(weight)){
+    alert('Please enter a date of birth and current weight.');
+    return;
+  }
+  const id = nextIdFor(addAnimalSpecies);
+  const animal = {
+    id, species: addAnimalSpecies, dob, weight,
+    intakeStage: document.getElementById('fIntakeStage').value,
+    intakeDate: document.getElementById('fIntakeDate').value || null,
+    weaningDate:null, breedingDate:null, calvingDate:null, harvestDate:null,
+    harvestScheduled:null, transportLoad:null, transportDepart:null,
+    unifiedCurrentStage:null, biologicalCurrentStage:null, ageDaysSheet:null,
+    health: document.getElementById('fHealth').checked,
+    withdrawal: document.getElementById('fWithdrawal').checked,
+    welfare: document.getElementById('fWelfare').checked,
+    notes: document.getElementById('fNotes').value,
+  };
+  ANIMALS.push(animal);
+  if(APPS_SCRIPT_URL){
+    fetch(APPS_SCRIPT_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({action:'addAnimal', animal})
+    }).catch(err => setSyncStatus('err', `Animal added locally, but the sheet write failed (${err.message}).`));
+  }
+  selectedAnimalId = id;
+  activeSpeciesFilter = "All";
+  modalAddAnimal.classList.add('hidden');
+  renderSpeciesFilters(); renderList(); renderDetail();
+});
+
+// ---------- ADD SPECIES MODAL ----------
+const modalAddSpecies = document.getElementById('modalAddSpecies');
+document.getElementById('btnAddSpecies').addEventListener('click', ()=>{
+  document.getElementById('sName').value='';
+  document.getElementById('sPrefix').value='';
+  document.getElementById('sBoundaries').value='0, 1, 14, 60, 90, 150, 210';
+  document.getElementById('sGestation').value='';
+  document.getElementById('sWeaning').value='';
+  document.getElementById('sReturn').value='';
+  modalAddSpecies.classList.remove('hidden');
+});
+
+document.getElementById('btnSaveSpecies').addEventListener('click', ()=>{
+  const name = document.getElementById('sName').value.trim();
+  const prefix = document.getElementById('sPrefix').value.trim().toUpperCase();
+  const boundariesRaw = document.getElementById('sBoundaries').value.trim();
+  if(!name || !prefix){ alert('Species name and ear-tag prefix are required.'); return; }
+  if(LIFECYCLE_RULES[name]){ alert('That species already exists.'); return; }
+
+  const bounds = boundariesRaw.split(',').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n));
+  if(bounds.length !== 7){ alert('Please enter exactly 7 stage start-day boundaries.'); return; }
+
+  const stages = STAGE_TEMPLATE.map((stageName,i)=>({
+    name: stageName,
+    minAge: bounds[i],
+    maxAge: i<6 ? bounds[i+1] : bounds[i]+60,
+    minW: 0, maxW: 0, // placeholder — tune weight bands in Lifecycle_Rules on the sheet
+  }));
+
+  const gestation = document.getElementById('sGestation').value ? parseInt(document.getElementById('sGestation').value,10) : null;
+  const weaning = document.getElementById('sWeaning').value ? parseInt(document.getElementById('sWeaning').value,10) : null;
+  const returnBreed = document.getElementById('sReturn').value ? parseInt(document.getElementById('sReturn').value,10) : null;
+
+  LIFECYCLE_RULES[name] = {gestation, weaning, returnBreed, stages};
+  SPECIES_LIST.push(name);
+  SPECIES_COLOR[name] = TAG_PALETTE[(SPECIES_LIST.length-1) % TAG_PALETTE.length];
+  SPECIES_PREFIX[name] = prefix;
+
+  if(APPS_SCRIPT_URL){
+    fetch(APPS_SCRIPT_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({action:'addSpecies', species:name, gestation, weaning, returnBreed, stages})
+    }).catch(err => setSyncStatus('err', `Species added locally, but the sheet write failed (${err.message}).`));
+  }
+  modalAddSpecies.classList.add('hidden');
+  renderSpeciesFilters();
+});
+
+// ---------- MODAL CLOSE ----------
+document.querySelectorAll('[data-close]').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    modalAddAnimal.classList.add('hidden');
+    modalAddSpecies.classList.add('hidden');
   });
 });
-
-/* ---------------- API helpers ---------------- */
-function postToSheet(payload){
-  return fetch(APPS_SCRIPT_URL, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'}, // avoids CORS preflight
-    body: JSON.stringify(payload)
-  }).then(r=>r.json());
-}
-function getFromSheet(params){
-  const url = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.indexOf('?')===-1 ? '?' : '&') + params;
-  return fetch(url).then(r=>r.json());
-}
-
-function setStatus(elId, kind, msg){
-  const el = document.getElementById(elId);
-  el.className = 'status show ' + kind;
-  el.textContent = msg;
-}
-// Renders whatever computed fields the sheet returns (Age_Days, Current_Stage,
-// Next_Stage, harvest windows, etc) — generic by design so it doesn't need to
-// know the sheet's exact column names, just displays whatever keys come back.
-function renderComputed(elId, computed){
-  const el = document.getElementById(elId);
-  const entries = computed ? Object.entries(computed) : [];
-  if(entries.length === 0){ el.classList.remove('show'); el.innerHTML=''; return; }
-  const rows = entries.map(([k,v])=>{
-    const label = k.replace(/_/g,' ');
-    const display = (v===''||v===null||v===undefined) ? '—' : v;
-    return `<div class="computed-row"><span class="k">${label}</span><span class="v">${display}</span></div>`;
-  }).join('');
-  el.innerHTML = `<div class="computed-title">Calculated by the sheet</div>${rows}`;
-  el.classList.add('show');
-}
-function addLogEntry(logWrapId, entriesId, ok, msg){
-  document.getElementById(logWrapId).style.display = 'block';
-  const row = document.createElement('div');
-  row.className = 'log-entry';
-  const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-  row.innerHTML = `<span><span class="${ok?'ok-dot':'err-dot'}">●</span> ${msg}</span><span>${time}</span>`;
-  document.getElementById(entriesId).prepend(row);
-}
-
-/* ---------------- Add New Animal ---------------- */
-document.getElementById('formAdd').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  if(!isConfigured){ setStatus('statusAdd','err','Not connected yet — set APPS_SCRIPT_URL first.'); return; }
-  const btn = document.getElementById('btnAdd');
-  const fieldset = document.getElementById('fieldsetAdd');
-  const payload = {
-    action:'add',
-    Animal_ID: document.getElementById('add_id').value.trim(),
-    Species: document.getElementById('add_species').value,
-    DOB: document.getElementById('add_dob').value,
-    Current_Weight: document.getElementById('add_weight').value,
-    Weaning_Date: document.getElementById('add_weaning').value,
-    Breeding_Date: document.getElementById('add_breeding').value,
-    Calving_Date: document.getElementById('add_calving').value,
-    Harvest_Date: document.getElementById('add_harvest').value
-  };
-  btn.disabled = true; fieldset.disabled = true;
-  setStatus('statusAdd','pending','Saving to the sheet…');
-  try{
-    const res = await postToSheet(payload);
-    if(res.success){
-      setStatus('statusAdd','ok', res.message || (payload.Animal_ID+' added.'));
-      addLogEntry('logAdd','logAddEntries', true, 'Added '+payload.Animal_ID+' ('+payload.Species+')');
-      renderComputed('computedAdd', res.computed);
-      document.getElementById('formAdd').reset();
-      refreshAnimalList();
-    } else {
-      setStatus('statusAdd','err', res.message || 'Could not save — try again.');
-      addLogEntry('logAdd','logAddEntries', false, 'Failed: '+payload.Animal_ID+' — '+(res.message||'error'));
-      renderComputed('computedAdd', null);
-    }
-  } catch(err){
-    setStatus('statusAdd','err', 'Network error: '+err.message+'. Nothing was saved — try again once you have signal.');
-  } finally {
-    btn.disabled = false; fieldset.disabled = false;
-  }
+[modalAddAnimal, modalAddSpecies].forEach(ov=>{
+  ov.addEventListener('click',(e)=>{ if(e.target===ov) ov.classList.add('hidden'); });
 });
 
-/* ---------------- Update Existing Animal ---------------- */
-let animalListCache = [];
-async function refreshAnimalList(){
-  if(!isConfigured) return;
-  try{
-    const res = await getFromSheet('action=list');
-    if(res.success){
-      animalListCache = res.animals;
-      const dl = document.getElementById('animalList');
-      dl.innerHTML = res.animals.map(a=>`<option value="${a.Animal_ID}">${a.Species} · ${a.Current_Stage}</option>`).join('');
-    }
-  } catch(err){ /* silent — datalist is a convenience, not required */ }
-}
-refreshAnimalList();
-
-document.getElementById('btnLoad').addEventListener('click', async ()=>{
-  if(!isConfigured){ setStatus('statusUpdate','err','Not connected yet — set APPS_SCRIPT_URL first.'); return; }
-  const id = document.getElementById('upd_search').value.trim();
-  if(!id){ setStatus('statusUpdate','err','Enter an Animal ID first.'); return; }
-  const btn = document.getElementById('btnLoad');
-  btn.disabled = true;
-  setStatus('statusUpdate','pending','Loading '+id+'…');
-  try{
-    const res = await getFromSheet('action=lookup&id='+encodeURIComponent(id));
-    if(res.success){
-      const a = res.animal;
-      document.getElementById('upd_species').value = a.Species || '';
-      document.getElementById('upd_dob').value = a.DOB || '';
-      document.getElementById('upd_weight').value = a.Current_Weight || '';
-      document.getElementById('upd_weaning').value = a.Weaning_Date || '';
-      document.getElementById('upd_breeding').value = a.Breeding_Date || '';
-      document.getElementById('upd_calving').value = a.Calving_Date || '';
-      document.getElementById('upd_harvest').value = a.Harvest_Date || '';
-      document.getElementById('fieldsetUpdate').disabled = false;
-      const tag = document.getElementById('loadedTag');
-      tag.classList.add('show');
-      document.getElementById('loadedTagText').textContent = 'Editing '+a.Animal_ID+' ('+a.Species+')';
-      setStatus('statusUpdate','ok','Loaded. Edit any field below, then Save Changes.');
-      renderComputed('computedUpdate', res.computed);
-    } else {
-      document.getElementById('fieldsetUpdate').disabled = true;
-      setStatus('statusUpdate','err', res.message || 'Animal not found.');
-      renderComputed('computedUpdate', null);
-    }
-  } catch(err){
-    setStatus('statusUpdate','err','Network error: '+err.message);
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-document.getElementById('formUpdate').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const id = document.getElementById('upd_search').value.trim();
-  if(!id){ setStatus('statusUpdate','err','No animal loaded.'); return; }
-  const btn = document.getElementById('btnUpdate');
-  const fieldset = document.getElementById('fieldsetUpdate');
-  const payload = {
-    action:'update',
-    Animal_ID: id,
-    Species: document.getElementById('upd_species').value,
-    DOB: document.getElementById('upd_dob').value,
-    Current_Weight: document.getElementById('upd_weight').value,
-    Weaning_Date: document.getElementById('upd_weaning').value,
-    Breeding_Date: document.getElementById('upd_breeding').value,
-    Calving_Date: document.getElementById('upd_calving').value,
-    Harvest_Date: document.getElementById('upd_harvest').value
-  };
-  btn.disabled = true; fieldset.disabled = true;
-  setStatus('statusUpdate','pending','Saving changes…');
-  try{
-    const res = await postToSheet(payload);
-    if(res.success){
-      setStatus('statusUpdate','ok', res.message || (id+' updated.'));
-      addLogEntry('logUpdate','logUpdateEntries', true, 'Updated '+id);
-      renderComputed('computedUpdate', res.computed);
-      refreshAnimalList();
-    } else {
-      setStatus('statusUpdate','err', res.message || 'Could not save — try again.');
-      addLogEntry('logUpdate','logUpdateEntries', false, 'Failed: '+id+' — '+(res.message||'error'));
-    }
-  } catch(err){
-    setStatus('statusUpdate','err','Network error: '+err.message+'. Nothing was saved — try again once you have signal.');
-  } finally {
-    btn.disabled = false; fieldset.disabled = false;
-  }
-});
+// ---------- INIT ----------
+loadLive();
 </script>
 </body>
 </html>
