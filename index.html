@@ -145,6 +145,23 @@
 
   fieldset{border:none;padding:0;margin:0;}
   fieldset:disabled{opacity:.55;}
+
+  .computed-card{
+    display:none;background:var(--paper);border:1px solid var(--moss);border-left:4px solid var(--moss);
+    padding:12px 14px;margin-top:14px;border-radius:3px;
+  }
+  .computed-card.show{display:block;}
+  .computed-card .computed-title{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--pasture);margin:0 0 8px;
+  }
+  .computed-row{
+    display:flex;justify-content:space-between;gap:10px;padding:4px 0;
+    border-bottom:1px dashed var(--rule);font-family:'IBM Plex Mono',monospace;font-size:12.5px;
+  }
+  .computed-row:last-child{border-bottom:none;}
+  .computed-row .k{color:var(--ink-soft);}
+  .computed-row .v{font-weight:600;color:var(--ink);}
 </style>
 </head>
 <body>
@@ -229,6 +246,7 @@
       </fieldset>
     </form>
     <div class="status" id="statusAdd"></div>
+    <div class="computed-card" id="computedAdd"></div>
 
     <div class="log" id="logAdd" style="display:none;">
       <h3>This session</h3>
@@ -291,6 +309,7 @@
       </fieldset>
     </form>
     <div class="status" id="statusUpdate"></div>
+    <div class="computed-card" id="computedUpdate"></div>
 
     <div class="log" id="logUpdate" style="display:none;">
       <h3>This session</h3>
@@ -339,6 +358,21 @@ function setStatus(elId, kind, msg){
   el.className = 'status show ' + kind;
   el.textContent = msg;
 }
+// Renders whatever computed fields the sheet returns (Age_Days, Current_Stage,
+// Next_Stage, harvest windows, etc) — generic by design so it doesn't need to
+// know the sheet's exact column names, just displays whatever keys come back.
+function renderComputed(elId, computed){
+  const el = document.getElementById(elId);
+  const entries = computed ? Object.entries(computed) : [];
+  if(entries.length === 0){ el.classList.remove('show'); el.innerHTML=''; return; }
+  const rows = entries.map(([k,v])=>{
+    const label = k.replace(/_/g,' ');
+    const display = (v===''||v===null||v===undefined) ? '—' : v;
+    return `<div class="computed-row"><span class="k">${label}</span><span class="v">${display}</span></div>`;
+  }).join('');
+  el.innerHTML = `<div class="computed-title">Calculated by the sheet</div>${rows}`;
+  el.classList.add('show');
+}
 function addLogEntry(logWrapId, entriesId, ok, msg){
   document.getElementById(logWrapId).style.display = 'block';
   const row = document.createElement('div');
@@ -372,11 +406,13 @@ document.getElementById('formAdd').addEventListener('submit', async (e)=>{
     if(res.success){
       setStatus('statusAdd','ok', res.message || (payload.Animal_ID+' added.'));
       addLogEntry('logAdd','logAddEntries', true, 'Added '+payload.Animal_ID+' ('+payload.Species+')');
+      renderComputed('computedAdd', res.computed);
       document.getElementById('formAdd').reset();
       refreshAnimalList();
     } else {
       setStatus('statusAdd','err', res.message || 'Could not save — try again.');
       addLogEntry('logAdd','logAddEntries', false, 'Failed: '+payload.Animal_ID+' — '+(res.message||'error'));
+      renderComputed('computedAdd', null);
     }
   } catch(err){
     setStatus('statusAdd','err', 'Network error: '+err.message+'. Nothing was saved — try again once you have signal.');
@@ -423,9 +459,11 @@ document.getElementById('btnLoad').addEventListener('click', async ()=>{
       tag.classList.add('show');
       document.getElementById('loadedTagText').textContent = 'Editing '+a.Animal_ID+' ('+a.Species+')';
       setStatus('statusUpdate','ok','Loaded. Edit any field below, then Save Changes.');
+      renderComputed('computedUpdate', res.computed);
     } else {
       document.getElementById('fieldsetUpdate').disabled = true;
       setStatus('statusUpdate','err', res.message || 'Animal not found.');
+      renderComputed('computedUpdate', null);
     }
   } catch(err){
     setStatus('statusUpdate','err','Network error: '+err.message);
@@ -458,6 +496,7 @@ document.getElementById('formUpdate').addEventListener('submit', async (e)=>{
     if(res.success){
       setStatus('statusUpdate','ok', res.message || (id+' updated.'));
       addLogEntry('logUpdate','logUpdateEntries', true, 'Updated '+id);
+      renderComputed('computedUpdate', res.computed);
       refreshAnimalList();
     } else {
       setStatus('statusUpdate','err', res.message || 'Could not save — try again.');
