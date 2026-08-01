@@ -1,906 +1,597 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Ngapori Ranch — Livestock Lifecycle App</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ngapori Ranch - Livestock App</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --primary: #2e7d32;
+            --primary-hover: #1b5e20;
+            --accent: #0288d1;
+            --text-main: #212121;
+            --text-muted: #616161;
+            --border-color: #e0e0e0;
+            --danger: #d32f2f;
+            --warning: #ed6c02;
+            --radius: 8px;
+        }
 
-  * { box-sizing: border-box; }
-  html, body { margin:0; padding:0; height:100%; }
-  body {
-    font-family:'IBM Plex Sans', sans-serif;
-    color:#211C15;
-    background:#EFE6D2;
-    display:flex; justify-content:center;
-  }
-  #app { width:100%; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
 
-  :root {
-    --ink:#211C15; --ink-soft:#3A3226;
-    --paper:#EFE6D2; --paper-2:#E4D7BA; --paper-3:#F7F1E2;
-    --brass:#AD8A4E; --brass-dark:#8A6C39; --brass-glow:#D9B876;
-    --pasture:#3F5D3A; --pasture-light:#E4EEDF;
-    --rust:#8C3B23; --rust-light:#F3E1DA;
-    --steel:#5B6670; --steel-light:#DDE2E4;
-    --white:#FBF8EF;
-  }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
 
-  .nra-shell {
-    width:100%; max-width:460px; min-height:100vh; margin:0 auto;
-    background:var(--paper);
-    background-image: radial-gradient(circle at 1px 1px, rgba(33,28,21,0.05) 1px, transparent 0);
-    background-size: 14px 14px;
-    display:flex; flex-direction:column;
-    border-left:1px solid var(--paper-2); border-right:1px solid var(--paper-2);
-    position:relative;
-  }
-  .nra-h1 { font-family:'Big Shoulders Display', sans-serif; font-weight:800; letter-spacing:0.01em; }
-  .nra-h2 { font-family:'Big Shoulders Display', sans-serif; font-weight:700; }
-  .nra-mono { font-family:'IBM Plex Mono', monospace; }
-  .nra-eyebrow { font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--steel); }
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--card-bg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+        }
 
-  .nra-topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; background:var(--ink); color:var(--paper-3); position:sticky; top:0; z-index:5; }
-  .brand { display:flex; align-items:center; gap:8px; background:none; border:none; cursor:pointer; }
-  .brand .tag { width:26px; height:26px; border-radius:6px; background:var(--brass); display:flex; align-items:center; justify-content:center; color:var(--ink); font-weight:800; font-family:'Big Shoulders Display', sans-serif; font-size:15px; }
-  .nra-user-chip { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--paper-3); }
-  .role-pill { font-family:'IBM Plex Mono', monospace; font-size:9.5px; letter-spacing:0.08em; text-transform:uppercase; padding:2px 7px; border-radius:20px; background:var(--brass); color:var(--ink); font-weight:600; }
-  .nra-icon-btn { background:transparent; border:none; color:var(--paper-3); cursor:pointer; padding:4px; font-size:15px; }
-  .nra-icon-btn:hover { color:var(--brass-glow); }
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 16px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
 
-  .nra-body { flex:1; padding:18px 18px 90px 18px; }
+        .screen {
+            display: none;
+            padding: 16px;
+            flex-grow: 1;
+        }
 
-  .nra-back { display:flex; align-items:center; gap:4px; background:none; border:none; color:var(--steel); font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; padding:0 0 14px 0; }
-  .nra-back:hover { color:var(--ink); }
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
 
-  .nra-card { background:var(--white); border:1px solid var(--paper-2); border-radius:10px; padding:18px; margin-bottom:14px; }
+        /* Buttons & Inputs */
+        button, .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            transition: background 0.2s;
+        }
 
-  .nra-btn { width:100%; text-align:left; display:flex; align-items:center; gap:12px; padding:16px; border-radius:10px; border:1px solid var(--paper-2); background:var(--white); cursor:pointer; font-family:'IBM Plex Sans', sans-serif; font-size:15px; font-weight:600; color:var(--ink); margin-bottom:10px; }
-  .nra-btn:hover { border-color:var(--brass); background:var(--paper-3); }
-  .nra-btn.primary { background:var(--ink); color:var(--white); border-color:var(--ink); justify-content:center; }
-  .nra-btn.primary:hover { background:#332B21; }
-  .nra-btn.center { justify-content:center; }
-  .nra-btn small { display:block; font-weight:400; font-size:11.5px; color:var(--steel); margin-top:2px; }
-  .nra-btn.primary small { color:#D9CFB4; }
-  .nra-badgeIcon { font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:12px; color:var(--brass-dark); flex-shrink:0; }
-  .nra-btn.primary .nra-badgeIcon { color:var(--brass-glow); }
+        button:active {
+            opacity: 0.9;
+        }
 
-  .nra-field { margin-bottom:14px; }
-  .nra-label { display:block; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--steel); margin-bottom:6px; }
-  .nra-input, .nra-select, .nra-textarea { width:100%; padding:11px 12px; border-radius:7px; border:1.5px solid var(--paper-2); background:var(--white); font-size:14.5px; font-family:'IBM Plex Sans', sans-serif; color:var(--ink); }
-  .nra-input:focus, .nra-select:focus, .nra-textarea:focus { outline:2px solid var(--brass); border-color:var(--brass); }
-  .nra-hint { font-size:11.5px; color:var(--steel); margin-top:5px; }
-  .nra-radio-row { display:flex; gap:8px; flex-wrap:wrap; }
-  .nra-radio-opt { flex:1; text-align:center; padding:10px 8px; border-radius:7px; border:1.5px solid var(--paper-2); background:var(--white); cursor:pointer; font-size:13px; font-weight:600; color:var(--ink); }
-  .nra-radio-opt.active { background:var(--ink); color:var(--white); border-color:var(--ink); }
+        .btn-secondary {
+            background-color: #757575;
+        }
 
-  .nra-tag-row { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 4px 0; }
-  .nra-stage-tag { font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.04em; padding:5px 9px; border-radius:5px; background:var(--paper-2); color:var(--steel); border:1px solid var(--paper-2); }
-  .nra-stage-tag.current { background:var(--brass); color:var(--ink); border-color:var(--brass-dark); font-weight:700; box-shadow:0 0 0 3px var(--brass-glow) inset; }
-  .nra-stage-tag.done { background:var(--pasture-light); color:var(--pasture); border-color:var(--pasture-light); }
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
 
-  .nra-profile-tag { position:relative; background:var(--white); border:1.5px solid var(--ink); border-radius:14px; padding:22px 18px 18px 18px; margin-bottom:16px; }
-  .nra-profile-tag::before { content:""; position:absolute; top:-9px; left:22px; width:18px; height:18px; border-radius:50%; background:var(--paper); border:1.5px solid var(--ink); }
-  .nra-profile-tag::after { content:""; position:absolute; top:-1px; left:31px; width:2px; height:10px; background:var(--ink); }
-  .nra-id { font-family:'IBM Plex Mono', monospace; font-size:22px; font-weight:600; }
-  .nra-sub { color:var(--steel); font-size:13px; margin-top:2px; }
+        .btn-danger {
+            background-color: var(--danger);
+        }
 
-  .nra-kv-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px dashed var(--paper-2); font-size:13.5px; }
-  .nra-kv-row:last-child { border-bottom:none; }
-  .nra-kv-row .k { color:var(--steel); }
-  .nra-kv-row .v { font-weight:600; }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-  .nra-clear-row { display:flex; align-items:center; gap:6px; font-size:13px; margin-bottom:6px; }
-  .nra-clear-row.yes { color:var(--pasture); }
-  .nra-clear-row.no { color:var(--rust); }
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
 
-  .nra-section-title { font-family:'Big Shoulders Display', sans-serif; font-weight:700; font-size:15px; letter-spacing:0.02em; text-transform:uppercase; color:var(--ink-soft); margin:22px 0 10px 0; }
-  .nra-section-title.first { margin-top:0; }
+        input, select, textarea {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            width: 100%;
+            background-color: #fff;
+        }
 
-  .nra-action-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .nra-action-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:16px 8px; border-radius:10px; border:1px solid var(--paper-2); background:var(--white); cursor:pointer; font-size:12.5px; font-weight:600; color:var(--ink); text-align:center; }
-  .nra-action-btn:hover { border-color:var(--brass); background:var(--paper-3); }
-  .nra-action-btn.disabled { opacity:0.32; cursor:not-allowed; pointer-events:none; }
-  .nra-action-badge { width:34px; height:34px; border-radius:8px; background:var(--paper-3); border:1px solid var(--paper-2); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:12px; color:var(--brass-dark); }
+        input:focus, select:focus, textarea:focus {
+            outline: 2px solid var(--primary);
+            border-color: transparent;
+        }
 
-  .nra-list-item { display:flex; align-items:center; justify-content:space-between; padding:13px 4px; border-bottom:1px solid var(--paper-2); cursor:pointer; }
-  .nra-list-item:hover { background:var(--paper-3); }
-  .nra-list-item:last-child { border-bottom:none; }
+        /* Card Layouts */
+        .card {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 14px;
+            background-color: #fafafa;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-  .nra-badge { font-family:'IBM Plex Mono', monospace; font-size:9.5px; text-transform:uppercase; letter-spacing:0.06em; padding:2px 7px; border-radius:20px; font-weight:600; }
-  .nra-badge.create { background:var(--pasture-light); color:var(--pasture); }
-  .nra-badge.edit { background:#F0E6C8; color:var(--brass-dark); }
-  .nra-badge.delete { background:var(--rust-light); color:var(--rust); }
+        .card-header {
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            margin-bottom: 4px;
+            color: var(--primary);
+        }
 
-  .nra-audit-row { padding:12px 0; border-bottom:1px solid var(--paper-2); }
-  .nra-audit-row.deleted { opacity:0.55; }
-  .nra-audit-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; gap:8px;}
-  .nra-audit-meta { font-size:11.5px; color:var(--steel); white-space:nowrap; }
-  .nra-audit-detail { font-size:12.5px; color:var(--ink-soft); margin-top:3px; }
-  .nra-strike { text-decoration:line-through; }
-  .nra-rowactions { display:flex; gap:14px; margin-top:8px; }
-  .nra-rowactions button { background:none; border:none; cursor:pointer; font-size:11.5px; display:flex; align-items:center; gap:4px; font-family:'IBM Plex Sans', sans-serif; font-weight:600; }
-  .nra-locknote-sm { display:flex; align-items:center; gap:5px; margin-top:6px; font-size:10.5px; color:var(--steel); }
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+        }
 
-  .nra-toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); width:calc(100% - 36px); max-width:424px; background:var(--ink); color:var(--white); padding:12px 16px; border-radius:10px; font-size:13.5px; display:flex; align-items:center; gap:8px; box-shadow:0 6px 18px rgba(0,0,0,0.25); z-index:50; }
+        .data-label {
+            color: var(--text-muted);
+        }
 
-  .nra-empty { text-align:center; padding:40px 12px; color:var(--steel); }
+        .data-value {
+            font-weight: 600;
+        }
 
-  .nra-login-wrap { min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:34px 26px; max-width:460px; margin:0 auto; }
-  .nra-login-logo { text-align:center; margin-bottom:6px; }
-  .nra-login-logo .mark { width:56px; height:56px; border-radius:14px; background:var(--ink); color:var(--brass-glow); display:flex; align-items:center; justify-content:center; margin:0 auto 14px auto; font-family:'Big Shoulders Display', sans-serif; font-size:26px; font-weight:800; }
-  .nra-login-title { text-align:center; font-size:26px; margin-bottom:2px; }
-  .nra-login-sub { text-align:center; color:var(--steel); font-size:12.5px; margin-bottom:26px; }
-  .nra-demo-box { margin-top:18px; padding:12px 14px; background:var(--paper-3); border:1px dashed var(--paper-2); border-radius:8px; font-size:11.5px; color:var(--steel); }
-  .nra-demo-box b { color:var(--ink-soft); }
-  .nra-error { color:var(--rust); font-size:12.5px; margin-top:8px; }
-  .nra-lock-note { display:flex; gap:8px; align-items:flex-start; background:var(--paper-3); border:1px solid var(--paper-2); border-radius:8px; padding:10px 12px; font-size:12px; color:var(--steel); margin-bottom:14px; }
-</style>
+        /* Logic Tree Fallbacks */
+        .fallback-box {
+            background-color: #fff3e0;
+            border: 1px solid #ffe0b2;
+            padding: 12px;
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .fallback-title {
+            color: var(--warning);
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .checkbox-group label {
+            text-transform: none;
+            color: var(--text-main);
+            font-weight: normal;
+        }
+
+        .checkbox-group input {
+            width: auto;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
-<div id="app"></div>
+
+<div class="app-container">
+    <header>NGAPORI LIVESTOCK APP</header>
+
+    <!-- ⭐ SCREEN 0: HOME / SEARCH & SCAN ENTRY -->
+    <div id="screen-home" class="screen active">
+        <button onclick="simulateScan('SUCCESS')" style="padding: 20px;">📷 SCAN RFID / QR</button>
+        <button class="btn-outline" onclick="showScreen('screen-intake')">➕ INTAKE NEW ANIMAL</button>
+        
+        <div class="card" style="margin-top: 10px;">
+            <div class="card-header">Search Animal</div>
+            <div class="form-group">
+                <input type="text" id="home-search-input" placeholder="Search by ID, Pen, or Breed...">
+                <button class="btn-secondary" onclick="executeSearch()">Search</button>
+            </div>
+        </div>
+
+        <!-- RFID Fallback Handler Block -->
+        <div id="scan-fallback-block" class="fallback-box hidden">
+            <div class="fallback-title">⚠️ SCAN FAILURE DETECTED</div>
+            <p style="font-size: 0.85rem;">Follow the fallback logic tree:</p>
+            <button onclick="simulateScan('QR_SUCCESS')">1. Try QR Scan</button>
+            <button class="btn-outline" onclick="toggleSmartSearch(true)">2. Use Smart Search (Pen/Species)</button>
+            <button class="btn-outline" onclick="toggleLast3Digits(true)">3. Enter Last 3 Digits</button>
+        </div>
+
+        <!-- Smart Search Controls -->
+        <div id="smart-search-block" class="card hidden">
+            <div class="card-header">Smart Search Fallback</div>
+            <div class="form-group">
+                <label>Species</label>
+                <select id="ss-species">
+                    <option>Cattle</option><option>Sheep</option><option>Goat</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Pen</label>
+                <select id="ss-pen">
+                    <option>Pen A3</option><option>Pen B1</option><option>Pasture 4</option>
+                </select>
+            </div>
+            <button onclick="loadProfile('NR-COW-001234')">Filter & Select Animal</button>
+        </div>
+
+        <!-- Last 3 Digits Fallback -->
+        <div id="last3-block" class="card hidden">
+            <div class="card-header">Last 3 Digits Manual Fallback</div>
+            <div class="form-group">
+                <label>Ear Tag (Last 3 Numbers)</label>
+                <input type="number" placeholder="234">
+            </div>
+            <button onclick="loadProfile('NR-COW-001234')">Find Tag</button>
+        </div>
+    </div>
+
+    <!-- ⭐ SCREEN 1: INTAKE (BORN + PURCHASED) -->
+    <div id="screen-intake" class="screen">
+        <h2 style="font-size: 1.2rem;">Animal Intake</h2>
+        
+        <div class="form-group">
+            <label>Origin</label>
+            <select id="intake-origin" onchange="toggleIntakeFields()">
+                <option value="Ranch-Born">Ranch-Born</option>
+                <option value="Purchased">Purchased</option>
+                <option value="Batch">Batch Intake</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Animal ID</label>
+            <input type="text" id="intake-id" placeholder="e.g. NR-COW-001234">
+        </div>
+
+        <div class="form-group">
+            <label>Species</label>
+            <select id="intake-species">
+                <option>Cattle</option><option>Sheep</option><option>Goat</option>
+                <option>Chicken</option><option>Duck</option><option>Rabbit</option><option>Fish</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Sex</label>
+            <select id="intake-sex">
+                <option>Female</option><option>Male</option><option>Unknown</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Breed / Genetics</label>
+            <input type="text" placeholder="e.g. Angus 75% / Wagyu 25%">
+        </div>
+
+        <div class="form-group">
+            <label>DOB (If Known)</label>
+            <input type="date" id="intake-dob">
+        </div>
+
+        <div class="form-group" id="group-age">
+            <label>Age at Intake (Days/Months)</label>
+            <input type="text" placeholder="e.g. 14 months">
+        </div>
+
+        <div class="form-group">
+            <label>Intake Stage</label>
+            <select id="intake-stage">
+                <option>Birth / Hatch</option>
+                <option>Pre-Weaning</option>
+                <option>Weaning</option>
+                <option selected>Grower</option>
+                <option>Finisher</option>
+                <option>Breeder</option>
+                <option>Gestation</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Initial Weight (kg)</label>
+            <input type="number" placeholder="412">
+        </div>
+
+        <div class="form-group">
+            <label>Pen / Location</label>
+            <select>
+                <option>A3</option><option>B1</option><option>Pasture 4</option>
+            </select>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Clearances</div>
+            <div class="checkbox-group"><input type="checkbox" checked> <label>Health Clear</label></div>
+            <div class="checkbox-group"><input type="checkbox" checked> <label>Withdrawal Clear</label></div>
+            <div class="checkbox-group"><input type="checkbox" checked> <label>Welfare Clear</label></div>
+        </div>
+
+        <button onclick="saveIntake()">SAVE INTAKE</button>
+        <button class="btn-secondary" onclick="showScreen('screen-home')">CANCEL</button>
+    </div>
+
+    <!-- ⭐ SCREEN 2: ANIMAL PROFILE (STATE VIEWER) -->
+    <div id="screen-profile" class="screen">
+        <div class="card">
+            <div id="prof-id" class="card-header">NR-COW-001234</div>
+            <div id="prof-sub" style="font-size: 0.85rem; color: var(--text-muted);">Cattle • Female • 412 days • Angus/Wagyu</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Lifecycle State</div>
+            <div class="data-row"><span class="data-label">Unified Stage:</span><span id="prof-unified" class="data-value">Grower</span></div>
+            <div class="data-row"><span class="data-label">Next Stage:</span><span id="prof-next" class="data-value">Finisher</span></div>
+            <div class="data-row"><span class="data-label">Biological Stage:</span><span id="prof-bio" class="data-value">Grower</span></div>
+            <div class="data-row"><span class="data-label">Operational Stage:</span><span id="prof-ops" class="data-value">Grower</span></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Location & Metrics</div>
+            <div class="data-row"><span class="data-label">Pen:</span><span id="prof-pen" class="data-value">A3</span></div>
+            <div class="data-row"><span class="data-label">Weight:</span><span id="prof-weight" class="data-value">412 kg</span></div>
+            <div class="data-row"><span class="data-label">Clearances:</span><span id="prof-clearances" class="data-value" style="color: var(--primary);">Health: Yes | Withdraw: Yes</span></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Upcoming Forecasts</div>
+            <div class="data-row"><span class="data-label">Expected Finishing:</span><span class="data-value">2026-09-12</span></div>
+            <div class="data-row"><span class="data-label">Expected Harvest:</span><span class="data-value">2026-10-03</span></div>
+        </div>
+
+        <button onclick="showScreen('screen-actions')">ACTIONS</button>
+        <button class="btn-secondary" onclick="showScreen('screen-home')">BACK TO SEARCH</button>
+    </div>
+
+    <!-- ⭐ SCREEN 3: ACTION MENU (STAGE-DRIVEN) -->
+    <div id="screen-actions" class="screen">
+        <h2 style="font-size: 1.2rem;">Valid Actions</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Available actions filtered by Lifecycle Engine state.</p>
+        
+        <div id="action-buttons-container" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Buttons dynamically generated/rendered via JavaScript based on current state -->
+        </div>
+
+        <button class="btn-secondary" onclick="showScreen('screen-profile')" style="margin-top: 10px;">BACK TO PROFILE</button>
+    </div>
+
+    <!-- ⭐ SCREEN 4: EVENT ENTRY SCREENS (1-3 FIELDS) -->
+    <div id="screen-event" class="screen">
+        <h2 id="event-title" style="font-size: 1.2rem;">Record Event</h2>
+        
+        <div id="event-form-fields" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Dynamic minimal fields injected here -->
+        </div>
+
+        <button onclick="saveEvent()" style="margin-top: 10px;">SAVE EVENT</button>
+        <button class="btn-secondary" onclick="showScreen('screen-actions')">CANCEL</button>
+    </div>
+
+</div>
 
 <script>
-/* ============================== DATA MODEL ============================== */
+    // System State Mock Data
+    let currentAnimal = {
+        id: "NR-COW-001234",
+        species: "Cattle",
+        sex: "Female",
+        age: "412 days",
+        breed: "Angus/Wagyu",
+        unifiedStage: "Grower",
+        nextStage: "Finisher",
+        bioStage: "Grower",
+        opsStage: "Grower",
+        pen: "A3",
+        weight: "412 kg",
+        clearances: { health: true, withdrawal: true, welfare: true }
+    };
 
-const SPECIES_LIST = ["Cattle", "Sheep", "Goat", "Chicken", "Duck", "Rabbit", "Fish"];
+    let activeEvent = "";
 
-const SPECIES_STAGES = {
-  Cattle: ["Birth / Hatch", "Pre Weaning", "Weaning", "Grower", "Finishing", "Harvest"],
-  Sheep: ["Birth / Hatch", "Pre Weaning", "Weaning", "Grower", "Finishing", "Harvest"],
-  Goat: ["Birth / Hatch", "Pre Weaning", "Weaning", "Grower", "Finishing", "Harvest"],
-  Chicken: ["Neonatal / Brooding", "Grower", "Finishing", "Harvest"],
-  Duck: ["Neonatal / Brooding", "Grower", "Finishing", "Harvest"],
-  Rabbit: ["Birth / Hatch", "Pre Weaning", "Grower", "Finishing", "Harvest"],
-  Fish: ["Hatchling", "Fingerling", "Grower", "Harvest"],
-};
-
-const BREEDING_SPECIES = ["Cattle", "Sheep", "Goat", "Rabbit"];
-
-// Demo credentials — prototype only, not a real auth system.
-const USERS = [
-  { username: "jake", password: "ranch1", name: "Jake Ngata", role: "Worker" },
-  { username: "maria", password: "ranch1", name: "Maria Fonoti", role: "Worker" },
-  { username: "tom", password: "manage1", name: "Tom Reweti", role: "Manager" },
-  { username: "sarah", password: "owner1", name: "Sarah Ngapori", role: "Owner" },
-];
-
-const EVENT_TYPES = {
-  Weight:    { label: "Weight",    badge: "WT" },
-  Health:    { label: "Health",    badge: "HE" },
-  Movement:  { label: "Movement",  badge: "MV" },
-  Breeding:  { label: "Breeding",  badge: "BR" },
-  Weaning:   { label: "Weaning",   badge: "WN" },
-  Finishing: { label: "Finishing", badge: "FN" },
-  Harvest:   { label: "Harvest",   badge: "HV" },
-  Transport: { label: "Transport", badge: "TR" },
-  Mortality: { label: "Mortality", badge: "MT" },
-};
-
-const HOUR_MS = 60 * 60 * 1000;
-const DAY_MS = 24 * HOUR_MS;
-const nowTs = () => Date.now();
-const daysAgo = (n) => nowTs() - n * DAY_MS;
-const hoursAgo = (n) => nowTs() - n * HOUR_MS;
-
-function fmtDate(ts) { if (!ts) return "—"; return new Date(ts).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); }
-function fmtDateTime(ts) { if (!ts) return "—"; return new Date(ts).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
-function ageDays(dobTs) { if (!dobTs) return 0; return Math.max(0, Math.floor((nowTs() - dobTs) / DAY_MS)); }
-function esc(s) { return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
-
-let recordSeq = 1;
-function makeRecord({ animalId, type, ts, author, fields, edited, editedBy, editedAt, prevFields, deleted, deletedBy, deletedAt }) {
-  return {
-    id: "R-" + String(recordSeq++).padStart(4, "0"),
-    animalId, type, ts, author, fields,
-    edited: !!edited, editedBy: editedBy || null, editedAt: editedAt || null, prevFields: prevFields || null,
-    deleted: !!deleted, deletedBy: deletedBy || null, deletedAt: deletedAt || null,
-  };
-}
-
-const jake = { username: "jake", name: "Jake Ngata", role: "Worker" };
-const maria = { username: "maria", name: "Maria Fonoti", role: "Worker" };
-const tom = { username: "tom", name: "Tom Reweti", role: "Manager" };
-
-function seedRecords() {
-  return [
-    makeRecord({ animalId: "NR-COW-001234", type: "Intake", ts: daysAgo(412), author: jake,
-      fields: { species: "Cattle", sex: "Female", breed: "Angus/Wagyu", origin: "Ranch-Born", dob: daysAgo(412),
-        intakeDate: daysAgo(412), intakeStage: "Birth / Hatch", weight: 38, pen: "Calving Barn",
-        clearances: { health: "Yes", withdrawal: "Yes", welfare: "Yes" }, notes: "Single calf, unassisted birth." } }),
-    makeRecord({ animalId: "NR-COW-001234", type: "Movement", ts: daysAgo(180), author: maria,
-      fields: { newPen: "Pasture 3", stageOverride: "", notes: "Moved to weaning pasture." } }),
-    makeRecord({ animalId: "NR-COW-001234", type: "Weaning", ts: daysAgo(179), author: maria,
-      fields: { notes: "Weaned, moved off dam." } }),
-    makeRecord({ animalId: "NR-COW-001234", type: "Movement", ts: daysAgo(60), author: jake,
-      fields: { newPen: "A3", stageOverride: "", notes: "" } }),
-    makeRecord({ animalId: "NR-COW-001234", type: "Weight", ts: hoursAgo(20), author: jake,
-      fields: { weight: 412, notes: "Routine monthly weigh-in." } }),
-    makeRecord({ animalId: "GOA-2026-001", type: "Intake", ts: hoursAgo(6), author: jake,
-      fields: { species: "Goat", sex: "Female", breed: "Boer", origin: "Ranch-Born", dob: hoursAgo(6),
-        intakeDate: hoursAgo(6), intakeStage: "Birth / Hatch", weight: 3.5, pen: "Kidding Pen",
-        clearances: { health: "Yes", withdrawal: "No", welfare: "No" }, notes: "Newborn, dam present." } }),
-    makeRecord({ animalId: "NR-SHP-000512", type: "Intake", ts: daysAgo(250), author: maria,
-      fields: { species: "Sheep", sex: "Male", breed: "Romney", origin: "Purchased", dob: daysAgo(300),
-        intakeDate: daysAgo(250), intakeStage: "Grower", weight: 34, pen: "Pasture 1",
-        clearances: { health: "Yes", withdrawal: "Yes", welfare: "Yes" }, notes: "Purchased at sale yard, tagged on arrival." } }),
-    makeRecord({ animalId: "NR-SHP-000512", type: "Finishing", ts: daysAgo(20), author: tom,
-      fields: { notes: "Moved to finishing mob, good condition." } }),
-    makeRecord({ animalId: "NR-SHP-000512", type: "Health", ts: daysAgo(3), author: tom,
-      fields: { health: "Yes", withdrawal: "Yes", welfare: "Yes", notes: "Pre-harvest health check passed." } }),
-    makeRecord({ animalId: "NR-CHK-BATCH-09", type: "Intake", ts: daysAgo(30), author: maria,
-      fields: { species: "Chicken", sex: "Unknown", breed: "Cornish Cross", origin: "Batch Intake", dob: daysAgo(30),
-        intakeDate: daysAgo(30), intakeStage: "Neonatal / Brooding", weight: 0.05, pen: "Brooder 2",
-        clearances: { health: "Yes", withdrawal: "Yes", welfare: "Yes" }, notes: "Batch of 120 chicks, quantity tracked separately." } }),
-  ];
-}
-
-/* ============================== DERIVATION LOGIC ============================== */
-
-function nextStageOf(species, stage) {
-  const stages = SPECIES_STAGES[species] || [];
-  const i = stages.indexOf(stage);
-  if (i === -1 || i === stages.length - 1) return null;
-  return stages[i + 1];
-}
-
-function deriveAnimal(animalId, records) {
-  const recs = records.filter(r => r.animalId === animalId && !r.deleted).sort((a, b) => a.ts - b.ts);
-  const intake = recs.find(r => r.type === "Intake");
-  if (!intake) return null;
-
-  const state = {
-    id: animalId, species: intake.fields.species, sex: intake.fields.sex, breed: intake.fields.breed,
-    origin: intake.fields.origin, dob: intake.fields.dob, intakeDate: intake.fields.intakeDate,
-    weight: intake.fields.weight, pen: intake.fields.pen, clearances: { ...intake.fields.clearances },
-    currentStage: intake.fields.intakeStage, stageOverride: null, breedingDate: null, harvestDate: null,
-    transportLoadDate: null, transportDepartedDate: null, deceased: false, causeOfDeath: null,
-    lastUpdated: intake.ts, recordCount: 0,
-  };
-
-  for (const r of recs) {
-    state.recordCount += 1;
-    state.lastUpdated = Math.max(state.lastUpdated, r.ts);
-    switch (r.type) {
-      case "Weight": state.weight = r.fields.weight; break;
-      case "Health":
-        state.clearances = {
-          health: r.fields.health || state.clearances.health,
-          withdrawal: r.fields.withdrawal || state.clearances.withdrawal,
-          welfare: r.fields.welfare || state.clearances.welfare,
-        };
-        break;
-      case "Movement":
-        if (r.fields.newPen) state.pen = r.fields.newPen;
-        if (r.fields.stageOverride) state.stageOverride = r.fields.stageOverride;
-        break;
-      case "Breeding": state.breedingDate = r.fields.breedingDate; break;
-      case "Weaning": {
-        const next = nextStageOf(state.species, state.currentStage) || state.currentStage;
-        state.currentStage = next; state.stageOverride = null; break;
-      }
-      case "Finishing": state.currentStage = "Finishing"; state.stageOverride = null; break;
-      case "Harvest": state.currentStage = "Harvest"; state.harvestDate = r.fields.harvestDate; state.stageOverride = null; break;
-      case "Transport":
-        if (r.fields.loadDate) state.transportLoadDate = r.fields.loadDate;
-        if (r.fields.departedDate) state.transportDepartedDate = r.fields.departedDate;
-        break;
-      case "Mortality": state.deceased = true; state.causeOfDeath = r.fields.causeOfDeath; break;
+    // Screen Management
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        
+        if (screenId === 'screen-actions') {
+            renderStageDrivenActions();
+        }
     }
-  }
 
-  state.unifiedStage = state.deceased ? "Deceased" : (state.stageOverride || state.currentStage);
-  state.nextStage = state.deceased ? "—" : (nextStageOf(state.species, state.currentStage) || "—");
-  return state;
-}
+    // Scan & Fallback Tree Handlers
+    function simulateScan(result) {
+        if (result === 'SUCCESS' || result === 'QR_SUCCESS') {
+            document.getElementById('scan-fallback-block').classList.add('hidden');
+            document.getElementById('smart-search-block').classList.add('hidden');
+            document.getElementById('last3-block').classList.add('hidden');
+            loadProfile('NR-COW-001234');
+        } else {
+            document.getElementById('scan-fallback-block').classList.remove('hidden');
+        }
+    }
 
-function validActions(animal) {
-  if (!animal) return {};
-  if (animal.deceased) {
-    return { Weight:false, Health:false, Movement:false, Breeding:false, Weaning:false, Finishing:false, Harvest:false, Transport:false, Mortality:false };
-  }
-  const stage = animal.currentStage;
-  const allClear = animal.clearances.health === "Yes" && animal.clearances.withdrawal === "Yes" && animal.clearances.welfare === "Yes";
-  return {
-    Weight: true, Health: true, Movement: true,
-    Breeding: animal.sex === "Female" && BREEDING_SPECIES.includes(animal.species) && stage !== "Harvest",
-    Weaning: stage === "Pre Weaning" || stage === "Weaning",
-    Finishing: stage === "Grower",
-    Harvest: (stage === "Finishing" && allClear) || stage === "Harvest",
-    Transport: stage === "Finishing" || stage === "Harvest",
-    Mortality: true,
-  };
-}
-
-function canEditRecord(record, user) {
-  if (record.deleted) return false;
-  if (user.role === "Manager" || user.role === "Owner") return true;
-  return record.author.username === user.username && (nowTs() - record.ts) < 24 * HOUR_MS;
-}
-function canDeleteRecord(user) { return user.role === "Manager" || user.role === "Owner"; }
-
-function emptyFieldsFor(type, animal) {
-  switch (type) {
-    case "Weight": return { weight: "", notes: "" };
-    case "Health": return { health: animal ? animal.clearances.health : "Yes", withdrawal: animal ? animal.clearances.withdrawal : "Yes", welfare: animal ? animal.clearances.welfare : "Yes", notes: "" };
-    case "Movement": return { newPen: "", stageOverride: "", notes: "" };
-    case "Breeding": return { breedingDate: nowTs(), maleId: "", notes: "" };
-    case "Weaning": return { notes: "" };
-    case "Finishing": return { notes: "" };
-    case "Harvest": return { harvestDate: nowTs(), notes: "" };
-    case "Transport": return { loadDate: nowTs(), departedDate: "", notes: "" };
-    case "Mortality": return { causeOfDeath: "", notes: "" };
-    default: return {};
-  }
-}
-
-/* ============================== APP STATE ============================== */
-
-const STATE = {
-  currentUser: null,
-  screen: "login",
-  loginForm: { username: "", password: "" },
-  loginError: "",
-  records: seedRecords(),
-  selectedAnimalId: null,
-  selectedEventType: null,
-  editingRecordId: null,
-  eventFields: {},
-  intakeForm: null,
-  searchQuery: "",
-  auditFilter: "",
-  toast: null,
-};
-
-function render() { document.getElementById("app").innerHTML = STATE.currentUser ? renderShell() : renderLogin(); }
-function showToast(msg) {
-  STATE.toast = msg;
-  render();
-  clearTimeout(window.__toastTimer);
-  window.__toastTimer = setTimeout(() => { STATE.toast = null; render(); }, 2400);
-}
-
-function getAnimals() {
-  const ids = Array.from(new Set(STATE.records.map(r => r.animalId)));
-  return ids.map(id => deriveAnimal(id, STATE.records)).filter(Boolean);
-}
-
-/* ============================== ACTIONS (window-level handlers) ============================== */
-
-function doLogin(e) {
-  e.preventDefault();
-  const uname = STATE.loginForm.username.trim().toLowerCase();
-  const match = USERS.find(u => u.username === uname && u.password === STATE.loginForm.password);
-  if (!match) { STATE.loginError = "Username or password not recognized."; render(); return; }
-  STATE.currentUser = match; STATE.loginError = ""; STATE.screen = "home"; render();
-}
-function logout() { STATE.currentUser = null; STATE.screen = "login"; STATE.loginForm = { username: "", password: "" }; render(); }
-function goHome() { STATE.screen = "home"; STATE.selectedAnimalId = null; STATE.selectedEventType = null; STATE.editingRecordId = null; render(); }
-
-function openIntake() {
-  STATE.intakeForm = { id: "", species: "Cattle", sex: "Unknown", breed: "", origin: "Ranch-Born",
-    dob: "", ageAtIntake: "", intakeDate: nowTs(), intakeStage: SPECIES_STAGES["Cattle"][0],
-    weight: "", pen: "", health: "Yes", withdrawal: "Yes", welfare: "Yes", notes: "" };
-  STATE.screen = "intake"; render();
-}
-function saveIntake() {
-  const f = STATE.intakeForm;
-  if (!f.id.trim()) { showToast("Animal ID is required."); return; }
-  const existingIds = new Set(STATE.records.map(r => r.animalId));
-  if (existingIds.has(f.id.trim())) { showToast("That Animal ID already exists — use Search instead."); return; }
-  const rec = makeRecord({
-    animalId: f.id.trim(), type: "Intake", ts: nowTs(),
-    author: { username: STATE.currentUser.username, name: STATE.currentUser.name, role: STATE.currentUser.role },
-    fields: {
-      species: f.species, sex: f.sex, breed: f.breed || "—", origin: f.origin,
-      dob: f.dob ? new Date(f.dob).getTime() : nowTs(), intakeDate: f.intakeDate, intakeStage: f.intakeStage,
-      weight: parseFloat(f.weight) || 0, pen: f.pen || "Unassigned",
-      clearances: { health: f.health, withdrawal: f.withdrawal, welfare: f.welfare }, notes: f.notes,
-    },
-  });
-  STATE.records.push(rec);
-  STATE.selectedAnimalId = rec.animalId; STATE.screen = "profile";
-  showToast("Intake saved for " + rec.animalId + ".");
-}
-
-function openSearch() { STATE.searchQuery = ""; STATE.screen = "search"; render(); }
-function openProfile(id) { STATE.selectedAnimalId = id; STATE.screen = "profile"; render(); }
-function openActions() { STATE.screen = "actions"; render(); }
-function backToProfile() { STATE.screen = "profile"; render(); }
-
-function openEvent(type) {
-  const animal = deriveAnimal(STATE.selectedAnimalId, STATE.records);
-  STATE.selectedEventType = type; STATE.editingRecordId = null;
-  STATE.eventFields = emptyFieldsFor(type, animal);
-  STATE.screen = "event"; render();
-}
-function openEditRecord(recordId) {
-  const record = STATE.records.find(r => r.id === recordId);
-  STATE.selectedAnimalId = record.animalId; STATE.selectedEventType = record.type;
-  STATE.editingRecordId = record.id; STATE.eventFields = { ...record.fields };
-  STATE.screen = "event"; render();
-}
-function saveEvent() {
-  if (STATE.editingRecordId) {
-    STATE.records = STATE.records.map(r => r.id === STATE.editingRecordId ? {
-      ...r, prevFields: r.prevFields || r.fields, fields: STATE.eventFields, edited: true,
-      editedBy: { username: STATE.currentUser.username, name: STATE.currentUser.name, role: STATE.currentUser.role },
-      editedAt: nowTs(),
-    } : r);
-    STATE.screen = "history";
-    STATE.editingRecordId = null;
-    showToast(STATE.selectedEventType + " record updated.");
-  } else {
-    const rec = makeRecord({
-      animalId: STATE.selectedAnimalId, type: STATE.selectedEventType, ts: nowTs(),
-      author: { username: STATE.currentUser.username, name: STATE.currentUser.name, role: STATE.currentUser.role },
-      fields: STATE.eventFields,
+    // Trigger fallback display manually if user clicks scan failure mock
+    document.querySelector("button[onclick=\"simulateScan('SUCCESS')\"]").addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        simulateScan('FAILURE');
     });
-    STATE.records.push(rec);
-    STATE.screen = "profile";
-    STATE.editingRecordId = null;
-    showToast(STATE.selectedEventType + " event saved for " + STATE.selectedAnimalId + ".");
-  }
-}
-function deleteRecord(recordId) {
-  const record = STATE.records.find(r => r.id === recordId);
-  STATE.records = STATE.records.map(r => r.id === recordId ? {
-    ...r, deleted: true,
-    deletedBy: { username: STATE.currentUser.username, name: STATE.currentUser.name, role: STATE.currentUser.role },
-    deletedAt: nowTs(),
-  } : r);
-  showToast(record.type + " record deleted.");
-}
-function openHistory() { STATE.screen = "history"; render(); }
-function openAudit() { STATE.screen = "audit"; render(); }
 
-/* Field setters used by inline oninput handlers.
-   No render() call for free-typed fields, so focus/cursor position is preserved;
-   render() IS called for selections/toggles that change visible UI state elsewhere. */
-function setLoginField(field, val) { STATE.loginForm[field] = val; }
-function setIntakeField(field, val) { STATE.intakeForm[field] = val; }
-function setIntakeFieldR(field, val) { STATE.intakeForm[field] = val; if (field === "species") STATE.intakeForm.intakeStage = SPECIES_STAGES[val][0]; render(); }
-function setEventField(field, val) { STATE.eventFields[field] = val; }
-function setEventFieldR(field, val) { STATE.eventFields[field] = val; render(); }
-function setSearchQuery(val) { STATE.searchQuery = val; render(); }
-function setAuditFilter(val) { STATE.auditFilter = val; render(); }
+    function toggleSmartSearch(show) {
+        document.getElementById('smart-search-block').classList.toggle('hidden', !show);
+        document.getElementById('last3-block').classList.add('hidden');
+    }
 
-/* ============================== RENDER: SHARED CHROME ============================== */
+    function toggleLast3Digits(show) {
+        document.getElementById('last3-block').classList.toggle('hidden', !show);
+        document.getElementById('smart-search-block').classList.add('hidden');
+    }
 
-function renderShell() {
-  return `
-    <div class="nra-shell">
-      ${renderTopBar()}
-      <div class="nra-body">${renderScreen()}</div>
-      ${STATE.toast ? `<div class="nra-toast">✓ ${esc(STATE.toast)}</div>` : ""}
-    </div>
-  `;
-}
+    function executeSearch() {
+        loadProfile('NR-COW-001234');
+    }
 
-function renderTopBar() {
-  const u = STATE.currentUser;
-  return `
-    <div class="nra-topbar">
-      <button class="brand" onclick="goHome()">
-        <span class="tag">NR</span>
-        <span class="nra-h2" style="font-size:16px;">NGAPORI RANCH</span>
-      </button>
-      <div class="nra-user-chip">
-        <span>${esc(u.name.split(" ")[0])}</span>
-        <span class="role-pill">${esc(u.role)}</span>
-        <button class="nra-icon-btn" onclick="logout()" title="Log out">⎋</button>
-      </div>
-    </div>
-  `;
-}
+    // Intake Logic
+    function toggleIntakeFields() {
+        const origin = document.getElementById('intake-origin').value;
+        const ageGroup = document.getElementById('group-age');
+        if (origin === 'Ranch-Born') {
+            ageGroup.style.display = 'none';
+        } else {
+            ageGroup.style.display = 'flex';
+        }
+    }
 
-function renderScreen() {
-  switch (STATE.screen) {
-    case "home": return renderHome();
-    case "intake": return renderIntake();
-    case "search": return renderSearch();
-    case "profile": return renderProfile();
-    case "actions": return renderActions();
-    case "event": return renderEvent();
-    case "history": return renderHistory();
-    case "audit": return renderAudit();
-    default: return renderHome();
-  }
-}
+    function saveIntake() {
+        const newId = document.getElementById('intake-id').value || "NR-COW-001234";
+        const species = document.getElementById('intake-species').value;
+        const stage = document.getElementById('intake-stage').value;
+        
+        // Simulating Lifecycle Engine state recalculation upon intake
+        currentAnimal.id = newId;
+        currentAnimal.species = species;
+        currentAnimal.unifiedStage = stage;
+        currentAnimal.bioStage = stage;
+        currentAnimal.opsStage = stage;
 
-/* ============================== LOGIN ============================== */
+        loadProfile(newId);
+    }
 
-function renderLogin() {
-  return `
-    <div class="nra-login-wrap">
-      <div class="nra-login-logo"><div class="mark">NR</div></div>
-      <div class="nra-h1 nra-login-title">NGAPORI RANCH</div>
-      <div class="nra-login-sub">LIVESTOCK LIFECYCLE APP</div>
-      <form onsubmit="doLogin(event)">
-        <div class="nra-field">
-          <label class="nra-label">Username</label>
-          <input class="nra-input" type="text" autocapitalize="none" placeholder="e.g. jake"
-            value="${esc(STATE.loginForm.username)}" oninput="setLoginField('username', this.value)" />
-        </div>
-        <div class="nra-field">
-          <label class="nra-label">Password</label>
-          <input class="nra-input" type="password" placeholder="••••••••"
-            value="${esc(STATE.loginForm.password)}" oninput="setLoginField('password', this.value)" />
-        </div>
-        ${STATE.loginError ? `<div class="nra-error">${esc(STATE.loginError)}</div>` : ""}
-        <button type="submit" class="nra-btn primary" style="margin-top:6px;">→ Log in</button>
-      </form>
-      <div class="nra-demo-box">
-        <b>Prototype demo logins</b> — every entry below is stamped to the account that's logged in.<br/>
-        Worker: <b>jake / ranch1</b> or <b>maria / ranch1</b><br/>
-        Manager: <b>tom / manage1</b> &nbsp; Owner: <b>sarah / owner1</b>
-      </div>
-    </div>
-  `;
-}
+    // Load Animal Profile
+    function loadProfile(animalId) {
+        document.getElementById('prof-id').innerText = currentAnimal.id;
+        document.getElementById('prof-sub').innerText = `${currentAnimal.species} • ${currentAnimal.sex} • ${currentAnimal.age} • ${currentAnimal.breed}`;
+        document.getElementById('prof-unified').innerText = currentAnimal.unifiedStage;
+        document.getElementById('prof-next').innerText = currentAnimal.nextStage;
+        document.getElementById('prof-bio').innerText = currentAnimal.bioStage;
+        document.getElementById('prof-ops').innerText = currentAnimal.opsStage;
+        document.getElementById('prof-pen').innerText = currentAnimal.pen;
+        document.getElementById('prof-weight').innerText = currentAnimal.weight;
+        
+        showScreen('screen-profile');
+    }
 
-/* ============================== HOME ============================== */
+    // ⭐ Stage-Driven Action Menu Generator
+    function renderStageDrivenActions() {
+        const container = document.getElementById('action-buttons-container');
+        container.innerHTML = "";
 
-function renderHome() {
-  const isManagerPlus = STATE.currentUser.role === "Manager" || STATE.currentUser.role === "Owner";
-  const recent = getAnimals().sort((a, b) => b.lastUpdated - a.lastUpdated).slice(0, 8);
-  return `
-    <div class="nra-section-title first">Get started</div>
-    <button class="nra-btn primary" onclick="openIntake()">
-      <span class="nra-badgeIcon">+</span>
-      <span>Intake<br/><small>Ranch-born, purchased, or batch</small></span>
-    </button>
-    <button class="nra-btn" onclick="openSearch()">
-      <span class="nra-badgeIcon">⌕</span>
-      <span>Search Animal<br/><small>By ID, species, pen, or stage</small></span>
-    </button>
-    ${isManagerPlus ? `
-    <button class="nra-btn" onclick="openAudit()">
-      <span class="nra-badgeIcon">≡</span>
-      <span>Audit Log<br/><small>Every entry, edit, and deletion — who and when</small></span>
-    </button>` : ""}
+        // Standard actions (Always available)
+        const actions = [
+            { name: "Weight", id: "weight", valid: true },
+            { name: "Health", id: "health", valid: true },
+            { name: "Movement", id: "movement", valid: true }
+        ];
 
-    <div class="nra-section-title">Recent animals</div>
-    ${recent.length === 0 ? `<div class="nra-empty">No animals yet. Start with Intake.</div>` : recent.map(animalRow).join("")}
-  `;
-}
+        // Conditional stage-driven actions
+        const stage = currentAnimal.unifiedStage;
+        const sex = currentAnimal.sex;
+        const clearances = currentAnimal.clearances;
 
-function animalRow(a) {
-  return `
-    <div class="nra-list-item" onclick="openProfile('${esc(a.id)}')">
-      <div>
-        <div class="nra-mono" style="font-weight:600; font-size:14px;">${esc(a.id)}</div>
-        <div style="font-size:12px; color:var(--steel);">${esc(a.species)} • ${esc(a.sex)} • ${esc(a.unifiedStage)}</div>
-      </div>
-      <div class="nra-stage-tag current">${esc(a.unifiedStage)}</div>
-    </div>
-  `;
-}
+        actions.push({ name: "Breeding", id: "breeding", valid: (sex === 'Female' && (stage === 'Grower' || stage === 'Breeder')) });
+        actions.push({ name: "Weaning", id: "weaning", valid: (stage === 'Pre-Weaning' || stage === 'Weaning') });
+        actions.push({ name: "Finishing", id: "finishing", valid: (stage === 'Grower') });
+        actions.push({ name: "Harvest", id: "harvest", valid: (clearances.health && clearances.withdrawal) });
+        actions.push({ name: "Transport", id: "transport", valid: (stage === 'Finisher' || stage === 'Harvest Ready') });
+        actions.push({ name: "Mortality", id: "mortality", valid: true });
 
-/* ============================== INTAKE ============================== */
+        // Render valid action buttons
+        actions.forEach(act => {
+            if (act.valid) {
+                const btn = document.createElement('button');
+                btn.innerText = act.name;
+                if (act.id === 'mortality') btn.className = 'btn-danger';
+                btn.onclick = () => openEventScreen(act.id, act.name);
+                container.appendChild(btn);
+            }
+        });
+    }
 
-function renderIntake() {
-  const f = STATE.intakeForm;
-  const stages = SPECIES_STAGES[f.species] || [];
-  const radioRow = (field, options, small) => options.map(opt =>
-    `<div class="nra-radio-opt ${f[field] === opt ? "active" : ""}" style="${small ? "font-size:11.5px;" : ""}" onclick="setIntakeFieldR('${field}', '${esc(opt)}')">${esc(opt)}</div>`
-  ).join("");
+    // ⭐ Event Entry Screen Generator (1-3 Minimal Fields)
+    function openEventScreen(eventId, eventTitle) {
+        activeEvent = eventId;
+        document.getElementById('event-title').innerText = `${eventTitle} Event — ${currentAnimal.id}`;
+        const container = document.getElementById('event-form-fields');
+        container.innerHTML = "";
 
-  return `
-    <button class="nra-back" onclick="goHome()">‹ Cancel</button>
-    <div class="nra-h1" style="font-size:24px; margin-bottom:4px;">INTAKE</div>
-    <div class="nra-eyebrow" style="margin-bottom:18px;">Ranch-born · Purchased · Batch</div>
+        if (eventId === 'weight') {
+            container.innerHTML = `
+                <div class="form-group"><label>New Weight (kg)</label><input type="number" id="ev-weight" placeholder="e.g. 425"></div>
+                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
+            `;
+        } else if (eventId === 'movement') {
+            container.innerHTML = `
+                <div class="form-group"><label>New Pen</label><select id="ev-pen"><option>Pen B1</option><option>Pen A3</option><option>Pasture 4</option></select></div>
+                <div class="form-group"><label>Operational Stage Override</label><select id="ev-override"><option value="">None</option><option>Isolation</option><option>Finisher</option></select></div>
+                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
+            `;
+        } else if (eventId === 'breeding') {
+            container.innerHTML = `
+                <div class="form-group"><label>Male ID (Sire)</label><input type="text" placeholder="Optional Sire ID"></div>
+                <div class="form-group"><label>Notes</label><input type="text" placeholder="Optional"></div>
+            `;
+        } else if (eventId === 'harvest') {
+            container.innerHTML = `
+                <div class="card" style="background:#e8f5e9;"><p style="font-size:0.9rem; color:#2e7d32;">✓ Clearances automatically verified.</p></div>
+                <div class="form-group"><label>Transport Load Date</label><input type="date"></div>
+                <div class="form-group"><label>Notes</label><input type="text" placeholder="Optional"></div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="form-group"><label>Date</label><input type="text" value="${new Date().toISOString().split('T')[0]}" readonly></div>
+                <div class="form-group"><label>Notes</label><input type="text" placeholder="Optional"></div>
+            `;
+        }
 
-    <div class="nra-field">
-      <label class="nra-label">Animal ID</label>
-      <input class="nra-input nra-mono" value="${esc(f.id)}" placeholder="e.g. NR-COW-001235" oninput="setIntakeField('id', this.value)" />
-    </div>
+        showScreen('screen-event');
+    }
 
-    <div class="nra-field">
-      <label class="nra-label">Species</label>
-      <select class="nra-select" onchange="setIntakeFieldR('species', this.value)">
-        ${SPECIES_LIST.map(s => `<option value="${s}" ${f.species === s ? "selected" : ""}>${s}</option>`).join("")}
-      </select>
-    </div>
+    // Save Event & Trigger Engine Recalculation Simulation
+    function saveEvent() {
+        // Example logic updating local state based on event
+        if (activeEvent === 'weight') {
+            const w = document.getElementById('ev-weight').value;
+            if (w) currentAnimal.weight = `${w} kg`;
+        } else if (activeEvent === 'movement') {
+            const p = document.getElementById('ev-pen').value;
+            currentAnimal.pen = p;
+            const ov = document.getElementById('ev-override').value;
+            if (ov) {
+                currentAnimal.opsStage = ov;
+                currentAnimal.unifiedStage = ov; // Engine recalculation simulation
+            }
+        }
 
-    <div class="nra-field">
-      <label class="nra-label">Sex</label>
-      <div class="nra-radio-row">${radioRow("sex", ["Female", "Male", "Unknown"])}</div>
-    </div>
-
-    <div class="nra-field">
-      <label class="nra-label">Breed / Genetics</label>
-      <input class="nra-input" value="${esc(f.breed)}" placeholder="e.g. Angus 75% / Wagyu 25%" oninput="setIntakeField('breed', this.value)" />
-    </div>
-
-    <div class="nra-field">
-      <label class="nra-label">Origin</label>
-      <div class="nra-radio-row">${radioRow("origin", ["Ranch-Born", "Purchased", "Batch Intake"], true)}</div>
-    </div>
-
-    <div class="nra-field">
-      <label class="nra-label">DOB (if known)</label>
-      <input class="nra-input" type="date" value="${esc(f.dob)}" oninput="setIntakeField('dob', this.value)" />
-      <div class="nra-hint">Leave blank and use Age at Intake below if DOB is unknown.</div>
-    </div>
-
-    <div class="nra-field">
-      <label class="nra-label">Age at Intake (days, if DOB unknown)</label>
-      <input class="nra-input" type="number" value="${esc(f.ageAtIntake)}" placeholder="e.g. 210" oninput="setIntakeField('ageAtIntake', this.value)" />
-    </div>
-
-    <div class="nra-field">
-      <label class="nra-label">Intake Stage</label>
-      <select class="nra-select" onchange="setIntakeFieldR('intakeStage', this.value)">
-        ${stages.map(s => `<option value="${s}" ${f.intakeStage === s ? "selected" : ""}>${s}</option>`).join("")}
-      </select>
-    </div>
-
-    <div class="nra-field">
-      <label class="nra-label">Intake Weight (kg)</label>
-      <input class="nra-input" type="number" value="${esc(f.weight)}" placeholder="0.0" oninput="setIntakeField('weight', this.value)" />
-    </div>
-
-    <div class="nra-field">
-      <label class="nra-label">Pen / Location</label>
-      <input class="nra-input" value="${esc(f.pen)}" placeholder="e.g. Pasture 3" oninput="setIntakeField('pen', this.value)" />
-    </div>
-
-    <div class="nra-field">
-      <label class="nra-label">Health Clearances</label>
-      ${["health", "withdrawal", "welfare"].map(k => `
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-          <span style="font-size:13px; text-transform:capitalize;">${k}</span>
-          <div class="nra-radio-row" style="width:140px;">
-            ${["Yes", "No"].map(v => `<div class="nra-radio-opt" style="padding:6px 8px; ${f[k] === v ? "background:var(--ink);color:var(--white);border-color:var(--ink);" : ""}" onclick="setIntakeFieldR('${k}', '${v}')">${v}</div>`).join("")}
-          </div>
-        </div>
-      `).join("")}
-    </div>
-
-    <div class="nra-field">
-      <label class="nra-label">Notes</label>
-      <textarea class="nra-textarea" rows="3" oninput="setIntakeField('notes', this.value)">${esc(f.notes)}</textarea>
-    </div>
-
-    <button class="nra-btn primary" onclick="saveIntake()">✓ Save Intake</button>
-  `;
-}
-
-/* ============================== SEARCH ============================== */
-
-function renderSearch() {
-  const q = STATE.searchQuery.trim().toLowerCase();
-  const results = getAnimals().filter(a => !q || a.id.toLowerCase().includes(q) || a.species.toLowerCase().includes(q) || a.pen.toLowerCase().includes(q) || a.currentStage.toLowerCase().includes(q));
-  return `
-    <button class="nra-back" onclick="goHome()">‹ Home</button>
-    <div class="nra-h1" style="font-size:24px; margin-bottom:12px;">SEARCH ANIMAL</div>
-    <input class="nra-input" placeholder="Search by ID, species, pen, or stage" value="${esc(STATE.searchQuery)}"
-      oninput="setSearchQuery(this.value)" style="margin-bottom:16px;" autofocus />
-    ${results.length === 0 ? `<div class="nra-empty">No matches.</div>` : results.map(animalRow).join("")}
-  `;
-}
-
-/* ============================== PROFILE ============================== */
-
-function renderProfile() {
-  const animal = deriveAnimal(STATE.selectedAnimalId, STATE.records);
-  if (!animal) return `<div class="nra-empty">Animal not found.</div>`;
-  const stages = SPECIES_STAGES[animal.species] || [];
-  const curIdx = stages.indexOf(animal.currentStage);
-  return `
-    <button class="nra-back" onclick="goHome()">‹ Home</button>
-
-    <div class="nra-profile-tag">
-      <div class="nra-id">${esc(animal.id)}</div>
-      <div class="nra-sub">${esc(animal.species)} • ${esc(animal.sex)} • ${ageDays(animal.dob)} days • ${esc(animal.breed)}</div>
-
-      <div class="nra-tag-row">
-        ${stages.map((s, i) => `<span class="nra-stage-tag ${s === animal.currentStage ? "current" : (i < curIdx ? "done" : "")}">${esc(s)}</span>`).join("")}
-      </div>
-
-      <div style="margin-top:14px;">
-        <div class="nra-kv-row"><span class="k">Unified Current Stage</span><span class="v">${esc(animal.unifiedStage)}</span></div>
-        <div class="nra-kv-row"><span class="k">Unified Next Stage</span><span class="v">${esc(animal.nextStage)}</span></div>
-        <div class="nra-kv-row"><span class="k">Pen</span><span class="v">${esc(animal.pen)}</span></div>
-        <div class="nra-kv-row"><span class="k">Weight</span><span class="v">${esc(animal.weight)} kg</span></div>
-      </div>
-    </div>
-
-    <div class="nra-card">
-      <div class="nra-eyebrow" style="margin-bottom:10px;">Clearances</div>
-      ${["health", "withdrawal", "welfare"].map(k => `
-        <div class="nra-clear-row ${animal.clearances[k] === "Yes" ? "yes" : "no"}">
-          ${animal.clearances[k] === "Yes" ? "✓" : "!"} <span style="text-transform:capitalize;">${k}: ${esc(animal.clearances[k])}</span>
-        </div>
-      `).join("")}
-    </div>
-
-    <div class="nra-card">
-      <div class="nra-eyebrow" style="margin-bottom:10px;">Forecasts &amp; Dates</div>
-      <div class="nra-kv-row"><span class="k">Breeding Date</span><span class="v">${fmtDate(animal.breedingDate)}</span></div>
-      <div class="nra-kv-row"><span class="k">Harvest Date</span><span class="v">${fmtDate(animal.harvestDate)}</span></div>
-      <div class="nra-kv-row"><span class="k">Transport Load</span><span class="v">${fmtDate(animal.transportLoadDate)}</span></div>
-      <div class="nra-kv-row"><span class="k">Transport Departed</span><span class="v">${fmtDate(animal.transportDepartedDate)}</span></div>
-    </div>
-
-    ${animal.deceased ? `<div class="nra-lock-note">☠ This animal is recorded deceased. Cause: ${esc(animal.causeOfDeath || "not specified")}.</div>` : ""}
-
-    <button class="nra-btn primary" onclick="openActions()">▦ Actions</button>
-    <button class="nra-btn" onclick="openHistory()">≡ Record History (${animal.recordCount})</button>
-  `;
-}
-
-/* ============================== ACTIONS ============================== */
-
-function renderActions() {
-  const animal = deriveAnimal(STATE.selectedAnimalId, STATE.records);
-  const valid = validActions(animal);
-  return `
-    <button class="nra-back" onclick="backToProfile()">‹ ${esc(animal.id)}</button>
-    <div class="nra-h1" style="font-size:22px; margin-bottom:4px;">ACTIONS</div>
-    <div class="nra-eyebrow" style="margin-bottom:16px;">Only actions valid for this stage are enabled</div>
-    <div class="nra-action-grid">
-      ${Object.entries(EVENT_TYPES).map(([type, cfg]) => `
-        <div class="nra-action-btn ${valid[type] ? "" : "disabled"}" onclick="${valid[type] ? `openEvent('${type}')` : ""}">
-          <div class="nra-action-badge">${cfg.badge}</div>
-          ${cfg.label}
-        </div>
-      `).join("")}
-    </div>
-    ${(!valid.Harvest && animal.currentStage === "Finishing") ? `
-      <div class="nra-lock-note" style="margin-top:14px;">⚠ Harvest is locked until Health, Withdrawal, and Welfare clearances are all "Yes".</div>
-    ` : ""}
-  `;
-}
-
-/* ============================== EVENT ENTRY ============================== */
-
-function renderEvent() {
-  const type = STATE.selectedEventType;
-  const cfg = EVENT_TYPES[type];
-  const animal = deriveAnimal(STATE.selectedAnimalId, STATE.records);
-  const f = STATE.eventFields;
-  const isEditing = !!STATE.editingRecordId;
-
-  let fieldsHtml = "";
-  if (type === "Weight") {
-    fieldsHtml = `
-      <div class="nra-field"><label class="nra-label">Weight (kg)</label>
-        <input class="nra-input" type="number" value="${esc(f.weight)}" placeholder="0.0" oninput="setEventField('weight', this.value)" autofocus /></div>`;
-  } else if (type === "Health") {
-    fieldsHtml = ["health", "withdrawal", "welfare"].map(k => `
-      <div class="nra-field"><label class="nra-label" style="text-transform:capitalize;">${k} Clearance</label>
-        <div class="nra-radio-row">
-          ${["Yes", "No"].map(v => `<div class="nra-radio-opt ${f[k] === v ? "active" : ""}" onclick="setEventFieldR('${k}', '${v}')">${v}</div>`).join("")}
-        </div></div>`).join("");
-  } else if (type === "Movement") {
-    const stages = SPECIES_STAGES[animal.species] || [];
-    fieldsHtml = `
-      <div class="nra-field"><label class="nra-label">New Pen</label>
-        <input class="nra-input" value="${esc(f.newPen)}" placeholder="e.g. Pasture 4" oninput="setEventField('newPen', this.value)" autofocus /></div>
-      <div class="nra-field"><label class="nra-label">Operational Stage Override (optional)</label>
-        <select class="nra-select" onchange="setEventFieldR('stageOverride', this.value)">
-          <option value="">— none —</option>
-          ${stages.map(s => `<option value="${s}" ${f.stageOverride === s ? "selected" : ""}>${s}</option>`).join("")}
-        </select>
-        <div class="nra-hint">Leave blank to let the biological stage drive everything.</div></div>`;
-  } else if (type === "Breeding") {
-    fieldsHtml = `
-      <div class="nra-field"><label class="nra-label">Male ID (optional)</label>
-        <input class="nra-input" value="${esc(f.maleId)}" placeholder="e.g. NR-BULL-004" oninput="setEventField('maleId', this.value)" autofocus />
-        <div class="nra-hint">Breeding Date is stamped automatically to today.</div></div>`;
-  } else if (type === "Weaning" || type === "Finishing") {
-    fieldsHtml = `<div class="nra-hint" style="margin-bottom:14px;">This records that ${esc(animal.id)} has moved into the ${type} stage. Date is stamped automatically.</div>`;
-  } else if (type === "Harvest") {
-    fieldsHtml = `
-      <div class="nra-field"><label class="nra-label">Clearances (from record)</label>
-        <div class="nra-kv-row"><span class="k">Health</span><span class="v">${esc(animal.clearances.health)}</span></div>
-        <div class="nra-kv-row"><span class="k">Withdrawal</span><span class="v">${esc(animal.clearances.withdrawal)}</span></div>
-        <div class="nra-kv-row"><span class="k">Welfare</span><span class="v">${esc(animal.clearances.welfare)}</span></div>
-      </div>`;
-  } else if (type === "Transport") {
-    fieldsHtml = `<div class="nra-hint" style="margin-bottom:14px;">Recording this sets the transport load date. Add a Transport event again once the load departs.</div>`;
-  } else if (type === "Mortality") {
-    fieldsHtml = `
-      <div class="nra-field"><label class="nra-label">Cause of Death</label>
-        <input class="nra-input" value="${esc(f.causeOfDeath)}" placeholder="e.g. Dystocia, predation, illness" oninput="setEventField('causeOfDeath', this.value)" autofocus /></div>`;
-  }
-
-  return `
-    <button class="nra-back" onclick="${isEditing ? "openHistory()" : "backToActions()"}">‹ Cancel</button>
-    <div class="nra-h1" style="font-size:22px; margin-bottom:2px;">${isEditing ? "EDIT " : ""}${cfg.label.toUpperCase()}</div>
-    <div class="nra-eyebrow nra-mono" style="margin-bottom:18px;">${esc(animal ? animal.id : "")}</div>
-    ${fieldsHtml}
-    <div class="nra-field">
-      <label class="nra-label">Notes (optional)</label>
-      <textarea class="nra-textarea" rows="2" oninput="setEventField('notes', this.value)">${esc(f.notes)}</textarea>
-    </div>
-    <button class="nra-btn primary" onclick="saveEvent()">✓ Save ${cfg.label}</button>
-  `;
-}
-function backToActions() { STATE.screen = "actions"; render(); }
-
-/* ============================== HISTORY (per animal) ============================== */
-
-function renderHistory() {
-  const animal = deriveAnimal(STATE.selectedAnimalId, STATE.records);
-  const recs = STATE.records.filter(r => r.animalId === STATE.selectedAnimalId).sort((a, b) => b.ts - a.ts);
-  return `
-    <button class="nra-back" onclick="backToProfile()">‹ ${esc(animal.id)}</button>
-    <div class="nra-h1" style="font-size:22px; margin-bottom:4px;">RECORD HISTORY</div>
-    <div class="nra-eyebrow nra-mono" style="margin-bottom:16px;">${esc(animal.id)}</div>
-    ${recs.map(r => renderAuditRow(r, true)).join("")}
-  `;
-}
-
-function renderAuditRow(r, showRowActions) {
-  const user = STATE.currentUser;
-  const editable = showRowActions && canEditRecord(r, user);
-  const deletable = showRowActions && canDeleteRecord(user) && !r.deleted;
-  const badgeClass = r.deleted ? "delete" : (r.edited ? "edit" : "create");
-  return `
-    <div class="nra-audit-row ${r.deleted ? "deleted" : ""}">
-      <div class="nra-audit-top">
-        <div style="display:flex; align-items:center; gap:7px;">
-          <span class="nra-badge ${badgeClass}">${esc(r.type)}</span>
-          ${(r.edited && !r.deleted) ? `<span style="font-size:10.5px; color:var(--steel);">edited</span>` : ""}
-          ${r.deleted ? `<span style="font-size:10.5px; color:var(--rust);">deleted</span>` : ""}
-        </div>
-        <div class="nra-audit-meta">${fmtDateTime(r.ts)}</div>
-      </div>
-      <div class="nra-audit-detail ${r.deleted ? "nra-strike" : ""}">
-        by ${esc(r.author.name)} (${esc(r.author.role)})${r.fields.notes ? ` — "${esc(r.fields.notes)}"` : ""}
-      </div>
-      ${(r.edited && r.editedBy) ? `<div class="nra-audit-detail">↳ edited by ${esc(r.editedBy.name)} on ${fmtDateTime(r.editedAt)}</div>` : ""}
-      ${(r.deleted && r.deletedBy) ? `<div class="nra-audit-detail">↳ deleted by ${esc(r.deletedBy.name)} on ${fmtDateTime(r.deletedAt)}</div>` : ""}
-      ${(editable || deletable) ? `
-        <div class="nra-rowactions">
-          ${editable ? `<button style="color:var(--brass-dark);" onclick="openEditRecord('${r.id}')">✎ Edit</button>` : ""}
-          ${deletable ? `<button style="color:var(--rust);" onclick="deleteRecord('${r.id}')">🗑 Delete</button>` : ""}
-        </div>` : ""}
-      ${(!editable && !r.deleted && showRowActions && user.role === "Worker" && r.author.username === user.username) ? `
-        <div class="nra-locknote-sm">🔒 Editing window closed (24h) — ask a Manager for changes.</div>` : ""}
-    </div>
-  `;
-}
-
-/* ============================== AUDIT LOG (ranch-wide) ============================== */
-
-function renderAudit() {
-  const q = STATE.auditFilter.trim().toLowerCase();
-  const rows = [...STATE.records].sort((a, b) => b.ts - a.ts).filter(r =>
-    !q || r.animalId.toLowerCase().includes(q) || r.author.name.toLowerCase().includes(q) || r.type.toLowerCase().includes(q)
-  );
-  return `
-    <button class="nra-back" onclick="goHome()">‹ Home</button>
-    <div class="nra-h1" style="font-size:22px; margin-bottom:4px;">AUDIT LOG</div>
-    <div class="nra-eyebrow" style="margin-bottom:14px;">Manager / Owner only — every entry, edit, and deletion</div>
-    <input class="nra-input" placeholder="Filter by Animal ID, worker, or event type" value="${esc(STATE.auditFilter)}"
-      oninput="setAuditFilter(this.value)" style="margin-bottom:16px;" />
-    ${rows.length === 0 ? `<div class="nra-empty">No records match.</div>` : rows.map(r => `
-      <div class="nra-audit-row ${r.deleted ? "deleted" : ""}">
-        <div class="nra-audit-top">
-          <div style="display:flex; align-items:center; gap:7px;">
-            <span class="nra-badge ${r.deleted ? "delete" : (r.edited ? "edit" : "create")}">${esc(r.type)}</span>
-            <span class="nra-mono" style="font-size:12.5px; font-weight:600; cursor:pointer;" onclick="openProfile('${esc(r.animalId)}')">${esc(r.animalId)}</span>
-          </div>
-          <div class="nra-audit-meta">${fmtDateTime(r.ts)}</div>
-        </div>
-        <div class="nra-audit-detail ${r.deleted ? "nra-strike" : ""}">
-          by ${esc(r.author.name)} <span style="color:var(--steel);">(${esc(r.author.role)})</span>${r.fields.notes ? ` — "${esc(r.fields.notes)}"` : ""}
-        </div>
-        ${(r.edited && r.editedBy) ? `<div class="nra-audit-detail">↳ edited by ${esc(r.editedBy.name)} (${esc(r.editedBy.role)}) on ${fmtDateTime(r.editedAt)}</div>` : ""}
-        ${(r.deleted && r.deletedBy) ? `<div class="nra-audit-detail">↳ deleted by ${esc(r.deletedBy.name)} (${esc(r.deletedBy.role)}) on ${fmtDateTime(r.deletedAt)}</div>` : ""}
-      </div>
-    `).join("")}
-  `;
-}
-
-/* ============================== BOOT ============================== */
-render();
+        // Return to updated profile immediately
+        loadProfile(currentAnimal.id);
+    }
 </script>
+
 </body>
 </html>
-
