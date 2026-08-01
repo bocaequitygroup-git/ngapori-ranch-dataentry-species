@@ -502,6 +502,10 @@ const SHEET_URLS = {
   // full set of published sources lives in one place if that changes.
   calendar: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSyzMMIhpJegAK3GqGpBdyJFXFdPyTLkyE-z4jTQrYvWXbTAnSaZ5Fx4z02pW5x9jNsAOGy0JvE36uH/pub?gid=1235444530&single=true&output=csv",
   dashboard:"https://docs.google.com/spreadsheets/d/e/2PACX-1vSyzMMIhpJegAK3GqGpBdyJFXFdPyTLkyE-z4jTQrYvWXbTAnSaZ5Fx4z02pW5x9jNsAOGy0JvE36uH/pub?gid=1015162055&single=true&output=csv",
+  // Separate spreadsheet from the other four — one row per animal, keyed
+  // by Animal_ID. Read on load and upserted (whole-field overwrite) on
+  // every notes save via the 'updateNotes' Apps Script action.
+  notes:    "https://docs.google.com/spreadsheets/d/e/2PACX-1vR5LsFNHL2Z_903hwnVSU4iWHkWdAOS7Q6uEaqsV7RYRhnEIUHQmcbDUN8_ji52Et1EVNJSmoVl9aaw/pub?gid=522441068&single=true&output=csv",
 };
 // Point this at your Apps Script Web App's /exec URL to make writes persist
 // back to the sheet (deploy code.gs, then paste the /exec URL here).
@@ -615,6 +619,19 @@ function buildAnimalsFromRows(rows){
   }));
 }
 
+// ---------- LOAD: Notes (separate sheet, keyed by Animal_ID) ----------
+// One row per animal expected. If duplicate Animal_ID rows exist, the
+// last row in the sheet wins (treated as the most current entry).
+function buildNotesFromRows(rows){
+  const map = {};
+  rows.forEach(r=>{
+    const id = pick(r,"Animal_ID","ID");
+    if(!id) return;
+    map[id] = pick(r,"Notes","Note","Note_Text","Text");
+  });
+  return map;
+}
+
 function assignSpeciesMeta(){
   SPECIES_COLOR = {}; SPECIES_PREFIX = {};
   SPECIES_LIST.forEach((s,i)=>{
@@ -675,14 +692,21 @@ function setSyncStatus(mode, text){
 async function loadLive(){
   setSyncStatus('warn','Connecting to Google Sheets…');
   try{
-    const [rulesRows, engineRows] = await Promise.all([
+    const [rulesRows, engineRows, notesResult] = await Promise.all([
       fetchCSV(SHEET_URLS.rules),
       fetchCSV(SHEET_URLS.engine),
+      // Notes lives on its own spreadsheet — don't let a hiccup there
+      // block the animal list from loading.
+      fetchCSV(SHEET_URLS.notes).catch(err=>{ console.error('Notes sheet load failed:', err); return null; }),
     ]);
     const {rules, order} = buildRulesFromRows(rulesRows);
     LIFECYCLE_RULES = rules;
     SPECIES_LIST = order;
     ANIMALS = buildAnimalsFromRows(engineRows);
+    if(notesResult){
+      const notesMap = buildNotesFromRows(notesResult);
+      ANIMALS.forEach(a=>{ if(notesMap[a.id] !== undefined) a.notes = notesMap[a.id]; });
+    }
     assignSpeciesMeta();
     if(!selectedAnimalId && ANIMALS.length) selectedAnimalId = ANIMALS[0].id;
     const stamp = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
@@ -869,8 +893,9 @@ function renderDetail(){
 
   const notesField = card.querySelector('#notesField');
   notesField.addEventListener('blur', ()=>{
+    if(a.notes === notesField.value) return; // no change, skip the write
     a.notes = notesField.value;
-    commitAnimal(a);
+    commitNotes(a.id, a.notes);
   });
 }
 
@@ -878,6 +903,24 @@ function addDays(dateStr,days){
   const d = new Date(dateStr);
   d.setDate(d.getDate()+days);
   return d.toISOString().slice(0,10);
+}
+
+// BACKEND WRITE — notes live on their own sheet, so they get their own
+// action rather than riding along inside 'updateAnimal'. Same optimistic-
+// local-then-POST pattern as commitAnimal.
+function commitNotes(animalId, notesText){
+  if(!APPS_SCRIPT_URL) return;
+  fetch(APPS_SCRIPT_URL, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({action:'updateNotes', animalId, notes:notesText})
+  })
+    .then(r => r.json())
+    .then(data => {
+      if(!data.success) setSyncStatus('err', `Sheet rejected the note for ${animalId}: ${data.error || 'unknown error'}`);
+      else setSyncStatus('ok', `Note saved for ${animalId}.`);
+    })
+    .catch(err => setSyncStatus('err', `Local note saved, but the sheet write failed (${err.message}).`));
 }
 
 // BACKEND WRITE — posts to your Apps Script Web App when APPS_SCRIPT_URL is set.
@@ -1045,6 +1088,7 @@ document.getElementById('btnSaveAnimal').addEventListener('click', ()=>{
         else setSyncStatus('ok', `${id} saved to the sheet (row ${data.row}).`);
       })
       .catch(err => setSyncStatus('err', `Animal added locally, but the sheet write failed (${err.message}).`));
+    if(animal.notes) commitNotes(id, animal.notes);
   }
   selectedAnimalId = id;
   activeSpeciesFilter = "All";
