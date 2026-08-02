@@ -471,8 +471,8 @@
         </div>
 
         <div class="form-group hidden" id="group-age">
-            <label>Age at Intake</label>
-            <input type="text" id="intake-age" placeholder="e.g. 14 months">
+            <label>Age at Intake (days)</label>
+            <input type="number" id="intake-age" placeholder="e.g. 420">
         </div>
 
         <div class="form-group">
@@ -518,6 +518,7 @@
         </div>
 
         <button onclick="saveIntake()">SAVE INTAKE</button>
+        <div id="intake-validation-error" class="login-error hidden"></div>
         <button class="btn-secondary" onclick="showScreen('screen-home')">CANCEL</button>
     </div>
 
@@ -1199,6 +1200,23 @@
         document.getElementById('group-source-detail').classList.toggle('hidden', isBorn);
     }
 
+    // Mirrors the workbook's own required-field list — if any of these
+    // are missing, its lifecycle formulas can't compute stage, age, or
+    // forecasting for the new animal.
+    function validateIntakeFields(fields) {
+        const missing = [];
+        if (!fields.id) missing.push("Animal ID");
+        if (!fields.species) missing.push("Species");
+        if (!fields.sex) missing.push("Sex");
+        if (!fields.breed) missing.push("Breed");
+        if (!fields.dob && !fields.ageDays) missing.push("DOB or Age at Intake");
+        if (!fields.intakeDate) missing.push("Intake Date");
+        if (!fields.intakeStage) missing.push("Intake Stage");
+        if (!fields.weight || Number(fields.weight) <= 0) missing.push("Weight");
+        if (!fields.pen) missing.push("Pen");
+        return missing;
+    }
+
     async function saveIntake() {
         const id = pendingIntakeId || generateAnimalId(document.getElementById('intake-species').value);
         const species = document.getElementById('intake-species').value;
@@ -1213,7 +1231,9 @@
         const pen = document.getElementById('intake-pen').value;
         const dob = document.getElementById('intake-dob').value;
         const intakeDate = document.getElementById('intake-date').value;
-        const age = origin === 'Born' ? "0 days" : (document.getElementById('intake-age').value || "Unknown age");
+        const ageDaysVal = document.getElementById('intake-age').value;
+        const ageDays = origin !== 'Born' && ageDaysVal ? Number(ageDaysVal) : null;
+        const age = origin === 'Born' ? "0 days" : (ageDays ? `${ageDays} days` : "Unknown age");
         const source = origin === 'Born'
             ? "Ranch-Born"
             : `${origin} — ${document.getElementById('intake-source-type').value}${document.getElementById('intake-source-detail').value ? ' (' + document.getElementById('intake-source-detail').value + ')' : ''}`;
@@ -1222,6 +1242,19 @@
         const clearHealth = document.getElementById('intake-clear-health').checked;
         const clearWithdrawal = document.getElementById('intake-clear-withdrawal').checked;
         const clearWelfare = document.getElementById('intake-clear-welfare').checked;
+
+        const errorEl = document.getElementById('intake-validation-error');
+        const missing = validateIntakeFields({
+            id, species, sex, breed,
+            dob: origin === 'Born' ? dob : "", ageDays,
+            intakeDate, intakeStage: stage, weight, pen
+        });
+        if (missing.length) {
+            errorEl.innerText = `Missing required field(s): ${missing.join(", ")}`;
+            errorEl.classList.remove('hidden');
+            return;
+        }
+        errorEl.classList.add('hidden');
 
         // Immediate local record so the UI responds instantly.
         animals[id] = {
@@ -1250,7 +1283,7 @@
                 animal: {
                     id, species, sex, breed, pen, source, notes,
                     weight, intakeStage: stage,
-                    dob: origin === 'Born' ? dob : "", intakeDate,
+                    dob: origin === 'Born' ? dob : "", ageDays: ageDays || "", intakeDate,
                     clearHealth, clearWithdrawal, clearWelfare
                 },
                 user: currentUser
@@ -1517,4 +1550,3 @@
 
 </body>
 </html>
-
