@@ -1312,7 +1312,7 @@
             const result = await postToAppsScript({
                 action: "intake",
                 animal: {
-                    id, species, sex, breed, pen, source, notes,
+                    id, species, sex, breed, pen, source, notes, origin,
                     weight, intakeStage: stage,
                     dob: origin === 'Born' ? dob : "", ageDays: ageDays || "", intakeDate,
                     clearHealth, clearWithdrawal, clearWelfare
@@ -1388,6 +1388,7 @@
             { name: "Health", id: "health", valid: true },
             { name: "Movement", id: "movement", valid: true },
             { name: "Breeding", id: "breeding", valid: (sex === 'Female' && (stage === 'Grower' || stage === 'Breeder')) },
+            { name: "Calving", id: "calving", valid: (sex === 'Female' && stage === 'Gestation') },
             { name: "Weaning", id: "weaning", valid: (stage === 'Pre Weaning' || stage === 'Weaning') },
             { name: "Finishing", id: "finishing", valid: (stage === 'Grower') },
             { name: "Harvest", id: "harvest", valid: (clearances.health && clearances.withdrawal && (stage === 'Finishing' || stage === 'Harvest')) },
@@ -1457,6 +1458,22 @@
                 <div class="form-group"><label>Male ID (Sire)</label><input type="text" id="ev-sire" placeholder="Optional"></div>
                 <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
             `;
+        } else if (eventId === 'calving') {
+            container.innerHTML = `
+                <div class="form-group"><label>Calving Date</label><input type="text" value="${today}" readonly></div>
+                <div class="form-group"><label>Outcome</label>
+                    <select id="ev-calving-outcome"><option>Live Birth</option><option>Stillbirth</option><option>Assisted Birth</option><option>Twins</option><option>Triplets</option><option>Other</option></select>
+                </div>
+                <div class="form-group"><label>Number of Offspring</label><input type="number" id="ev-offspring-count" value="1" min="0"></div>
+                <div class="form-group"><label>Avg. Birth Weight (kg)</label><input type="number" id="ev-birth-weight" placeholder="Optional"></div>
+                <div class="form-group"><label>Dam Condition</label>
+                    <select id="ev-dam-condition"><option>Excellent</option><option>Good</option><option>Fair</option><option>Poor</option><option>Requires Attention</option></select>
+                </div>
+                <div class="form-group"><label>Mark dam as Post-Calving → Lactation?</label>
+                    <select id="ev-update-stage"><option value="Yes">Yes</option><option value="No">No</option></select>
+                </div>
+                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
+            `;
         } else if (eventId === 'weaning') {
             container.innerHTML = `
                 <div class="form-group"><label>Weaning Date</label><input type="text" value="${today}" readonly></div>
@@ -1515,6 +1532,11 @@
             case 'health': return { observation: val('ev-health'), clearHealth: val('ev-clear-health') === 'Yes', notes };
             case 'movement': return { pen: val('ev-pen'), override: val('ev-override') || "", notes };
             case 'breeding': return { sire: val('ev-sire'), notes };
+            case 'calving': return {
+                outcome: val('ev-calving-outcome'), offspringCount: val('ev-offspring-count'),
+                birthWeight: val('ev-birth-weight'), damCondition: val('ev-dam-condition'),
+                updateStage: val('ev-update-stage') === 'Yes', notes
+            };
             case 'weaning': return { weight: val('ev-weight'), notes };
             case 'finishing': return { targetWeight: val('ev-target'), notes };
             case 'harvest': return { notes };
@@ -1538,6 +1560,8 @@
             a.unifiedStage = 'Finishing'; a.bioStage = 'Finishing'; a.opsStage = 'Finishing'; a.nextStage = nextStageFor('Finishing', a.species);
         } else if (activeEvent === 'breeding') {
             a.unifiedStage = 'Gestation'; a.bioStage = 'Gestation'; a.opsStage = 'Gestation'; a.nextStage = 'Breeder';
+        } else if (activeEvent === 'calving' && fields.updateStage) {
+            a.unifiedStage = 'Post-Calving'; a.opsStage = 'Post-Calving'; a.nextStage = 'Lactation';
         } else if (activeEvent === 'harvest') {
             a.unifiedStage = 'Harvested'; a.opsStage = 'Harvested'; a.nextStage = '—';
         } else if (activeEvent === 'mortality') {
