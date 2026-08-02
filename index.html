@@ -484,10 +484,10 @@
             <label>Intake Stage</label>
             <select id="intake-stage">
                 <option>Birth / Hatch</option>
-                <option>Pre-Weaning</option>
+                <option>Pre Weaning</option>
                 <option>Weaning</option>
                 <option selected>Grower</option>
-                <option>Finisher</option>
+                <option>Finishing</option>
                 <option>Breeder</option>
                 <option>Gestation</option>
             </select>
@@ -532,7 +532,7 @@
         <div class="card">
             <div class="card-header">Lifecycle State</div>
             <div class="data-row"><span class="data-label">Unified Current Stage:</span><span id="prof-unified" class="data-value">Grower</span></div>
-            <div class="data-row"><span class="data-label">Unified Next Stage:</span><span id="prof-next" class="data-value">Finisher</span></div>
+            <div class="data-row"><span class="data-label">Unified Next Stage:</span><span id="prof-next" class="data-value">Finishing</span></div>
             <div class="data-row"><span class="data-label">Biological Stage:</span><span id="prof-bio" class="data-value">Grower</span></div>
             <div class="data-row"><span class="data-label">Operational Stage:</span><span id="prof-ops" class="data-value">Grower</span></div>
         </div>
@@ -782,16 +782,17 @@
 
             const existing = animals[id] || {};
             const unifiedStage = findVal(row, ['unifiedcurrentstage', 'unifiedstage', 'currentstage', 'stage']) || existing.unifiedStage || 'Unknown';
+            const species = findVal(row, ['species']) || existing.species || 'Unknown';
             const weightRaw = findVal(row, ['weight']);
 
             animals[id] = {
                 id,
-                species: findVal(row, ['species']) || existing.species || 'Unknown',
+                species,
                 sex: findVal(row, ['sex', 'gender']) || existing.sex || 'Unknown',
                 age: findVal(row, ['age']) || existing.age || '',
                 breed: findVal(row, ['breed', 'genetics']) || existing.breed || 'Unspecified',
                 unifiedStage,
-                nextStage: findVal(row, ['unifiednextstage', 'nextstage']) || existing.nextStage || nextStageFor(unifiedStage),
+                nextStage: findVal(row, ['unifiednextstage', 'nextstage']) || existing.nextStage || nextStageFor(unifiedStage, species),
                 bioStage: findVal(row, ['biologicalstage', 'biostage']) || existing.bioStage || unifiedStage,
                 opsStage: findVal(row, ['operationalstage', 'opstage']) || existing.opsStage || unifiedStage,
                 pen: findVal(row, ['pen', 'location']) || existing.pen || 'Unassigned',
@@ -962,6 +963,21 @@
         "Duck": "DCK", "Rabbit": "RBT", "Fish": "FSH"
     };
 
+    // Per-species stage sequences — must match Lifecycle_Rules exactly
+    // (species, stage name, and order). These strings are what get
+    // written as Intake_Stage and, at the operational-override level,
+    // into Current_Operational_Stage / Next_Operational_Stage on the
+    // backend. A mismatch here silently breaks the workbook lookup.
+    const speciesStageSequences = {
+        "Cattle": ["Birth / Hatch", "Pre Weaning", "Weaning", "Grower", "Finishing", "Harvest"],
+        "Sheep":  ["Birth / Hatch", "Pre Weaning", "Weaning", "Grower", "Finishing", "Harvest"],
+        "Goat":   ["Birth / Hatch", "Pre Weaning", "Weaning", "Grower", "Finishing", "Harvest"],
+        "Chicken": ["Neonatal / Brooding", "Grower", "Finishing", "Harvest"],
+        "Duck":    ["Neonatal / Brooding", "Grower", "Finishing", "Harvest"],
+        "Rabbit":  ["Birth / Hatch", "Pre Weaning", "Grower", "Finishing", "Harvest"],
+        "Fish":    ["Hatchling", "Fingerling", "Grower", "Harvest"]
+    };
+
     function populateBreedDropdown() {
         const species = document.getElementById('intake-species').value;
         const breedSelect = document.getElementById('intake-breed');
@@ -978,6 +994,20 @@
     function onSpeciesChange() {
         populateBreedDropdown();
         regenerateId();
+        rebuildIntakeStageOptions();
+    }
+
+    // Rebuilds the Intake Stage dropdown to match the selected species'
+    // exact stage vocabulary/order from Lifecycle_Rules. Preserves the
+    // current selection if it's still valid for the new species,
+    // otherwise falls back to the first stage in the sequence.
+    function rebuildIntakeStageOptions() {
+        const species = document.getElementById('intake-species').value;
+        const stages = speciesStageSequences[species] || speciesStageSequences["Cattle"];
+        const sel = document.getElementById('intake-stage');
+        const prevValue = sel.value;
+        sel.innerHTML = stages.map(s => `<option>${s}</option>`).join("");
+        sel.value = stages.includes(prevValue) ? prevValue : stages[0];
     }
 
     // ===========================================================
@@ -986,7 +1016,7 @@
     let animals = {
         "NR-COW-001234": {
             id: "NR-COW-001234", species: "Cattle", sex: "Female", age: "412 days", breed: "Angus x Wagyu",
-            unifiedStage: "Grower", nextStage: "Finisher", bioStage: "Grower", opsStage: "Grower",
+            unifiedStage: "Grower", nextStage: "Finishing", bioStage: "Grower", opsStage: "Grower",
             pen: "A3", weight: "412 kg", source: "Ranch-Born",
             clearances: { health: true, withdrawal: true, welfare: true },
             forecastFinish: "2026-09-12", forecastHarvest: "2026-10-03",
@@ -1010,7 +1040,7 @@
         },
         "NR-CHK-002210": {
             id: "NR-CHK-002210", species: "Chicken", sex: "Female", age: "45 days", breed: "Rhode Island Red",
-            unifiedStage: "Grower", nextStage: "Finisher", bioStage: "Grower", opsStage: "Grower",
+            unifiedStage: "Grower", nextStage: "Finishing", bioStage: "Grower", opsStage: "Grower",
             pen: "A3", weight: "1.4 kg", source: "Ranch-Born",
             clearances: { health: true, withdrawal: true, welfare: true },
             forecastFinish: "2026-08-20", forecastHarvest: "2026-08-27",
@@ -1174,6 +1204,7 @@
         document.getElementById('intake-species').value = "Cattle";
         populateBreedDropdown();
         regenerateId();
+        rebuildIntakeStageOptions();
         document.getElementById('intake-sex').value = "Female";
         document.getElementById('intake-breed-custom').value = "";
         document.getElementById('intake-source-type').value = "Livestock Auction";
@@ -1260,7 +1291,7 @@
         animals[id] = {
             id, species, sex, age, breed,
             unifiedStage: stage,
-            nextStage: nextStageFor(stage),
+            nextStage: nextStageFor(stage, species),
             bioStage: stage,
             opsStage: stage,
             pen, weight: `${weight} kg`,
@@ -1298,10 +1329,11 @@
         }
     }
 
-    function nextStageFor(stage) {
-        const order = ["Birth / Hatch", "Pre-Weaning", "Weaning", "Grower", "Finisher", "Harvest Ready"];
-        const idx = order.indexOf(stage);
-        if (idx >= 0 && idx < order.length - 1) return order[idx + 1];
+    function nextStageFor(stage, species) {
+        const seq = speciesStageSequences[species] || speciesStageSequences["Cattle"];
+        const idx = seq.indexOf(stage);
+        if (idx >= 0 && idx < seq.length - 1) return seq[idx + 1];
+        // Breeder/Gestation cycle sits outside the growth sequence (mammals only)
         if (stage === "Breeder") return "Gestation";
         if (stage === "Gestation") return "Breeder";
         return "—";
@@ -1356,10 +1388,10 @@
             { name: "Health", id: "health", valid: true },
             { name: "Movement", id: "movement", valid: true },
             { name: "Breeding", id: "breeding", valid: (sex === 'Female' && (stage === 'Grower' || stage === 'Breeder')) },
-            { name: "Weaning", id: "weaning", valid: (stage === 'Pre-Weaning' || stage === 'Weaning') },
+            { name: "Weaning", id: "weaning", valid: (stage === 'Pre Weaning' || stage === 'Weaning') },
             { name: "Finishing", id: "finishing", valid: (stage === 'Grower') },
-            { name: "Harvest", id: "harvest", valid: (clearances.health && clearances.withdrawal && (stage === 'Finisher' || stage === 'Harvest Ready')) },
-            { name: "Transport", id: "transport", valid: (stage === 'Finisher' || stage === 'Harvest Ready') },
+            { name: "Harvest", id: "harvest", valid: (clearances.health && clearances.withdrawal && (stage === 'Finishing' || stage === 'Harvest')) },
+            { name: "Transport", id: "transport", valid: (stage === 'Finishing' || stage === 'Harvest') },
             { name: "Mortality", id: "mortality", valid: true }
         ];
 
@@ -1415,7 +1447,7 @@
                     <select id="ev-pen"><option>A3</option><option>B1</option><option>Pasture 4</option></select>
                 </div>
                 <div class="form-group"><label>Operational Stage Override</label>
-                    <select id="ev-override"><option value="">None</option><option>Isolation</option><option>Finisher</option></select>
+                    <select id="ev-override"><option value="">None</option><option>Isolation</option><option>Finishing</option></select>
                 </div>
                 <div class="form-group"><label>Date</label><input type="text" value="${today}" readonly></div>
             `;
@@ -1499,11 +1531,11 @@
         if (activeEvent === 'weight' && fields.weight) a.weight = `${fields.weight} kg`;
         else if (activeEvent === 'movement') {
             if (fields.pen) a.pen = fields.pen;
-            if (fields.override) { a.opsStage = fields.override; a.unifiedStage = fields.override; a.nextStage = nextStageFor(fields.override); }
+            if (fields.override) { a.opsStage = fields.override; a.unifiedStage = fields.override; a.nextStage = nextStageFor(fields.override, a.species); }
         } else if (activeEvent === 'weaning') {
-            a.unifiedStage = 'Grower'; a.bioStage = 'Grower'; a.opsStage = 'Grower'; a.nextStage = nextStageFor('Grower');
+            a.unifiedStage = 'Grower'; a.bioStage = 'Grower'; a.opsStage = 'Grower'; a.nextStage = nextStageFor('Grower', a.species);
         } else if (activeEvent === 'finishing') {
-            a.unifiedStage = 'Finisher'; a.bioStage = 'Finisher'; a.opsStage = 'Finisher'; a.nextStage = nextStageFor('Finisher');
+            a.unifiedStage = 'Finishing'; a.bioStage = 'Finishing'; a.opsStage = 'Finishing'; a.nextStage = nextStageFor('Finishing', a.species);
         } else if (activeEvent === 'breeding') {
             a.unifiedStage = 'Gestation'; a.bioStage = 'Gestation'; a.opsStage = 'Gestation'; a.nextStage = 'Breeder';
         } else if (activeEvent === 'harvest') {
