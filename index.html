@@ -598,10 +598,14 @@
     // GOOGLE SHEETS LIVE SYNC CONFIG
     // ===========================================================
     const SHEET_URLS = {
-        Dashboard: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTVt7c24aLmHJwGfDy27ZKY9oLZKS-1B_EjwUnkIlZ27wdTtY1crN9_JcuN2DiqAHnw4tuIb823Sg2F/pub?gid=297235524&single=true&output=csv",
-        Lifecycle_Rules: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTVt7c24aLmHJwGfDy27ZKY9oLZKS-1B_EjwUnkIlZ27wdTtY1crN9_JcuN2DiqAHnw4tuIb823Sg2F/pub?gid=590790771&single=true&output=csv",
-        Lifecycle_Engine: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTVt7c24aLmHJwGfDy27ZKY9oLZKS-1B_EjwUnkIlZ27wdTtY1crN9_JcuN2DiqAHnw4tuIb823Sg2F/pub?gid=1338727682&single=true&output=csv",
-        Lifecycle_Calendar: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTVt7c24aLmHJwGfDy27ZKY9oLZKS-1B_EjwUnkIlZ27wdTtY1crN9_JcuN2DiqAHnw4tuIb823Sg2F/pub?gid=2083477124&single=true&output=csv"
+        Dashboard: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1707463665&single=true&output=csv",
+        Lifecycle_Rules: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1329812469&single=true&output=csv",
+        Lifecycle_Engine: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1221792036&single=true&output=csv",
+        Lifecycle_Calendar: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1414380761&single=true&output=csv",
+        // Not currently fetched by this app, but published on the new sheet
+        // if you want to wire up a read-only audit view later:
+        Event_Log: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=791668259&single=true&output=csv",
+        Legend: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1655967610&single=true&output=csv"
     };
 
     let dashboardData = [];
@@ -616,7 +620,7 @@
     // ===========================================================
     // Deploy Code.gs as a Web App bound to the real spreadsheet, then
     // paste the /exec URL here. Until then, saves stay local-only.
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgBRa0dyvxvfNrhfnwEYByFS2obi9eGcAFMkV2ALiGXVXc9PYw4YW_P6IEB-oCnkTM/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJvZzQWfUG1TuOVKY_iLSdXJDyVU2qMA2w9xi5q5TTesV4llB_wiu4a06KkYPHD9Bw/exec";
 
     function appsScriptConfigured() {
         return APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf("PASTE_YOUR") === -1;
