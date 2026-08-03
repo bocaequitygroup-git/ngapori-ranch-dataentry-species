@@ -321,6 +321,21 @@ const SPECIES_COLOR = {
 };
 const SPECIES_PREFIX = { Cattle:"COW", Sheep:"SHP", Goat:"GOT", Chicken:"CHK", Duck:"DCK", Rabbit:"RBT", Fish:"FSH" };
 
+// Breed catalog (standard set + crossbreeds per species) — replicated from
+// index_lifecycle.html's breedsBySpecies so intake offers the same options.
+const BREEDS_BY_SPECIES = {
+  Cattle: ["Angus","Wagyu","Hereford","Charolais","Simmental","Brahman","Dexter","Highland","Jersey","Holstein",
+           "Angus x Wagyu","Angus x Hereford","Wagyu x Hereford","Simmental x Angus","Other / Custom Crossbreed"],
+  Sheep: ["Suffolk","Dorper","Merino","Romney","Katahdin","Texel","Suffolk x Dorper","Romney x Merino","Other / Custom Crossbreed"],
+  Goat: ["Boer","Kiko","Nubian","Saanen","Alpine","Boer x Kiko","Boer x Nubian","Other / Custom Crossbreed"],
+  Chicken: ["Rhode Island Red","Plymouth Rock","Leghorn","Orpington","Sussex","Australorp","Cornish Cross",
+            "Rhode Island Red x Sussex","Other / Custom Crossbreed"],
+  Duck: ["Pekin","Khaki Campbell","Muscovy","Indian Runner","Rouen","Other / Custom Crossbreed"],
+  Rabbit: ["New Zealand White","Californian","Rex","Flemish Giant","New Zealand x Californian","Other / Custom Crossbreed"],
+  Fish: ["Rainbow Trout","Tilapia","Catfish","Salmon","Other / Custom Crossbreed"]
+};
+function breedsFor(species){ return BREEDS_BY_SPECIES[species] || ["Other / Custom Crossbreed"]; }
+
 // Mirrors the workbook's Lifecycle_Rules tab (corrected finishing-max values as noted in that sheet).
 const LIFECYCLE_RULES = {
   Cattle:[
@@ -924,7 +939,13 @@ function renderIntake(){
         </div>
         <div class="form-field"><label>Date of birth</label><input type="date" name="dob" value="${todayISO()}"></div>
         <div class="form-field"><label>Weight (kg)</label><input type="number" step="0.1" name="weight" value="0"></div>
-        <div class="form-field"><label>Breed (optional)</label><input name="breed" placeholder="e.g. Suffolk"></div>
+        <div class="form-field"><label>Breed / Genetics</label>
+          <select name="breed" id="intakeBreed">${breedsFor("Cattle").map(b=>`<option>${esc(b)}</option>`).join("")}</select>
+        </div>
+        <div class="form-field" id="breedCustomField" style="display:none;">
+          <label>Custom crossbreed description</label>
+          <input name="breedCustom" id="intakeBreedCustom" placeholder="e.g. Angus 60% / Wagyu 40%">
+        </div>
         <div class="form-field"><label>Pen</label>
           <select name="pen">${STATE.pens.map(p=>`<option>${esc(p)}</option>`).join("")}</select>
         </div>
@@ -1432,8 +1453,20 @@ function bindIntakeScreen(){
   originSel.addEventListener("change", ()=>{ sourceField.style.display = originSel.value==="Purchased" ? "block":"none"; });
   const speciesSel = root.querySelector("#intakeSpecies");
   const idInput = root.querySelector("#intakeId");
-  speciesSel.addEventListener("change", ()=>{ idInput.value = generateId(speciesSel.value); });
+  const breedSel = root.querySelector("#intakeBreed");
+  const breedCustomField = root.querySelector("#breedCustomField");
+
+  function populateBreedDropdown(){
+    breedSel.innerHTML = breedsFor(speciesSel.value).map(b=>`<option>${esc(b)}</option>`).join("");
+    toggleBreedCustom();
+  }
+  function toggleBreedCustom(){
+    breedCustomField.style.display = breedSel.value==="Other / Custom Crossbreed" ? "block":"none";
+  }
+  breedSel.addEventListener("change", toggleBreedCustom);
+  speciesSel.addEventListener("change", ()=>{ idInput.value = generateId(speciesSel.value); populateBreedDropdown(); });
   root.querySelector("#regenId").addEventListener("click", ()=>{ idInput.value = generateId(speciesSel.value); });
+
   root.querySelector("#intakeForm").addEventListener("submit", async e=>{
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -1444,7 +1477,9 @@ function bindIntakeScreen(){
     const isBorn = originSelVal === "Ranch-Born";
     const species = fd.get("species"), dob = fd.get("dob"), intakeDate = fd.get("intakeDate");
     const weight = parseFloat(fd.get("weight"))||0;
-    const breed = fd.get("breed")||"", pen = fd.get("pen"), source = fd.get("source")||"", notes = fd.get("notes")||"";
+    const breedRaw = fd.get("breed")||"";
+    const breed = breedRaw==="Other / Custom Crossbreed" ? (fd.get("breedCustom")||"").trim()||"Custom Crossbreed" : breedRaw;
+    const pen = fd.get("pen"), source = fd.get("source")||"", notes = fd.get("notes")||"";
     // Local, pre-sheet-lookup estimate — biologicalStage(species, age) falls
     // back to the hardcoded LIFECYCLE_RULES table since this animal has no
     // sheet row (and so no animal._biologicalStage) yet.
