@@ -1,1612 +1,1628 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ngapori Ranch - Livestock App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
-    :root {
-        --bg-color: #f4f6f8;
-        --card-bg: #ffffff;
-        --primary: #2e7d32;
-        --primary-hover: #1b5e20;
-        --accent: #0288d1;
-        --text-main: #212121;
-        --text-muted: #616161;
-        --border-color: #e0e0e0;
-        --danger: #d32f2f;
-        --warning: #ed6c02;
-        --radius: 8px;
-    }
+  :root{
+    --bg:#EAE6D8;
+    --surface:#FFFDF7;
+    --surface-2:#F3EFE2;
+    --ink:#20301F;
+    --ink-soft:#5B6656;
+    --primary:#1F3A2E;
+    --primary-light:#2F5443;
+    --accent:#C7DB2E;
+    --accent-ink:#1D2A12;
+    --rust:#B23A2E;
+    --line:#D9D3BE;
+    --tag-cattle:#E8862B;
+    --tag-sheep:#5C88C4;
+    --tag-goat:#C4508C;
+    --tag-chicken:#D9B92B;
+    --tag-duck:#2BA893;
+    --tag-rabbit:#8C6FC4;
+    --tag-fish:#2B9BC4;
+    --font-display:'Archivo Black', sans-serif;
+    --font-body:'IBM Plex Sans', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+    --radius:10px;
+    --shadow: 0 1px 2px rgba(32,48,31,0.06), 0 4px 14px rgba(32,48,31,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased; font-size:15px;
+  }
+  #root{max-width:560px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;display:flex;flex-direction:column;}
+  button{font-family:var(--font-body);cursor:pointer;}
+  input,select,textarea{font-family:var(--font-body);}
+  a{color:inherit;}
+  ::selection{background:var(--accent);color:var(--accent-ink);}
 
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+  /* ---------- Login ---------- */
+  .login-wrap{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:28px 22px;background:
+    radial-gradient(circle at 15% 10%, rgba(199,219,46,0.16), transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(199,219,46,0.10), transparent 40%),
+    var(--primary);
+    color:#F4F1E4;
+  }
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:34px;}
+  .brand-tag{width:44px;height:34px;border-radius:3px 12px 12px 3px;background:var(--accent);position:relative;flex:none;}
+  .brand-tag::before{content:'';position:absolute;left:5px;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;background:rgba(29,42,18,0.35);}
+  .brand h1{font-family:var(--font-display);font-size:20px;letter-spacing:0.3px;margin:0;line-height:1.15;color:#F4F1E4;}
+  .brand p{margin:2px 0 0;font-size:12px;color:#C9D3C0;font-family:var(--font-mono);letter-spacing:0.4px;text-transform:uppercase;}
 
-    body {
-        background-color: var(--bg-color);
-        color: var(--text-main);
-        display: flex;
-        justify-content: center;
-        min-height: 100vh;
-    }
+  .login-card{background:rgba(244,241,228,0.06);border:1px solid rgba(244,241,228,0.14);border-radius:16px;padding:22px;}
+  .login-card h2{font-family:var(--font-display);font-size:15px;margin:0 0 14px;color:#F4F1E4;font-weight:400;}
+  .role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+  .role-btn{background:rgba(244,241,228,0.08);border:1.5px solid rgba(244,241,228,0.2);border-radius:10px;padding:14px 6px;color:#F4F1E4;text-align:center;font-size:13px;font-weight:600;}
+  .role-btn small{display:block;font-family:var(--font-mono);font-weight:500;font-size:10px;color:#C9D3C0;margin-top:3px;text-transform:uppercase;}
+  .role-btn.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+  .role-btn.active small{color:rgba(29,42,18,0.65);}
 
-    .app-container {
-        width: 100%;
-        max-width: 480px;
-        background-color: var(--card-bg);
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 0 15px rgba(0,0,0,0.05);
-    }
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:#C9D3C0;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.3px;font-family:var(--font-mono);}
+  .login-card input[type=password], .login-card input[type=text]{
+    width:100%;padding:13px 14px;border-radius:10px;border:1.5px solid rgba(244,241,228,0.25);
+    background:rgba(20,32,17,0.35);color:#F4F1E4;font-size:16px;
+  }
+  .login-card input::placeholder{color:#8FA085;}
+  .btn-primary{width:100%;background:var(--accent);color:var(--accent-ink);border:none;border-radius:10px;padding:15px;font-weight:700;font-size:15px;margin-top:4px;}
+  .btn-primary:active{transform:scale(0.99);}
+  .login-hint{margin-top:16px;font-size:11.5px;color:#94A288;line-height:1.5;}
+  .login-error{background:rgba(178,58,46,0.25);border:1px solid rgba(178,58,46,0.5);color:#F8DAD6;padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:12px;}
 
-    header {
-        background-color: var(--primary);
-        color: white;
-        padding: 14px 16px;
-        text-align: center;
-        position: relative;
-    }
+  /* ---------- App shell ---------- */
+  .app-header{position:sticky;top:0;z-index:20;background:var(--primary);color:#F4F1E4;padding:14px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);}
+  .app-header .htag{width:26px;height:20px;border-radius:2px 8px 8px 2px;background:var(--accent);flex:none;position:relative;}
+  .app-header .htag::before{content:'';position:absolute;left:3px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:rgba(29,42,18,0.4);}
+  .app-header h1{font-family:var(--font-display);font-size:15px;margin:0;flex:1;line-height:1.2;}
+  .app-header .role-pill{font-family:var(--font-mono);font-size:10.5px;background:rgba(244,241,228,0.14);padding:5px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:0.3px;}
+  .back-btn{background:none;border:none;color:#F4F1E4;font-size:20px;padding:2px 6px 2px 0;line-height:1;}
+  .logout-btn{background:none;border:none;color:#C9D3C0;font-size:11px;font-family:var(--font-mono);text-decoration:underline;padding:0;margin-left:8px;}
 
-    header .header-title { font-weight: bold; font-size: 1.05rem; letter-spacing: 0.5px; }
-    header .header-user { font-size: 0.72rem; opacity: 0.9; margin-top: 2px; }
+  main{flex:1;padding:16px 16px 96px;overflow-y:auto;}
+  .screen-title{font-family:var(--font-display);font-size:19px;margin:2px 0 4px;}
+  .screen-sub{color:var(--ink-soft);font-size:13px;margin:0 0 16px;}
 
-    .back-btn, .logout-btn {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: white;
-        font-size: 1.1rem;
-        width: auto;
-        padding: 4px 8px;
-        cursor: pointer;
-    }
+  .bottom-nav{position:sticky;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -2px 10px rgba(32,48,31,0.06);}
+  .nav-btn{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;border-radius:10px;color:var(--ink-soft);font-size:10.5px;font-weight:600;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.2px;}
+  .nav-btn.active{color:var(--primary);background:var(--surface-2);}
+  .nav-btn svg{width:20px;height:20px;}
 
-    .back-btn { left: 8px; font-size: 1.3rem; }
-    .logout-btn { right: 8px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.6); border-radius: 6px; }
+  /* ---------- Cards & buttons ---------- */
+  .card{background:var(--surface);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px;border:1px solid var(--line);}
+  .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:13px;}
+  .kpi .n{font-family:var(--font-display);font-size:24px;line-height:1;color:var(--primary);}
+  .kpi .l{font-size:11.5px;color:var(--ink-soft);margin-top:5px;font-weight:600;}
+  .kpi.alert .n{color:var(--rust);}
 
-    .screen { display: none; padding: 16px; flex-grow: 1; }
-    .screen.active { display: flex; flex-direction: column; gap: 16px; }
+  .btn{border-radius:10px;padding:13px 16px;font-weight:700;font-size:14px;border:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;}
+  .btn-block{width:100%;}
+  .btn-accent{background:var(--accent);color:var(--accent-ink);}
+  .btn-dark{background:var(--primary);color:#F4F1E4;}
+  .btn-outline{background:transparent;color:var(--primary);border:1.5px solid var(--primary);}
+  .btn-danger{background:var(--rust);color:#fff;}
+  .btn-ghost{background:var(--surface-2);color:var(--ink);}
+  .btn-sm{padding:9px 12px;font-size:12.5px;border-radius:8px;}
+  .btn:disabled{opacity:0.45;pointer-events:none;}
 
-    h2.screen-title { font-size: 1.15rem; color: var(--text-main); }
-    p.screen-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: -10px; }
+  .home-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px;}
+  .home-tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 14px;text-align:left;box-shadow:var(--shadow);}
+  .home-tile .ico{width:30px;height:30px;margin-bottom:14px;color:var(--primary);}
+  .home-tile h3{font-family:var(--font-display);font-size:14.5px;margin:0 0 3px;}
+  .home-tile p{margin:0;font-size:11.5px;color:var(--ink-soft);}
 
-    button, .btn {
-        background-color: var(--primary);
-        color: white;
-        border: none;
-        padding: 14px;
-        border-radius: var(--radius);
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        width: 100%;
-        text-align: center;
-        transition: background 0.2s, opacity 0.2s;
-    }
+  /* ---------- Ear tag chip ---------- */
+  .eartag{display:inline-flex;align-items:center;gap:6px;padding:5px 11px 5px 16px;border-radius:4px 14px 14px 4px;font-family:var(--font-mono);font-weight:700;font-size:12px;position:relative;color:#1a1a1a;white-space:nowrap;}
+  .eartag::before{content:'';position:absolute;left:5px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,0.28);}
 
-    button:active { opacity: 0.85; }
+  /* ---------- Search / filters ---------- */
+  .search-box{display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;margin-bottom:10px;}
+  .search-box input{border:none;outline:none;background:none;flex:1;font-size:15px;color:var(--ink);}
+  .search-box svg{width:17px;height:17px;color:var(--ink-soft);flex:none;}
+  .filter-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;}
+  .filter-row select{border:1px solid var(--line);border-radius:20px;padding:8px 12px;font-size:12.5px;background:var(--surface);color:var(--ink);font-family:var(--font-body);flex:none;}
+  .pen-chips{display:flex;gap:7px;overflow-x:auto;margin-bottom:14px;}
+  .pen-chip{flex:none;padding:8px 13px;border-radius:20px;border:1.5px solid var(--line);background:var(--surface);font-size:12.5px;font-weight:600;color:var(--ink-soft);}
+  .pen-chip.active{background:var(--primary);border-color:var(--primary);color:#fff;}
 
-    .btn-secondary { background-color: #757575; }
-    .btn-outline { background-color: transparent; border: 2px solid var(--primary); color: var(--primary); }
-    .btn-accent { background-color: var(--accent); }
-    .btn-danger { background-color: var(--danger); }
-    .btn-small { width: auto; padding: 8px 12px; font-size: 0.78rem; }
+  /* ---------- Animal list rows ---------- */
+  .animal-row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 13px;margin-bottom:9px;}
+  .animal-row .meta{flex:1;min-width:0;}
+  .animal-row .id{font-family:var(--font-mono);font-weight:700;font-size:13.5px;color:var(--ink);}
+  .animal-row .sub{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .animal-row .stage-pill{font-size:10px;font-weight:700;text-transform:uppercase;padding:4px 8px;border-radius:20px;background:var(--surface-2);color:var(--primary);white-space:nowrap;font-family:var(--font-mono);}
+  .flag{color:var(--rust);font-size:10.5px;font-weight:700;margin-top:3px;font-family:var(--font-mono);}
+  .empty-state{text-align:center;padding:40px 16px;color:var(--ink-soft);}
+  .empty-state svg{width:38px;height:38px;margin-bottom:10px;opacity:0.5;}
 
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+  /* ---------- Detail screen ---------- */
+  .detail-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+  .detail-head h2{font-family:var(--font-mono);font-size:21px;margin:8px 0 2px;}
+  .detail-head .species-sex{font-size:13px;color:var(--ink-soft);}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;}
+  .info-grid .label{color:var(--ink-soft);font-size:11px;text-transform:uppercase;font-family:var(--font-mono);letter-spacing:0.3px;margin-bottom:3px;}
+  .info-grid .val{font-weight:600;}
+  .clearance-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .clearance-pill{font-size:11px;font-weight:700;padding:6px 10px;border-radius:20px;font-family:var(--font-mono);}
+  .clearance-pill.yes{background:rgba(199,219,46,0.35);color:#3E4A18;}
+  .clearance-pill.no{background:rgba(178,58,46,0.15);color:var(--rust);}
 
-    input, select, textarea {
-        padding: 12px;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius);
-        font-size: 1rem;
-        width: 100%;
-        background-color: #fff;
-    }
+  .stage-timeline{display:flex;align-items:center;gap:3px;margin:14px 0 4px;overflow-x:auto;padding-bottom:6px;}
+  .stage-notch{flex:none;text-align:center;min-width:52px;}
+  .stage-notch .dot{width:22px;height:22px;border-radius:4px 10px 10px 4px;margin:0 auto 5px;border:2px solid var(--line);background:var(--surface);position:relative;}
+  .stage-notch .dot::before{content:'';position:absolute;left:3px;top:50%;transform:translateY(-50%);width:4px;height:4px;border-radius:50%;background:var(--line);}
+  .stage-notch.done .dot{background:var(--primary-light);border-color:var(--primary-light);}
+  .stage-notch.done .dot::before{background:rgba(255,255,255,0.5);}
+  .stage-notch.current .dot{background:var(--accent);border-color:var(--accent-ink);}
+  .stage-notch.current .dot::before{background:rgba(29,42,18,0.4);}
+  .stage-notch .stlabel{font-size:9px;color:var(--ink-soft);line-height:1.2;font-family:var(--font-mono);}
+  .stage-notch.current .stlabel{color:var(--primary);font-weight:700;}
 
-    input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); border-color: transparent; }
-    input[readonly] { background-color: #f0f0f0; color: var(--text-muted); }
+  .action-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px;}
+  .action-btn{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:13px 10px;font-weight:700;font-size:13px;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;}
+  .action-btn svg{width:19px;height:19px;color:var(--primary);}
+  .action-btn.wide{grid-column:1 / -1;background:var(--primary);color:#fff;}
+  .action-btn.wide svg{color:var(--accent);}
 
-    .card {
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius);
-        padding: 14px;
-        background-color: #fafafa;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
+  /* ---------- Forms ---------- */
+  .form-field{margin-bottom:15px;}
+  .form-field label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.3px;font-family:var(--font-mono);}
+  .form-field input, .form-field select, .form-field textarea{
+    width:100%;padding:13px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);
+    font-size:16px;color:var(--ink);
+  }
+  .form-field textarea{min-height:70px;resize:vertical;font-family:var(--font-body);}
+  .toggle-row{display:flex;gap:10px;}
+  .toggle-opt{flex:1;text-align:center;padding:12px;border-radius:10px;border:1.5px solid var(--line);font-weight:700;font-size:13px;background:var(--surface);color:var(--ink-soft);}
+  .toggle-opt.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+  .toggle-opt.on.deny{background:var(--rust);border-color:var(--rust);color:#fff;}
+  .form-context{background:var(--surface-2);border-radius:10px;padding:11px 13px;font-size:12.5px;color:var(--ink-soft);margin-bottom:16px;}
+  .form-context b{color:var(--ink);}
+  .offspring-block{border:1.5px dashed var(--line);border-radius:10px;padding:12px;margin-bottom:10px;position:relative;}
+  .offspring-block .rm{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--rust);font-weight:700;font-size:12px;}
+  .btn-row{display:flex;gap:10px;margin-top:6px;}
+  .btn-row .btn{flex:1;}
+  .note-inline{font-size:11.5px;color:var(--ink-soft);margin:-8px 0 16px;}
 
-    .card-header {
-        font-weight: bold;
-        font-size: 1.1rem;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 6px;
-        margin-bottom: 4px;
-        color: var(--primary);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+  /* ---------- Reports ---------- */
+  .bar-row{margin-bottom:12px;}
+  .bar-row .bhead{display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;margin-bottom:5px;}
+  .bar-track{height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--primary);border-radius:6px;}
+  .report-tile{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:10px;}
+  .report-tile h4{margin:0 0 2px;font-family:var(--font-display);font-size:13.5px;}
+  .report-tile p{margin:0;font-size:11.5px;color:var(--ink-soft);}
+  .report-tile .arrow{color:var(--primary);font-size:18px;}
 
-    .data-row { display: flex; justify-content: space-between; font-size: 0.95rem; gap: 12px; }
-    .data-label { color: var(--text-muted); }
-    .data-value { font-weight: 600; text-align: right; }
+  /* ---------- Settings ---------- */
+  .settings-section{margin-bottom:6px;}
+  .settings-section h4{font-family:var(--font-display);font-size:13px;margin:18px 0 8px;color:var(--primary);}
+  .list-row{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:8px;font-size:13px;}
+  .rules-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:6px;}
+  .rules-table th{text-align:left;font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;color:var(--ink-soft);padding:6px 4px;border-bottom:1.5px solid var(--line);}
+  .rules-table td{padding:6px 4px;border-bottom:1px solid var(--line);}
+  .pwd-form{display:none;margin-top:8px;gap:8px;flex-direction:column;}
+  .pwd-form.open{display:flex;}
 
-    .checkbox-group { display: flex; gap: 12px; align-items: center; }
-    .checkbox-group label { text-transform: none; color: var(--text-main); font-weight: normal; font-size: 0.95rem; }
-    .checkbox-group input { width: auto; }
+  .toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--primary);color:#F4F1E4;padding:12px 18px;border-radius:30px;font-size:13px;font-weight:600;box-shadow:var(--shadow);z-index:100;opacity:0;pointer-events:none;transition:opacity .25s, bottom .25s;max-width:88%;text-align:center;}
+  .toast.err{background:var(--rust);}
+  .toast.show{opacity:1;bottom:96px;}
 
-    .hidden { display: none !important; }
-
-    .animal-list { display: flex; flex-direction: column; gap: 8px; }
-
-    .animal-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius);
-        padding: 12px 14px;
-        background-color: #fff;
-        cursor: pointer;
-        transition: background 0.15s;
-    }
-
-    .animal-row:active { background-color: #f0f0f0; }
-    .animal-row-main { display: flex; flex-direction: column; gap: 2px; }
-    .animal-row-id { font-weight: 700; font-size: 0.98rem; display: flex; align-items: center; gap: 6px; }
-    .animal-row-sub { font-size: 0.8rem; color: var(--text-muted); }
-
-    .stage-pill {
-        font-size: 0.72rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        padding: 4px 10px;
-        border-radius: 999px;
-        background-color: #e8f5e9;
-        color: var(--primary);
-        white-space: nowrap;
-    }
-
-    .sync-pill {
-        font-size: 0.62rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        padding: 2px 6px;
-        border-radius: 999px;
-        background-color: #e3f2fd;
-        color: #0277bd;
-    }
-
-    .empty-state { text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 24px 8px; }
-
-    .flow-note {
-        background-color: #e3f2fd;
-        border: 1px solid #bbdefb;
-        border-radius: var(--radius);
-        padding: 10px 12px;
-        font-size: 0.8rem;
-        color: #01579b;
-    }
-
-    .sync-status-box {
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius);
-        padding: 12px;
-        font-size: 0.82rem;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .sync-status-text { color: var(--text-muted); }
-    .sync-status-text.ok { color: var(--primary); font-weight: 600; }
-    .sync-status-text.err { color: var(--danger); font-weight: 600; }
-
-    .id-display {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background-color: #e8f5e9;
-        border: 1px dashed var(--primary);
-        border-radius: var(--radius);
-        padding: 12px;
-    }
-
-    .id-display .id-text { font-weight: 700; font-size: 1.05rem; color: var(--primary-hover); }
-    .id-display button { width: auto; padding: 8px 12px; font-size: 0.75rem; }
-
-    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chip {
-        border: 1px solid var(--border-color);
-        background: #fff;
-        color: var(--text-main);
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        cursor: pointer;
-        width: auto;
-    }
-    .chip.active { background-color: var(--primary); color: white; border-color: var(--primary); }
-
-    .filter-row { display: flex; gap: 8px; }
-    .filter-row select { flex: 1; }
-
-    .login-wrap { justify-content: center; flex-grow: 1; }
-    .role-select-row { display: flex; gap: 8px; }
-    .role-btn {
-        flex: 1;
-        background: #fff;
-        color: var(--text-main);
-        border: 2px solid var(--border-color);
-        padding: 12px 6px;
-        font-size: 0.82rem;
-        font-weight: 600;
-    }
-    .role-btn.active { border-color: var(--primary); background-color: #e8f5e9; color: var(--primary-hover); }
-    .login-error { color: var(--danger); font-size: 0.82rem; text-align: center; }
-    .login-hint { font-size: 0.72rem; color: var(--text-muted); text-align: center; }
-
-    details.raw-preview { border: 1px solid var(--border-color); border-radius: var(--radius); padding: 8px 10px; }
-    details.raw-preview summary { cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--primary); }
-    .raw-table-wrap { overflow-x: auto; margin-top: 8px; }
-    table.raw-table { border-collapse: collapse; font-size: 0.72rem; width: 100%; }
-    table.raw-table th, table.raw-table td {
-        border: 1px solid var(--border-color);
-        padding: 4px 6px;
-        text-align: left;
-        white-space: nowrap;
-    }
-    table.raw-table th { background-color: #f0f0f0; }
-
-    .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .metric-card {
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius);
-        padding: 12px;
-        background-color: #fafafa;
-        text-align: center;
-    }
-    .metric-card .metric-value { font-size: 1.3rem; font-weight: 700; color: var(--primary); }
-    .metric-card .metric-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }
+  @media(min-width:561px){
+    #root{border-left:1px solid var(--line);border-right:1px solid var(--line);}
+  }
 </style>
-</head>
-<body>
 
-<div class="app-container">
-    <header id="app-header">
-        <button id="header-back-btn" class="back-btn hidden" onclick="goBack()">←</button>
-        <div class="header-title" id="header-title">NGAPORI LIVESTOCK APP</div>
-        <div class="header-user hidden" id="header-user"></div>
-        <button id="header-logout-btn" class="logout-btn hidden" onclick="logout()">LOG OUT</button>
-    </header>
-
-    <!-- ⭐ SCREEN L: LOGIN -->
-    <div id="screen-login" class="screen active login-wrap">
-        <div style="text-align:center; margin-bottom: 4px;">
-            <div style="font-size:1.3rem; font-weight:700; color:var(--primary);">Ngapori Ranch</div>
-            <div style="font-size:0.85rem; color:var(--text-muted);">Sign in to record livestock activity</div>
-        </div>
-
-        <div class="form-group">
-            <label>Role</label>
-            <div class="role-select-row">
-                <button type="button" class="role-btn active" data-role="Ranch Worker" onclick="selectRole('Ranch Worker', this)">Ranch Worker</button>
-                <button type="button" class="role-btn" data-role="Ranch Manager" onclick="selectRole('Ranch Manager', this)">Ranch Manager</button>
-                <button type="button" class="role-btn" data-role="Founder" onclick="selectRole('Founder', this)">Founder</button>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Name</label>
-            <input type="text" id="login-name" placeholder="e.g. Sam Tane">
-        </div>
-
-        <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="login-password" placeholder="Enter password">
-        </div>
-
-        <div id="login-error" class="login-error hidden">Incorrect password for that role. Try again.</div>
-
-        <button onclick="attemptLogin()">LOG IN</button>
-
-        <div class="login-hint">
-            Demo passwords — Ranch Worker: worker123 · Ranch Manager: manager123 · Founder: founder123
-        </div>
-    </div>
-
-    <!-- ⭐ SCREEN 0: HOME -->
-    <div id="screen-home" class="screen">
-        <p class="screen-sub" style="margin-top:0;">Three entry points. No scanning. No hardware assumptions.</p>
-
-        <button onclick="goToIntake()">➕ INTAKE</button>
-        <button class="btn-accent" onclick="showScreen('screen-search')">🔍 SEARCH ANIMAL</button>
-        <button class="btn-outline" onclick="showScreen('screen-recent')">🕘 RECENT ANIMALS</button>
-        <button class="btn-secondary" onclick="showScreen('screen-dashboard')">📊 DASHBOARD & SYNC</button>
-
-        <div id="home-sync-status" class="sync-status-box">
-            <span class="sync-status-text" id="home-sync-status-text">Not synced yet.</span>
-        </div>
-    </div>
-
-    <!-- ⭐ SCREEN 0B: RECENT ANIMALS -->
-    <div id="screen-recent" class="screen">
-        <h2 class="screen-title">Recent Animals</h2>
-        <p class="screen-sub">Last animals worked with. Tap to open profile.</p>
-        <div id="recent-list" class="animal-list"></div>
-    </div>
-
-    <!-- ⭐ SCREEN 0C: SEARCH ANIMAL -->
-    <div id="screen-search" class="screen">
-        <h2 class="screen-title">Search Animal</h2>
-        <p class="screen-sub">Type to search, or tap a species/stage filter</p>
-
-        <div class="form-group">
-            <input type="text" id="search-input" placeholder="Search ID, pen, or breed..." oninput="renderSearchResults()">
-        </div>
-
-        <div class="chip-row" id="species-chip-row"></div>
-
-        <div class="filter-row">
-            <select id="search-stage-filter" onchange="renderSearchResults()">
-                <option value="">All Stages</option>
-            </select>
-            <select id="search-pen-filter" onchange="renderSearchResults()">
-                <option value="">All Pens</option>
-            </select>
-        </div>
-
-        <div id="search-results" class="animal-list"></div>
-    </div>
-
-    <!-- ⭐ SCREEN 0D: DASHBOARD & SYNC -->
-    <div id="screen-dashboard" class="screen">
-        <h2 class="screen-title">Dashboard & Live Sync</h2>
-        <p class="screen-sub">Reads Dashboard, Lifecycle_Rules, Lifecycle_Engine, and Lifecycle_Calendar from Google Sheets. Intake and events write back live via Apps Script.</p>
-
-        <div class="sync-status-box">
-            <span class="sync-status-text" id="dash-sync-status-text">Not synced yet.</span>
-            <span class="sync-status-text" id="dash-write-status-text"></span>
-            <button class="btn-small btn-accent" onclick="syncAllData()">🔄 SYNC NOW</button>
-        </div>
-
-        <div id="dashboard-metrics"></div>
-
-        <details class="raw-preview">
-            <summary>Dashboard — raw rows (<span id="count-dashboard">0</span>)</summary>
-            <div id="raw-dashboard" class="raw-table-wrap"></div>
-        </details>
-
-        <details class="raw-preview">
-            <summary>Lifecycle_Engine — raw rows (<span id="count-engine">0</span>)</summary>
-            <div id="raw-engine" class="raw-table-wrap"></div>
-        </details>
-
-        <details class="raw-preview">
-            <summary>Lifecycle_Rules — raw rows (<span id="count-rules">0</span>)</summary>
-            <div id="raw-rules" class="raw-table-wrap"></div>
-        </details>
-
-        <details class="raw-preview">
-            <summary>Lifecycle_Calendar — raw rows (<span id="count-calendar">0</span>)</summary>
-            <div id="raw-calendar" class="raw-table-wrap"></div>
-        </details>
-    </div>
-
-    <!-- ⭐ SCREEN 1: INTAKE -->
-    <div id="screen-intake" class="screen">
-        <h2 class="screen-title">Animal Intake</h2>
-
-        <div class="form-group">
-            <label>Animal ID (auto-generated)</label>
-            <div class="id-display">
-                <span class="id-text" id="intake-id-display">NR-COW-000000</span>
-                <button type="button" onclick="regenerateId()">🔄 Regenerate</button>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Origin</label>
-            <select id="intake-origin" onchange="toggleIntakeFields()">
-                <option value="Born">Born / Hatched (Ranch-Born)</option>
-                <option value="Purchased">Purchased</option>
-                <option value="Batch">Batch Intake</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Species</label>
-            <select id="intake-species" onchange="onSpeciesChange()">
-                <option>Cattle</option><option>Sheep</option><option>Goat</option>
-                <option>Chicken</option><option>Duck</option><option>Rabbit</option><option>Fish</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Sex</label>
-            <select id="intake-sex">
-                <option>Female</option><option>Male</option><option>Unknown</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Breed / Genetics</label>
-            <select id="intake-breed"></select>
-        </div>
-
-        <div class="form-group hidden" id="group-breed-custom">
-            <label>Custom Crossbreed Description</label>
-            <input type="text" id="intake-breed-custom" placeholder="e.g. Angus 60% / Wagyu 40%">
-        </div>
-
-        <div class="form-group hidden" id="group-source">
-            <label>Source (Purchased / Non-Ranch Origin)</label>
-            <select id="intake-source-type">
-                <option>Livestock Auction</option>
-                <option>Direct Breeder Purchase</option>
-                <option>Neighboring Ranch</option>
-                <option>Sale Barn</option>
-                <option>Online Marketplace</option>
-                <option>Other</option>
-            </select>
-        </div>
-        <div class="form-group hidden" id="group-source-detail">
-            <label>Source Name / Detail</label>
-            <input type="text" id="intake-source-detail" placeholder="e.g. Wairarapa Angus Stud">
-        </div>
-
-        <div class="form-group" id="group-dob">
-            <label>DOB</label>
-            <input type="date" id="intake-dob">
-        </div>
-
-        <div class="form-group hidden" id="group-age">
-            <label>Age at Intake (days)</label>
-            <input type="number" id="intake-age" placeholder="e.g. 420">
-        </div>
-
-        <div class="form-group">
-            <label>Entry Date (Intake Date)</label>
-            <input type="date" id="intake-date">
-        </div>
-
-        <div class="form-group">
-            <label>Intake Stage</label>
-            <select id="intake-stage">
-                <option>Birth / Hatch</option>
-                <option>Pre Weaning</option>
-                <option>Weaning</option>
-                <option selected>Grower</option>
-                <option>Finishing</option>
-                <option>Breeder</option>
-                <option>Gestation</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Weight (kg)</label>
-            <input type="number" id="intake-weight" placeholder="412">
-        </div>
-
-        <div class="form-group">
-            <label>Pen</label>
-            <select id="intake-pen">
-                <option>A3</option><option>B1</option><option>Pasture 4</option>
-            </select>
-        </div>
-
-        <div class="card">
-            <div class="card-header">Clearances</div>
-            <div class="checkbox-group"><input type="checkbox" id="intake-clear-health" checked> <label>Health Clear</label></div>
-            <div class="checkbox-group"><input type="checkbox" id="intake-clear-withdrawal" checked> <label>Withdrawal Clear</label></div>
-            <div class="checkbox-group"><input type="checkbox" id="intake-clear-welfare" checked> <label>Welfare Clear</label></div>
-        </div>
-
-        <div class="form-group">
-            <label>Notes</label>
-            <input type="text" id="intake-notes" placeholder="Optional">
-        </div>
-
-        <button onclick="saveIntake()">SAVE INTAKE</button>
-        <div id="intake-validation-error" class="login-error hidden"></div>
-        <button class="btn-secondary" onclick="showScreen('screen-home')">CANCEL</button>
-    </div>
-
-    <!-- ⭐ SCREEN 2: ANIMAL PROFILE -->
-    <div id="screen-profile" class="screen">
-        <div class="card">
-            <div id="prof-id" class="card-header">NR-COW-001234</div>
-            <div id="prof-sub" style="font-size: 0.85rem; color: var(--text-muted);">Cattle • Female • 412 days • Angus/Wagyu</div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">Lifecycle State</div>
-            <div class="data-row"><span class="data-label">Unified Current Stage:</span><span id="prof-unified" class="data-value">Grower</span></div>
-            <div class="data-row"><span class="data-label">Unified Next Stage:</span><span id="prof-next" class="data-value">Finishing</span></div>
-            <div class="data-row"><span class="data-label">Biological Stage:</span><span id="prof-bio" class="data-value">Grower</span></div>
-            <div class="data-row"><span class="data-label">Operational Stage:</span><span id="prof-ops" class="data-value">Grower</span></div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">Location & Metrics</div>
-            <div class="data-row"><span class="data-label">Pen:</span><span id="prof-pen" class="data-value">A3</span></div>
-            <div class="data-row"><span class="data-label">Weight:</span><span id="prof-weight" class="data-value">412 kg</span></div>
-            <div class="data-row"><span class="data-label">Source:</span><span id="prof-source" class="data-value">Ranch-Born</span></div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">Clearances</div>
-            <div class="data-row"><span class="data-label">Health:</span><span id="prof-clear-health" class="data-value">Yes</span></div>
-            <div class="data-row"><span class="data-label">Withdrawal:</span><span id="prof-clear-withdrawal" class="data-value">Yes</span></div>
-            <div class="data-row"><span class="data-label">Welfare:</span><span id="prof-clear-welfare" class="data-value">Yes</span></div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">Forecasts</div>
-            <div class="data-row"><span class="data-label">Expected Finishing:</span><span id="prof-forecast-finish" class="data-value">2026-09-12</span></div>
-            <div class="data-row"><span class="data-label">Expected Harvest:</span><span id="prof-forecast-harvest" class="data-value">2026-10-03</span></div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">Record Log</div>
-            <div class="data-row"><span class="data-label">Entered By:</span><span id="prof-entered-by" class="data-value">—</span></div>
-            <div class="data-row"><span class="data-label">Last Updated By:</span><span id="prof-updated-by" class="data-value">—</span></div>
-            <div class="data-row"><span class="data-label">Data Source:</span><span id="prof-data-source" class="data-value">Local</span></div>
-        </div>
-
-        <button onclick="showScreen('screen-actions')">ACTIONS</button>
-    </div>
-
-    <!-- ⭐ SCREEN 3: ACTION MENU -->
-    <div id="screen-actions" class="screen">
-        <h2 class="screen-title">Valid Actions</h2>
-        <p class="screen-sub" id="actions-source-note">Buttons shown only if valid for the animal's current stage, clearances, and species rules — preventing invalid lifecycle transitions.</p>
-        <div id="action-buttons-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
-    </div>
-
-    <!-- ⭐ SCREEN 4: EVENT ENTRY -->
-    <div id="screen-event" class="screen">
-        <h2 id="event-title" class="screen-title">Record Event</h2>
-        <div id="event-form-fields" style="display: flex; flex-direction: column; gap: 12px;"></div>
-        <button id="event-save-btn" onclick="saveEvent()">SAVE EVENT</button>
-    </div>
-
-    <!-- ⭐ SCREEN 5: CONTINUE WORKFLOW -->
-    <div id="screen-continue" class="screen">
-        <div class="flow-note">Event saved. Lifecycle Engine recalculated stages, forecasts, and dashboard KPIs.</div>
-        <h2 class="screen-title">Continue Workflow</h2>
-        <button onclick="showScreen('screen-profile')">RECORD ANOTHER EVENT</button>
-        <button class="btn-accent" onclick="showScreen('screen-search')">SEARCH ANOTHER ANIMAL</button>
-        <button class="btn-outline" onclick="goToIntake()">RETURN TO INTAKE</button>
-        <button class="btn-secondary" onclick="showScreen('screen-home')">HOME</button>
-    </div>
-
-</div>
+<div id="root"></div>
+<div id="toast" class="toast"></div>
 
 <script>
-    // ===========================================================
-    // GOOGLE SHEETS LIVE SYNC CONFIG
-    // ===========================================================
-    const SHEET_URLS = {
-        Dashboard: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1707463665&single=true&output=csv",
-        Lifecycle_Rules: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1329812469&single=true&output=csv",
-        Lifecycle_Engine: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1221792036&single=true&output=csv",
-        Lifecycle_Calendar: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1414380761&single=true&output=csv",
-        // Not currently fetched by this app, but published on the new sheet
-        // if you want to wire up a read-only audit view later:
-        Event_Log: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=791668259&single=true&output=csv",
-        Legend: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1655967610&single=true&output=csv"
+(function(){
+"use strict";
+
+/* ================= Backend connection (Google Sheets + Apps Script) =================
+ * Reads come from the sheet's published-CSV links (fast, no auth, but cached by
+ * Google for a few minutes). Writes go through the Apps Script /exec endpoint
+ * (doPost: action "intake" or "event"), and each write is followed by a
+ * GET ?action=readRow&id=... call to pull back the freshly recalculated
+ * formula columns for just that animal, so the UI doesn't have to wait out
+ * the CSV cache to show correct data.
+ *
+ * Local-only: pens list and user/role passwords have no matching sheet or
+ * Apps Script action, so they still live in this device's window.storage
+ * ("ranch-config") rather than the spreadsheet.
+ */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJvZzQWfUG1TuOVKY_iLSdXJDyVU2qMA2w9xi5q5TTesV4llB_wiu4a06KkYPHD9Bw/exec";
+const CSV_URLS = {
+  engine:    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1221792036&single=true&output=csv",
+  dashboard: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1707463665&single=true&output=csv",
+  rules:     "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1329812469&single=true&output=csv",
+  calendar:  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1414380761&single=true&output=csv",
+  eventLog:  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=791668259&single=true&output=csv",
+  legend:    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1655967610&single=true&output=csv"
+};
+
+// Minimal RFC4180-ish CSV parser (handles quoted fields, embedded commas/newlines, "" escapes).
+function parseCSV(text){
+  const rows = []; let row = [], field = "", inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){ if(text[i+1] === '"'){ field += '"'; i++; } else inQuotes = false; }
+      else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ','){ row.push(field); field = ""; }
+      else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
+      else if(c === '\r'){ /* skip, \n handles the break */ }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  if(!rows.length) return [];
+  const headers = rows[0].map(h=>h.trim());
+  return rows.slice(1).filter(r=>r.some(c=>c!=="")).map(r=>{
+    const o = {}; headers.forEach((h,i)=>{ o[h] = r[i]!==undefined ? r[i] : ""; }); return o;
+  });
+}
+async function fetchCSV(url){
+  const res = await fetch(url, {cache:"no-store"});
+  if(!res.ok) throw new Error("CSV fetch failed: "+res.status);
+  return parseCSV(await res.text());
+}
+function toBool(v){
+  if(typeof v === "boolean") return v;
+  const s = String(v==null?"":v).trim().toLowerCase();
+  return s==="true"||s==="yes"||s==="1";
+}
+// Google Sheets CSV export renders dates like "Mon Aug 03 2026 00:00:00" or
+// already-ISO "2026-08-03" depending on cell formatting; normalize to YYYY-MM-DD.
+function fmtCSVDate(v){
+  if(!v) return "";
+  const s = String(v).trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  const d = new Date(s);
+  if(isNaN(d)) return "";
+  return d.toISOString().slice(0,10);
+}
+async function postToBackend(payload){
+  try{
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method:"POST",
+      // text/plain avoids a CORS preflight against Apps Script (which doesn't
+      // handle OPTIONS); doPost still reads the raw body via e.postData.contents.
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  }catch(e){
+    return { success:false, error: e.message || "Network error reaching the Apps Script backend." };
+  }
+}
+async function readRowFromBackend(id){
+  try{
+    const url = APPS_SCRIPT_URL + "?action=readRow&id=" + encodeURIComponent(id);
+    const res = await fetch(url);
+    return await res.json();
+  }catch(e){
+    return { success:false, error: e.message || "Network error reaching the Apps Script backend." };
+  }
+}
+
+/* ================= Reference data ================= */
+
+const SPECIES_LIST = ["Cattle","Sheep","Goat","Chicken","Duck","Rabbit","Fish"];
+
+const SPECIES_COLOR = {
+  Cattle:"var(--tag-cattle)", Sheep:"var(--tag-sheep)", Goat:"var(--tag-goat)",
+  Chicken:"var(--tag-chicken)", Duck:"var(--tag-duck)", Rabbit:"var(--tag-rabbit)", Fish:"var(--tag-fish)"
+};
+const SPECIES_PREFIX = { Cattle:"COW", Sheep:"SHP", Goat:"GOT", Chicken:"CHK", Duck:"DCK", Rabbit:"RBT", Fish:"FSH" };
+
+// Mirrors the workbook's Lifecycle_Rules tab (corrected finishing-max values as noted in that sheet).
+const LIFECYCLE_RULES = {
+  Cattle:[
+    {stage:"Birth / Hatch", min:0, max:30}, {stage:"Pre Weaning", min:31, max:180},
+    {stage:"Weaning", min:181, max:365}, {stage:"Grower", min:366, max:600},
+    {stage:"Finishing", min:601, max:800}, {stage:"Harvest", min:801, max:5000}
+  ],
+  Sheep:[
+    {stage:"Birth / Hatch", min:0, max:30}, {stage:"Pre Weaning", min:31, max:60},
+    {stage:"Weaning", min:61, max:120}, {stage:"Grower", min:121, max:180},
+    {stage:"Finishing", min:181, max:240}, {stage:"Harvest", min:241, max:5000}
+  ],
+  Goat:[
+    {stage:"Birth / Hatch", min:0, max:30}, {stage:"Pre Weaning", min:31, max:90},
+    {stage:"Weaning", min:91, max:150}, {stage:"Grower", min:151, max:240},
+    {stage:"Finishing", min:241, max:300}, {stage:"Harvest", min:301, max:5000}
+  ],
+  Chicken:[
+    {stage:"Neonatal / Brooding", min:0, max:21}, {stage:"Grower", min:22, max:35},
+    {stage:"Finishing", min:36, max:45}, {stage:"Harvest", min:46, max:5000}
+  ],
+  Duck:[
+    {stage:"Neonatal / Brooding", min:0, max:21}, {stage:"Grower", min:22, max:42},
+    {stage:"Finishing", min:43, max:56}, {stage:"Harvest", min:57, max:5000}
+  ],
+  Rabbit:[
+    {stage:"Birth / Hatch", min:0, max:31}, {stage:"Pre Weaning", min:32, max:35},
+    {stage:"Grower", min:36, max:60}, {stage:"Finishing", min:61, max:95},
+    {stage:"Harvest", min:96, max:5000}
+  ],
+  Fish:[
+    {stage:"Hatchling", min:0, max:14}, {stage:"Fingerling", min:15, max:60},
+    {stage:"Grower", min:61, max:120}, {stage:"Harvest", min:121, max:5000}
+  ]
+};
+const FINISHING_MAX = { Cattle:800, Sheep:240, Goat:300, Chicken:45, Duck:56, Rabbit:95, Fish:120 };
+const RETURN_TO_BREEDING = { Cattle:60, Sheep:30, Goat:30, Rabbit:14 };
+
+function stagesFor(species){ return LIFECYCLE_RULES[species] || LIFECYCLE_RULES.Cattle; }
+function ageDays(dob, ref){
+  if(!dob) return null;
+  ref = ref || new Date();
+  const d = new Date(dob);
+  return Math.max(0, Math.floor((ref - d) / 86400000));
+}
+// animal is optional; when provided and it carries a live value read back
+// from Lifecycle_Engine (Biological_Current_Stage / Overdue_Finishing_Flag /
+// Harvest_Ready_Flag / Finishing_Max_Age_Days), that value wins — the sheet
+// is the single source of truth per the backend's own design. The local
+// LIFECYCLE_RULES/FINISHING_MAX tables are only a fallback for animals that
+// haven't been read back from the sheet yet (e.g. mid-intake, before the
+// post-write readRow completes).
+function biologicalStage(species, age, animal){
+  if(animal && animal._biologicalStage) return animal._biologicalStage;
+  if(age===null || age===undefined) return "Unclassified";
+  const rows = stagesFor(species);
+  for(const r of rows){ if(age>=r.min && age<=r.max) return r.stage; }
+  return rows[rows.length-1].stage;
+}
+function isOverdueFinishing(species, age, harvested, animal){
+  if(harvested || age===null) return false;
+  if(animal && typeof animal._overdueFinishing === "boolean") return animal._overdueFinishing;
+  const max = (animal && animal._finishingMaxAge) || FINISHING_MAX[species] || 5000;
+  return age > max;
+}
+function isHarvestReady(a){
+  if(a.status!=="Active") return false;
+  if(typeof a._harvestReady === "boolean") return a._harvestReady;
+  const bs = biologicalStage(a.species, ageDays(a.dob), a);
+  return (bs==="Harvest" || isOverdueFinishing(a.species, ageDays(a.dob), false, a)) &&
+         a.healthClearance==="Yes" && a.withdrawalClearance==="Yes" && a.welfareClearance==="Yes";
+}
+function fmtDate(v){
+  if(!v) return "—";
+  const d = new Date(v);
+  if(isNaN(d)) return v;
+  return d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
+}
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function nowISO(){ return new Date().toISOString(); }
+function esc(s){ return (s===undefined||s===null) ? "" : String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ================= State / storage ================= */
+
+let STATE = null;
+let SESSION = { role:null, name:null };
+let NAV = { screen:"login", params:{} };
+
+function mkAnimal(o){
+  return Object.assign({
+    sex:"Unknown", weight:0, pen:"", breed:"", origin:"Ranch-Born",
+    intakeStage:"Birth / Hatch", intakeDate:todayISO(),
+    weaningDate:null, breedingDate:null, calvingDate:null,
+    harvestDate:null, harvestType:null, harvestScheduledDate:null, finalWeight:null,
+    transportLoadDate:null, transportDepartedDate:null, transportDestination:null,
+    operationalStage:null, nextOperationalStage:null, stageStartDate:null,
+    healthClearance:"No", withdrawalClearance:"No", welfareClearance:"No",
+    healthCondition:null, healthNotes:"", sireId:"", notes:"",
+    status:"Active", weightHistory:[], createdAt:nowISO(),
+    // Live values read back from Lifecycle_Engine's formula columns, when
+    // available (see biologicalStage/isOverdueFinishing/isHarvestReady).
+    _ageDays:null, _biologicalStage:null, _overdueFinishing:null,
+    _harvestReady:null, _finishingMaxAge:null
+  }, o);
+}
+
+const DEFAULT_CONFIG = {
+  users:{ worker:{password:"ranch2026"}, manager:{password:"manager2026"}, founder:{password:"founder2026"} },
+  pens:["A3","B1","B2","C1","C2","Quarantine"]
+};
+
+// Pens & user passwords: no matching sheet/action on the Apps Script side,
+// so they live locally on this device (localStorage) rather than the
+// spreadsheet. (This file runs standalone in any browser — it does not use
+// claude.ai's artifact-only window.storage API.)
+async function loadConfig(){
+  try{
+    const raw = localStorage.getItem("ranch-config");
+    if(raw) return JSON.parse(raw);
+    throw new Error("empty");
+  }catch(e){
+    try{ localStorage.setItem("ranch-config", JSON.stringify(DEFAULT_CONFIG)); }catch(e2){ /* ignore */ }
+    return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  }
+}
+async function saveConfig(){
+  try{
+    localStorage.setItem("ranch-config", JSON.stringify({users:STATE.users, pens:STATE.pens}));
+  }catch(e){
+    toast("Couldn't save that locally — retry in a moment.", true);
+  }
+}
+
+// Turns one Lifecycle_Engine row (+ that animal's Event_Log rows, for fields
+// with no dedicated Engine column yet) into the animal shape the UI expects.
+function mapEngineRowToAnimal(row, events){
+  events = events || [];
+  const intakeEvent = events.find(e=>e.type==="Intake"||e.type==="intake");
+  let extra = {};
+  if(intakeEvent && intakeEvent.payload){
+    try{ extra = JSON.parse(typeof intakeEvent.payload==="string" ? intakeEvent.payload : JSON.stringify(intakeEvent.payload)); }catch(e){ extra = {}; }
+  }
+  const opStage = row.Current_Operational_Stage || "";
+  const harvestDate = row.Harvest_Date ? fmtCSVDate(row.Harvest_Date) : null;
+  const status = opStage==="Dead" ? "Dead" : harvestDate ? "Harvested" : "Active";
+  const ageDaysVal = row.Age_Days!==undefined && row.Age_Days!=="" ? Number(row.Age_Days) : null;
+
+  return mkAnimal({
+    id: row.Animal_ID,
+    species: row.Species || "",
+    sex: row.Sex || "Unknown",
+    dob: row.DOB ? fmtCSVDate(row.DOB) : "",
+    weight: parseFloat(row.Current_Weight)||0,
+    pen: row.Pen_Location || extra.pen || "",
+    breed: row.Breed_Genetics || extra.breed || "",
+    origin: extra.origin==="Purchased" ? `Purchased — ${extra.source||"Unspecified source"}` : "Ranch-Born",
+    intakeStage: row.Intake_Stage || "",
+    intakeDate: row.Intake_Date ? fmtCSVDate(row.Intake_Date) : "",
+    weaningDate: row.Weaning_Date ? fmtCSVDate(row.Weaning_Date) : null,
+    breedingDate: row.Breeding_Date ? fmtCSVDate(row.Breeding_Date) : null,
+    calvingDate: row.Calving_Date ? fmtCSVDate(row.Calving_Date) : null,
+    harvestDate: harvestDate,
+    transportLoadDate: row.Transport_Load_Date ? fmtCSVDate(row.Transport_Load_Date) : null,
+    transportDepartedDate: row.Transport_Departed_Date ? fmtCSVDate(row.Transport_Departed_Date) : null,
+    operationalStage: opStage || null,
+    nextOperationalStage: row.Next_Operational_Stage || null,
+    stageStartDate: row.Operational_Stage_Start_Date || null,
+    healthClearance: row.Health_Clearance || "No",
+    withdrawalClearance: row.Withdrawal_Clearance || "No",
+    welfareClearance: row.Welfare_Clearance || "No",
+    sireId: extra.sireId || "",
+    notes: intakeEvent ? (intakeEvent.notes||"") : "",
+    status: status,
+    _ageDays: ageDaysVal,
+    _biologicalStage: row.Biological_Current_Stage || row.Unified_Current_Stage || null,
+    _overdueFinishing: row.Overdue_Finishing_Flag!==undefined ? toBool(row.Overdue_Finishing_Flag) : null,
+    _harvestReady: row.Harvest_Ready_Flag!==undefined ? toBool(row.Harvest_Ready_Flag) : null,
+    _finishingMaxAge: row.Finishing_Max_Age_Days!==undefined && row.Finishing_Max_Age_Days!=="" ? Number(row.Finishing_Max_Age_Days) : null
+  });
+}
+function mapEventLogRows(rows){
+  // Event_Log columns per Code.gs appendEventLog: Timestamp, Animal_ID,
+  // Event_Type, User_Name, User_Role, Notes, Extra_Fields_JSON.
+  return rows.map(r=>{
+    let payload = null;
+    try{ payload = JSON.parse(r.Extra_Fields_JSON||"null"); }catch(e){ payload = null; }
+    return {
+      ts: r.Timestamp || "",
+      animalId: r.Animal_ID || "—",
+      type: r.Event_Type || "",
+      user: r.User_Name || "Unknown",
+      role: r.User_Role || "Unknown",
+      notes: r.Notes || "",
+      payload
     };
+  }).sort((a,b)=> new Date(b.ts) - new Date(a.ts));
+}
+function buildAnimalsFromSheets(engineRows, eventLog){
+  const eventsByAnimal = {};
+  eventLog.forEach(ev=>{ (eventsByAnimal[ev.animalId] = eventsByAnimal[ev.animalId]||[]).push(ev); });
+  return engineRows.filter(r=>r.Animal_ID).map(r=>mapEngineRowToAnimal(r, eventsByAnimal[r.Animal_ID]));
+}
 
-    let dashboardData = [];
-    let rulesData = [];
-    let engineData = [];
-    let calendarData = [];
-    let lastSyncTime = null;
-    let syncInFlight = false;
+async function loadState(force){
+  if(STATE && !force) return STATE;
+  const config = await loadConfig();
+  let animals = [], eventLog = [];
+  try{
+    const [engineRows, eventRows] = await Promise.all([fetchCSV(CSV_URLS.engine), fetchCSV(CSV_URLS.eventLog)]);
+    eventLog = mapEventLogRows(eventRows);
+    animals = buildAnimalsFromSheets(engineRows, eventLog);
+  }catch(e){
+    toast("Couldn't load ranch data from the spreadsheet — check your connection and try again.", true);
+  }
+  STATE = { version:2, users:config.users, pens:config.pens, animals, eventLog };
+  return STATE;
+}
+// Re-fetches a single animal's row straight from the Apps Script (not the
+// cached CSV export) right after a write, and splices the fresh, recalculated
+// record into STATE.animals. fallbackExtra carries values (breed/pen/source/
+// origin/sireId) that only live in Event_Log when Lifecycle_Engine has no
+// dedicated column for them yet.
+async function refreshAnimalFromSheet(id, fallbackExtra){
+  const result = await readRowFromBackend(id);
+  if(!result || !result.success) return null;
+  const priorEvents = STATE.eventLog.filter(e=>e.animalId===id);
+  const animal = mapEngineRowToAnimal(result.row, priorEvents);
+  if(fallbackExtra){
+    if(!result.row.Breed_Genetics && fallbackExtra.breed) animal.breed = fallbackExtra.breed;
+    if(!result.row.Pen_Location && fallbackExtra.pen) animal.pen = fallbackExtra.pen;
+    if(fallbackExtra.origin) animal.origin = fallbackExtra.origin==="Purchased" ? `Purchased — ${fallbackExtra.source||"Unspecified source"}` : "Ranch-Born";
+    if(fallbackExtra.sireId) animal.sireId = fallbackExtra.sireId;
+  }
+  const idx = STATE.animals.findIndex(x=>x.id===id);
+  if(idx>=0) STATE.animals[idx] = animal; else STATE.animals.push(animal);
+  return animal;
+}
+function logEventLocal(animalId, type, notes, payload){
+  // Optimistic local echo only — the authoritative copy is the row Code.gs
+  // appends to Event_Log; this just avoids a blank history list before the
+  // next full reload.
+  STATE.eventLog.unshift({ts:nowISO(), animalId, type, user:SESSION.name||SESSION.role, role:SESSION.role, notes:notes||"", payload:payload||null});
+  if(STATE.eventLog.length>300) STATE.eventLog.length = 300;
+}
+function findAnimal(id){ return STATE.animals.find(a=>a.id===id); }
 
-    // ===========================================================
-    // APPS SCRIPT WEB APP (live write-back to Lifecycle_Engine)
-    // ===========================================================
-    // Deploy Code.gs as a Web App bound to the real spreadsheet, then
-    // paste the /exec URL here. Until then, saves stay local-only.
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJvZzQWfUG1TuOVKY_iLSdXJDyVU2qMA2w9xi5q5TTesV4llB_wiu4a06KkYPHD9Bw/exec";
+/* ================= ID generation ================= */
+function generateId(species){
+  const prefix = SPECIES_PREFIX[species] || "ANM";
+  let id;
+  do{
+    const n = Math.floor(100000 + Math.random()*899999);
+    id = `NR-${prefix}-${n}`;
+  }while(findAnimal(id));
+  return id;
+}
 
-    function appsScriptConfigured() {
-        return APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf("PASTE_YOUR") === -1;
+/* ================= Toast ================= */
+let toastTimer=null;
+function toast(msg, isErr){
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = "toast show" + (isErr?" err":"");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ el.className = "toast" + (isErr?" err":""); }, 2600);
+}
+
+/* ================= Icons ================= */
+const ICONS = {
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>',
+  animals:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="14" height="10" rx="2"/><path d="M7 8V6a2 2 0 0 1 2-2h2"/><circle cx="8" cy="13" r="1"/><path d="M17 12l4-2v6l-4-2"/></svg>',
+  events:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
+  reports:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M12 19V5M20 19v-7"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+  weight:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5h4"/></svg>',
+  health:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 1 0-7.8 7.7L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg>',
+  movement:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  breeding:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="5"/><path d="M12.5 12.5L21 21M17 21h4v-4"/></svg>',
+  weaning:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v6M12 21c-4-2-6-5-6-9a6 6 0 0 1 12 0c0 4-2 7-6 9z"/></svg>',
+  calving:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-7-10a5 5 0 0 1 10 0c0-2.8 2.2-5 5-5"/></svg>',
+  harvest:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l7-7M20 4l-6 1-1 6 7-7z"/><path d="M14 10l-9 9"/></svg>',
+  transport:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="14" height="10" rx="1"/><path d="M15 10h4l3 3v4h-7"/><circle cx="6" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/></svg>',
+  mortality:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  history:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v6h6"/><path d="M3.5 13a9 9 0 1 0 2.1-8.9L3 9"/><path d="M12 7v5l3 3"/></svg>',
+  empty:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+};
+
+/* ================= App render shell ================= */
+const root = document.getElementById("root");
+
+function speciesTag(species, id){
+  return `<span class="eartag" style="background:${SPECIES_COLOR[species]||'#ccc'}">${esc(id)}</span>`;
+}
+
+function header(title, opts){
+  opts = opts||{};
+  return `
+  <div class="app-header">
+    ${opts.back!==false ? `<button class="back-btn" data-nav="${opts.backTo||'home'}" ${opts.backParams?`data-params='${esc(JSON.stringify(opts.backParams))}'`:''}>&#8592;</button>` : `<span class="htag"></span>`}
+    <h1>${title}</h1>
+    <span class="role-pill">${SESSION.role}</span>
+    <button class="logout-btn" data-action="logout">Log out</button>
+  </div>`;
+}
+
+function bottomNav(active){
+  const items = [["home","Home","home"],["animals","Animals","animals"],["events","Events","events"],["reports","Reports","reports"]];
+  if(SESSION.role==="manager"||SESSION.role==="founder") items.push(["settings","Settings","settings"]);
+  return `<div class="bottom-nav">${items.map(([k,l,ic])=>`
+    <button class="nav-btn ${active===k?'active':''}" data-nav="${k}">${ICONS[ic]}<span>${l}</span></button>
+  `).join("")}</div>`;
+}
+
+async function navigate(screen, params){
+  NAV = { screen, params: params||{} };
+  await render();
+  window.scrollTo(0,0);
+  const m = root.querySelector("main"); if(m) m.scrollTop = 0;
+}
+
+async function render(){
+  if(NAV.screen==="login"){ root.innerHTML = renderLogin(); bindLogin(); return; }
+  await loadState();
+  let body="";
+  switch(NAV.screen){
+    case "home": body = renderHome(); break;
+    case "animals": body = renderAnimals(); break;
+    case "animalDetail": body = renderAnimalDetail(NAV.params.id); break;
+    case "intake": body = renderIntake(); break;
+    case "events": body = renderEvents(); break;
+    case "eventForm": body = renderEventForm(NAV.params.type, NAV.params.id); break;
+    case "reports": body = renderReports(); break;
+    case "reportDetail": body = renderReportDetail(NAV.params.type); break;
+    case "settings": body = renderSettings(); break;
+    case "editRecord": body = renderEditRecord(NAV.params.id); break;
+    case "history": body = renderHistory(NAV.params.id); break;
+    default: body = renderHome();
+  }
+  root.innerHTML = body;
+  bindGlobal();
+  bindScreen();
+}
+
+/* ================= Login ================= */
+let loginRole = "worker";
+function renderLogin(){
+  return `
+  <div class="login-wrap">
+    <div class="brand">
+      <div class="brand-tag"></div>
+      <div><h1>Ngapori Ranch</h1><p>Lifecycle &amp; Data Entry</p></div>
+    </div>
+    <div class="login-card">
+      <h2>Sign in to continue</h2>
+      <div id="loginErr"></div>
+      <div class="field"><label>Your role</label>
+        <div class="role-grid">
+          <button type="button" class="role-btn ${loginRole==='worker'?'active':''}" data-role="worker">Worker<small>Field entry</small></button>
+          <button type="button" class="role-btn ${loginRole==='manager'?'active':''}" data-role="manager">Manager<small>Runs ops</small></button>
+          <button type="button" class="role-btn ${loginRole==='founder'?'active':''}" data-role="founder">Founder<small>Full access</small></button>
+        </div>
+      </div>
+      <div class="field"><label>Password</label>
+        <input type="password" id="loginPwd" placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <button class="btn-primary" id="loginBtn">Sign in as ${loginRole}</button>
+      <div class="login-hint">Each role has its own password, set by the Founder or Manager under Settings &rarr; Users &amp; Roles. First time here? Ask whoever set up this tool for your role's password.</div>
+    </div>
+  </div>`;
+}
+function bindLogin(){
+  root.querySelectorAll("[data-role]").forEach(b=>b.addEventListener("click",()=>{ loginRole=b.dataset.role; render(); }));
+  const btn = root.querySelector("#loginBtn");
+  const pwdInput = root.querySelector("#loginPwd");
+  async function doLogin(){
+    await loadState();
+    const pwd = pwdInput.value;
+    const rec = STATE.users[loginRole];
+    if(rec && pwd===rec.password){
+      SESSION = {role:loginRole, name:loginRole.charAt(0).toUpperCase()+loginRole.slice(1)};
+      navigate("home");
+    } else {
+      root.querySelector("#loginErr").innerHTML = `<div class="login-error">Incorrect password for ${loginRole}. Try again.</div>`;
     }
+  }
+  btn.addEventListener("click", doLogin);
+  pwdInput.addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
+}
 
-    // Sent as a "simple request" (no explicit Content-Type header) so the
-    // browser doesn't preflight it — Apps Script Web Apps don't handle
-    // CORS preflight OPTIONS requests.
-    async function postToAppsScript(payload) {
-        if (!appsScriptConfigured()) return { success: false, error: "Apps Script URL not configured — saved locally only." };
-        try {
-            const res = await fetch(APPS_SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
-            return await res.json();
-        } catch (err) {
-            return { success: false, error: err.message };
-        }
+/* ================= Home ================= */
+function renderHome(){
+  const animals = STATE.animals;
+  const active = animals.filter(a=>a.status==="Active");
+  const addedThisMonth = animals.filter(a=>{ const d=new Date(a.intakeDate); const n=new Date(); return d.getMonth()===n.getMonth() && d.getFullYear()===n.getFullYear(); }).length;
+  const harvestedThisMonth = animals.filter(a=>{ if(!a.harvestDate) return false; const d=new Date(a.harvestDate); const n=new Date(); return d.getMonth()===n.getMonth() && d.getFullYear()===n.getFullYear(); }).length;
+  const ready = active.filter(isHarvestReady).length;
+  const overdue = active.filter(a=>isOverdueFinishing(a.species, ageDays(a.dob), false, a)).length;
+
+  return `
+  ${header("Ngapori Ranch", {back:false})}
+  <main>
+    <div class="screen-title">Good to see you, ${esc(SESSION.name)}.</div>
+    <p class="screen-sub">${active.length} active animals on the ranch right now.</p>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="n">${active.length}</div><div class="l">Total active animals</div></div>
+      <div class="kpi"><div class="n">${addedThisMonth}</div><div class="l">Added this month</div></div>
+      <div class="kpi ${ready?'alert':''}"><div class="n">${ready}</div><div class="l">Ready for harvest</div></div>
+      <div class="kpi ${overdue?'alert':''}"><div class="n">${overdue}</div><div class="l">Overdue finishing</div></div>
+    </div>
+    <div class="home-grid">
+      <button class="home-tile" data-nav="animals"><div class="ico">${ICONS.animals}</div><h3>Animals</h3><p>Search &amp; view records</p></button>
+      <button class="home-tile" data-nav="events"><div class="ico">${ICONS.events}</div><h3>Events</h3><p>Log what just happened</p></button>
+      <button class="home-tile" data-nav="reports"><div class="ico">${ICONS.reports}</div><h3>Reports</h3><p>Inventory &amp; pipelines</p></button>
+      <button class="home-tile" data-nav="intake"><div class="ico">${ICONS.plus}</div><h3>New Animal</h3><p>Ranch-born or purchased</p></button>
+    </div>
+  </main>
+  ${bottomNav("home")}`;
+}
+
+/* ================= Animals list ================= */
+let animalFilters = { q:"", species:"", pen:"", stage:"" };
+function renderAnimals(){
+  const list = filteredAnimals();
+  const pens = STATE.pens;
+  return `
+  ${header("Animals", {back:false})}
+  <main>
+    <div class="search-box">
+      ${ICONS.search}
+      <input id="animalSearch" placeholder="Search by ID, breed, or pen" value="${esc(animalFilters.q)}">
+    </div>
+    <div class="filter-row">
+      <select id="fSpecies"><option value="">All species</option>${SPECIES_LIST.map(s=>`<option value="${s}" ${animalFilters.species===s?'selected':''}>${s}</option>`).join("")}</select>
+      <select id="fStage"><option value="">All stages</option>${allStageNames().map(s=>`<option value="${s}" ${animalFilters.stage===s?'selected':''}>${s}</option>`).join("")}</select>
+    </div>
+    <div class="pen-chips">
+      <button class="pen-chip ${animalFilters.pen===''?'active':''}" data-pen="">All pens</button>
+      ${pens.map(p=>`<button class="pen-chip ${animalFilters.pen===p?'active':''}" data-pen="${esc(p)}">${esc(p)}</button>`).join("")}
+    </div>
+    <div id="animalList">${renderAnimalListRows(list)}</div>
+  </main>
+  <button class="btn-accent" id="fabAdd" style="position:fixed;right:calc(50% - 264px);bottom:88px;border-radius:50%;width:54px;height:54px;padding:0;box-shadow:var(--shadow);z-index:19;">${ICONS.plus}</button>
+  ${bottomNav("animals")}`;
+}
+function allStageNames(){
+  const s = new Set();
+  Object.values(LIFECYCLE_RULES).forEach(rows=>rows.forEach(r=>s.add(r.stage)));
+  return Array.from(s);
+}
+function filteredAnimals(){
+  const q = animalFilters.q.trim().toLowerCase();
+  return STATE.animals.filter(a=>{
+    if(animalFilters.species && a.species!==animalFilters.species) return false;
+    if(animalFilters.pen && a.pen!==animalFilters.pen) return false;
+    if(animalFilters.stage && biologicalStage(a.species, ageDays(a.dob), a)!==animalFilters.stage) return false;
+    if(q){
+      const hay = `${a.id} ${a.breed||''} ${a.pen||''} ${a.species}`.toLowerCase();
+      if(!hay.includes(q)) return false;
     }
+    return true;
+  }).sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+}
+function renderAnimalListRows(list){
+  if(!list.length) return `<div class="empty-state">${ICONS.empty}<div>No animals match those filters.</div></div>`;
+  return list.map(a=>{
+    const age = ageDays(a.dob);
+    const stage = biologicalStage(a.species, age, a);
+    const overdue = isOverdueFinishing(a.species, age, a.status!=="Active", a);
+    const ready = isHarvestReady(a);
+    return `
+    <button class="animal-row" data-nav="animalDetail" data-params='${esc(JSON.stringify({id:a.id}))}'>
+      ${speciesTag(a.species, a.id)}
+      <div class="meta">
+        <div class="sub">${a.species} · ${a.sex} · Pen ${a.pen||"—"} ${a.breed?`· ${esc(a.breed)}`:""}</div>
+        ${overdue?`<div class="flag">OVERDUE FINISHING</div>`:ready?`<div class="flag" style="color:#5C7A1E">HARVEST READY</div>`:""}
+      </div>
+      <span class="stage-pill">${stage}${a.status!=="Active"?` · ${a.status}`:""}</span>
+    </button>`;
+  }).join("");
+}
 
-    async function fetchRowFromAppsScript(id) {
-        if (!appsScriptConfigured()) return null;
-        try {
-            const res = await fetch(`${APPS_SCRIPT_URL}?action=readRow&id=${encodeURIComponent(id)}`, { cache: "no-store" });
-            const data = await res.json();
-            return data.success ? data.row : null;
-        } catch (err) {
-            return null;
-        }
+/* ================= Animal detail ================= */
+function renderAnimalDetail(id){
+  const a = findAnimal(id);
+  if(!a) return `${header("Animal", {backTo:"animals"})}<main><div class="empty-state">Animal not found.</div></main>${bottomNav("animals")}`;
+  const age = ageDays(a.dob);
+  const stage = biologicalStage(a.species, age, a);
+  const rows = stagesFor(a.species);
+  const stageIdx = rows.findIndex(r=>r.stage===stage);
+  const canManage = SESSION.role==="manager"||SESSION.role==="founder";
+  const overdue = isOverdueFinishing(a.species, age, a.status!=="Active", a);
+  const ready = isHarvestReady(a);
+
+  const actions = [];
+  actions.push(["weight","Weight","weight"]);
+  actions.push(["health","Health","health"]);
+  actions.push(["movement","Movement","movement"]);
+  if(a.sex==="Female") actions.push(["breeding","Breeding","breeding"]);
+  if(!a.weaningDate) actions.push(["weaning","Weaning","weaning"]);
+  if(a.sex==="Female") actions.push(["calving","Calving","calving"]);
+  if(a.status==="Active") actions.push(["harvest","Harvest","harvest"]);
+  actions.push(["transport","Transport","transport"]);
+  if(a.status==="Active") actions.push(["mortality","Mortality","mortality"]);
+
+  return `
+  ${header(a.species, {backTo:"animals"})}
+  <main>
+    <div class="card">
+      <div class="detail-head">
+        <div>
+          ${speciesTag(a.species, a.id)}
+          <h2>${esc(a.id)}</h2>
+          <div class="species-sex">${a.species} · ${a.sex} · Pen ${a.pen||"—"}${a.breed?` · ${esc(a.breed)}`:""}</div>
+        </div>
+        <span class="stage-pill" style="font-size:11px;">${a.status}</span>
+      </div>
+
+      ${overdue?`<div class="clearance-pill no" style="margin-bottom:10px;">&#9888; Overdue finishing — past normal finishing window</div>`:""}
+      ${ready?`<div class="clearance-pill yes" style="margin-bottom:10px;">&#10003; Harvest ready — cleared to schedule</div>`:""}
+
+      <div class="stage-timeline">
+        ${rows.map((r,i)=>`
+          <div class="stage-notch ${i<stageIdx?'done':''} ${i===stageIdx?'current':''}">
+            <div class="dot"></div><div class="stlabel">${r.stage.replace(" / ","<br>")}</div>
+          </div>`).join("")}
+      </div>
+
+      <div class="info-grid" style="margin-top:14px;">
+        <div><div class="label">DOB</div><div class="val">${fmtDate(a.dob)}</div></div>
+        <div><div class="label">Age</div><div class="val">${age!==null?age+" days":"—"}</div></div>
+        <div><div class="label">Weight</div><div class="val">${a.weight} kg</div></div>
+        <div><div class="label">Intake</div><div class="val">${a.intakeStage} · ${fmtDate(a.intakeDate)}</div></div>
+        <div><div class="label">Biological stage</div><div class="val">${stage}</div></div>
+        <div><div class="label">Operational stage</div><div class="val">${a.operationalStage||stage}</div></div>
+        ${a.suggestedBreedingDate?`<div><div class="label">Suggested breeding</div><div class="val">${fmtDate(a.suggestedBreedingDate)}</div></div>`:""}
+        ${a.sireId?`<div><div class="label">Sire</div><div class="val">${esc(a.sireId)}</div></div>`:""}
+      </div>
+
+      <div class="clearance-row">
+        <span class="clearance-pill ${a.healthClearance==='Yes'?'yes':'no'}">Health: ${a.healthClearance}</span>
+        <span class="clearance-pill ${a.withdrawalClearance==='Yes'?'yes':'no'}">Withdrawal: ${a.withdrawalClearance}</span>
+        <span class="clearance-pill ${a.welfareClearance==='Yes'?'yes':'no'}">Welfare: ${a.welfareClearance}</span>
+      </div>
+    </div>
+
+    <div class="action-grid">
+      ${actions.map(([type,label,ic])=>`
+        <button class="action-btn" data-nav="eventForm" data-params='${esc(JSON.stringify({type,id:a.id}))}'>${ICONS[ic]}<span>${label}</span></button>
+      `).join("")}
+    </div>
+
+    ${canManage?`
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="btn btn-outline" data-nav="editRecord" data-params='${esc(JSON.stringify({id:a.id}))}'>${ICONS.edit} Edit record</button>
+      <button class="btn btn-outline" data-nav="history" data-params='${esc(JSON.stringify({id:a.id}))}'>${ICONS.history} History</button>
+    </div>`:`
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="btn btn-ghost btn-block" data-nav="history" data-params='${esc(JSON.stringify({id:a.id}))}'>${ICONS.history} View history</button>
+    </div>`}
+  </main>
+  ${bottomNav("animals")}`;
+}
+
+/* ================= Intake (new animal) ================= */
+function renderIntake(){
+  const suggested = generateId("Cattle");
+  return `
+  ${header("New Animal", {backTo:"animals"})}
+  <main>
+    <p class="screen-sub">Register a ranch-born or purchased animal. You never need to remember an ID — generate one below.</p>
+    <div class="card">
+      <form id="intakeForm">
+        <div class="form-field">
+          <label>Origin</label>
+          <select name="origin" id="originSel">
+            <option value="Ranch-Born">Ranch-born</option>
+            <option value="Purchased">Purchased</option>
+          </select>
+        </div>
+        <div class="form-field" id="sourceField" style="display:none;">
+          <label>Purchase source</label>
+          <input name="source" placeholder="e.g. Livestock Auction (Wairara)">
+        </div>
+        <div class="form-field">
+          <label>Species</label>
+          <select name="species" id="intakeSpecies">${SPECIES_LIST.map(s=>`<option value="${s}">${s}</option>`).join("")}</select>
+        </div>
+        <div class="form-field">
+          <label>Animal ID</label>
+          <div style="display:flex;gap:8px;">
+            <input name="id" id="intakeId" value="${suggested}" style="flex:1;font-family:var(--font-mono);">
+            <button type="button" class="btn btn-ghost btn-sm" id="regenId">Auto-generate</button>
+          </div>
+          <div class="note-inline">Generated automatically so no one has to track an ID sequence — edit only if you're matching a physical tag already in use.</div>
+        </div>
+        <div class="form-field"><label>Sex</label>
+          <select name="sex"><option>Female</option><option>Male</option><option>Unknown</option></select>
+        </div>
+        <div class="form-field"><label>Date of birth</label><input type="date" name="dob" value="${todayISO()}"></div>
+        <div class="form-field"><label>Weight (kg)</label><input type="number" step="0.1" name="weight" value="0"></div>
+        <div class="form-field"><label>Breed (optional)</label><input name="breed" placeholder="e.g. Suffolk"></div>
+        <div class="form-field"><label>Pen</label>
+          <select name="pen">${STATE.pens.map(p=>`<option>${esc(p)}</option>`).join("")}</select>
+        </div>
+        <div class="form-field"><label>Intake date</label><input type="date" name="intakeDate" value="${todayISO()}"></div>
+        <div class="form-field"><label>Notes</label><textarea name="notes" placeholder="Optional"></textarea></div>
+        <button type="submit" class="btn btn-dark btn-block">Save new animal</button>
+      </form>
+    </div>
+  </main>
+  ${bottomNav("animals")}`;
+}
+
+/* ================= Events hub ================= */
+let eventSearch = "";
+function renderEvents(){
+  const matches = eventSearch.trim() ? filteredAnimalsFor(eventSearch) : [];
+  const recent = STATE.eventLog.slice(0,12);
+  return `
+  ${header("Events", {back:false})}
+  <main>
+    <p class="screen-sub">Find an animal to log something that just happened.</p>
+    <div class="search-box">${ICONS.search}<input id="eventSearch" placeholder="Search by ID, breed, or pen" value="${esc(eventSearch)}"></div>
+    <div id="eventMatches">
+      ${eventSearch.trim() ? (matches.length? renderAnimalListRowsForEvents(matches) : `<div class="empty-state" style="padding:20px;">No matches.</div>`) : ""}
+    </div>
+
+    <div class="settings-section"><h4>Recent activity</h4></div>
+    ${recent.length? recent.map(ev=>`
+      <div class="list-row">
+        <div>
+          <div style="font-weight:700;font-family:var(--font-mono);font-size:12.5px;">${esc(ev.type)} · ${esc(ev.animalId)}</div>
+          <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${esc(ev.user)} (${esc(ev.role)}) · ${fmtDate(ev.ts)}</div>
+        </div>
+      </div>`).join("") : `<div class="empty-state">${ICONS.empty}<div>No events logged yet.</div></div>`}
+  </main>
+  ${bottomNav("events")}`;
+}
+function filteredAnimalsFor(q){
+  q=q.toLowerCase();
+  return STATE.animals.filter(a=>`${a.id} ${a.breed||''} ${a.pen||''} ${a.species}`.toLowerCase().includes(q)).slice(0,20);
+}
+function renderAnimalListRowsForEvents(list){
+  return list.map(a=>`
+    <button class="animal-row" data-nav="animalDetail" data-params='${esc(JSON.stringify({id:a.id}))}'>
+      ${speciesTag(a.species,a.id)}
+      <div class="meta"><div class="sub">${a.species} · Pen ${a.pen||"—"} — tap to choose an event</div></div>
+    </button>`).join("");
+}
+
+/* ================= Event forms ================= */
+const EVENT_META = {
+  weight:{title:"Weight", icon:"weight"}, health:{title:"Health", icon:"health"},
+  movement:{title:"Movement", icon:"movement"}, breeding:{title:"Breeding", icon:"breeding"},
+  weaning:{title:"Weaning", icon:"weaning"}, calving:{title:"Calving", icon:"calving"},
+  harvest:{title:"Harvest", icon:"harvest"}, transport:{title:"Transport", icon:"transport"},
+  mortality:{title:"Mortality", icon:"mortality"}
+};
+
+function renderEventForm(type, id){
+  const a = findAnimal(id);
+  if(!a) return `${header("Event",{backTo:"animals"})}<main><div class="empty-state">Animal not found.</div></main>${bottomNav("events")}`;
+  const meta = EVENT_META[type];
+  const ctx = `<div class="form-context"><b>${esc(a.id)}</b> — ${a.species} · ${a.sex} · Pen ${a.pen||"—"} · Stage: ${biologicalStage(a.species, ageDays(a.dob), a)}</div>`;
+  let fields = "";
+  let warn = "";
+
+  if(type==="breeding" && a.sex!=="Female") warn = `<div class="clearance-pill no" style="display:block;margin-bottom:14px;">Only female animals can be recorded as bred.</div>`;
+  if(type==="calving" && a.sex!=="Female") warn = `<div class="clearance-pill no" style="display:block;margin-bottom:14px;">Calving can only be logged for a female animal.</div>`;
+  if(type==="harvest" && !(a.healthClearance==="Yes"&&a.withdrawalClearance==="Yes"&&a.welfareClearance==="Yes"))
+    warn = `<div class="clearance-pill no" style="display:block;margin-bottom:14px;">Health, withdrawal, and welfare clearances must all read "Yes" before harvest can be logged. Use the Health event to update clearances first.</div>`;
+
+  switch(type){
+    case "weight":
+      fields = `
+        <div class="form-field"><label>Weight (kg)</label><input type="number" step="0.1" name="weight" value="${a.weight}"></div>
+        <div class="form-field"><label>Date</label><input type="date" name="date" value="${todayISO()}"></div>`;
+      break;
+    case "health":
+      fields = `
+        <div class="form-field"><label>Condition</label>
+          <select name="condition"><option>Excellent</option><option>Good</option><option>Fair</option><option>Poor</option><option>Critical</option></select>
+        </div>
+        <div class="form-field"><label>Notes</label><textarea name="notes" placeholder="Optional"></textarea></div>
+        <div class="form-field"><label>Health clearance</label>
+          <div class="toggle-row">
+            <button type="button" class="toggle-opt ${a.healthClearance==='Yes'?'on':''}" data-toggle="clearance" data-val="Yes">Yes</button>
+            <button type="button" class="toggle-opt ${a.healthClearance==='No'?'on deny':''}" data-toggle="clearance" data-val="No">No</button>
+          </div>
+          <input type="hidden" name="clearance" value="${a.healthClearance}">
+        </div>`;
+      break;
+    case "movement":
+      fields = `
+        <div class="form-field"><label>From pen</label><input value="${a.pen||'—'}" disabled></div>
+        <div class="form-field"><label>To pen</label><select name="toPen">${STATE.pens.map(p=>`<option ${p===a.pen?'selected':''}>${esc(p)}</option>`).join("")}</select></div>
+        <div class="form-field"><label>Date</label><input type="date" name="date" value="${todayISO()}"></div>`;
+      break;
+    case "breeding":
+      fields = `
+        ${a.suggestedBreedingDate?`<div class="note-inline">Suggested breeding date: <b>${fmtDate(a.suggestedBreedingDate)}</b></div>`:""}
+        <div class="form-field"><label>Breeding date</label><input type="date" name="date" value="${todayISO()}"></div>
+        <div class="form-field"><label>Sire ID (optional)</label><input name="sireId" placeholder="e.g. NR-COW-100221"></div>
+        <div class="form-field"><label>Notes</label><textarea name="notes" placeholder="Optional"></textarea></div>`;
+      break;
+    case "weaning":
+      fields = `
+        <div class="form-field"><label>Weaning date</label><input type="date" name="date" value="${todayISO()}"></div>
+        <div class="form-field"><label>Weight at weaning (kg, optional)</label><input type="number" step="0.1" name="weight" placeholder="Leave blank to keep current"></div>
+        <div class="form-field"><label>Notes</label><textarea name="notes" placeholder="Optional"></textarea></div>`;
+      break;
+    case "calving":
+      fields = `
+        <div class="form-field"><label>Calving date</label><input type="date" name="date" value="${todayISO()}"></div>
+        <div class="form-field"><label>Outcome</label>
+          <select name="outcome"><option>Live</option><option>Stillbirth</option><option>Assisted</option><option>Twins</option><option>Triplets</option><option>Other</option></select>
+        </div>
+        <div class="form-field"><label>Dam notes</label><textarea name="notes" placeholder="Optional"></textarea></div>
+        <div id="offspringWrap"></div>
+        <button type="button" class="btn btn-ghost btn-sm" id="addOffspring" style="margin-bottom:16px;">${ICONS.plus} Add offspring</button>`;
+      break;
+    case "harvest":
+      fields = `
+        <div class="form-field"><label>Harvest date</label><input type="date" name="date" value="${todayISO()}"></div>
+        <div class="form-field"><label>Final weight (kg)</label><input type="number" step="0.1" name="finalWeight" value="${a.weight}"></div>
+        <div class="form-field"><label>Harvest type</label><select name="harvestType"><option>Standard</option><option>Emergency</option><option>Welfare</option><option>Other</option></select></div>
+        <div class="form-field"><label>Scheduled date (optional)</label><input type="date" name="scheduledDate"></div>
+        <div class="form-field"><label>Transport load date (optional)</label><input type="date" name="loadDate"></div>
+        <div class="form-field"><label>Transport departed date (optional)</label><input type="date" name="departedDate"></div>`;
+      break;
+    case "transport":
+      fields = `
+        <div class="form-field"><label>Load date</label><input type="date" name="loadDate" value="${a.transportLoadDate||todayISO()}"></div>
+        <div class="form-field"><label>Departed date</label><input type="date" name="departedDate"></div>
+        <div class="form-field"><label>Destination</label><input name="destination" placeholder="e.g. Processing facility"></div>`;
+      break;
+    case "mortality":
+      fields = `
+        <div class="form-field"><label>Date of death</label><input type="date" name="date" value="${todayISO()}"></div>
+        <div class="form-field"><label>Cause</label><select name="cause"><option>Disease</option><option>Injury</option><option>Unknown</option><option>Other</option></select></div>
+        <div class="form-field"><label>Notes</label><textarea name="notes" placeholder="Optional"></textarea></div>`;
+      break;
+  }
+
+  return `
+  ${header(meta.title, {backTo:"animalDetail", backParams:{id}})}
+  <main>
+    ${ctx}
+    ${warn}
+    <div class="card">
+      <form id="eventForm" data-type="${type}" data-id="${esc(id)}">
+        ${fields}
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="btn btn-ghost" data-nav="animalDetail" data-params='${esc(JSON.stringify({id}))}'>Cancel</button>
+          <button type="submit" class="btn btn-dark">${ICONS[meta.icon]} Save ${meta.title}</button>
+        </div>
+      </form>
+    </div>
+  </main>
+  ${bottomNav("events")}`;
+}
+
+let offspringCount = 0;
+function offspringBlockHtml(idx){
+  return `
+  <div class="offspring-block" data-idx="${idx}">
+    <button type="button" class="rm" data-rm-offspring="${idx}">Remove</button>
+    <div class="form-field"><label>Offspring ${idx+1} — Sex</label><select name="off_sex_${idx}"><option>Female</option><option>Male</option><option>Unknown</option></select></div>
+    <div class="form-field"><label>Birth weight (kg)</label><input type="number" step="0.1" name="off_weight_${idx}" value="3"></div>
+    <div class="form-field" style="margin-bottom:0;"><label>Notes</label><input name="off_notes_${idx}" placeholder="Optional"></div>
+  </div>`;
+}
+
+/* ================= Event submit handlers =================
+ * Builds a `fields` object matching exactly what Code.gs's handleEvent()
+ * switch-statement reads for each event type, POSTs action:"event", then
+ * pulls the recalculated row back with refreshAnimalFromSheet(). Some
+ * backend behavior is worth knowing before relying on this:
+ *  - breeding/harvest/mortality/calving/weaning/finishing all stamp the
+ *    *server's* today's date on their Engine date column — a date the
+ *    person picks in the form is preserved in Event_Log's notes/fields but
+ *    NOT written to Breeding_Date/Harvest_Date/etc. if it isn't today.
+ *  - harvest's Final Weight isn't written to Current_Weight by the backend
+ *    — it's logged to Event_Log only.
+ *  - transport writes a single date to both Transport_Load_Date and
+ *    Transport_Departed_Date (fields.transportDate) — the form's separate
+ *    load/departed dates collapse to one.
+ *  - calving's offspring rows get Species/DOB/Intake_Stage/Intake_Date and
+ *    one shared birth weight; Sex isn't written to the sheet for offspring
+ *    at all currently, so it's overlaid locally only (won't survive a
+ *    reload) until Code.gs's createOffspringRow is extended to accept it.
+ */
+async function submitEvent(type, id, form){
+  const a = findAnimal(id);
+  const fd = new FormData(form);
+  const get = k => fd.get(k);
+
+  if(type==="breeding" && a.sex!=="Female"){ toast("Only female animals can be bred.", true); return; }
+  if(type==="calving" && a.sex!=="Female"){ toast("Calving requires a female animal.", true); return; }
+  if(type==="harvest" && !(a.healthClearance==="Yes"&&a.withdrawalClearance==="Yes"&&a.welfareClearance==="Yes")){
+    toast("Clearances required before harvest can be logged.", true); return;
+  }
+
+  let fields = {};
+  let offspringForm = []; // calving only, kept for the local-overlay pass after refresh
+
+  switch(type){
+    case "weight":
+      fields = { weight: parseFloat(get("weight"))||a.weight, notes: get("notes")||"" };
+      break;
+    case "health":
+      fields = { condition: get("condition"), clearHealth: (get("clearance")||a.healthClearance)==="Yes", notes: get("notes")||"" };
+      break;
+    case "movement":
+      fields = { pen: get("toPen"), notes: get("notes")||"" };
+      break;
+    case "breeding":
+      fields = { date: get("date"), sireId: get("sireId")||"", notes: get("notes")||"" };
+      break;
+    case "weaning":
+      fields = { weight: parseFloat(get("weight"))||undefined, notes: get("notes")||"" };
+      break;
+    case "calving": {
+      let i=0;
+      while(fd.has(`off_sex_${i}`)){
+        offspringForm.push({ sex: fd.get(`off_sex_${i}`), weight: parseFloat(fd.get(`off_weight_${i}`))||0, notes: fd.get(`off_notes_${i}`)||"" });
+        i++;
+      }
+      fields = {
+        outcome: get("outcome"), notes: get("notes")||"", updateStage:true,
+        offspringCount: offspringForm.length,
+        birthWeight: offspringForm.length ? offspringForm[0].weight : undefined
+      };
+      break;
     }
+    case "harvest":
+      fields = {
+        date: get("date"), finalWeight: parseFloat(get("finalWeight"))||a.weight, harvestType: get("harvestType"),
+        scheduledDate: get("scheduledDate")||"", loadDate: get("loadDate")||"", departedDate: get("departedDate")||""
+      };
+      break;
+    case "transport":
+      fields = { transportDate: get("loadDate")||todayISO(), departedDate: get("departedDate")||"", destination: get("destination")||"" };
+      break;
+    case "mortality":
+      fields = { date: get("date"), cause: get("cause"), notes: get("notes")||"" };
+      break;
+  }
 
-    // Pulls the freshly-recalculated row straight from the live sheet
-    // (Age_Days, stages, forecasts — all formula output) and merges it
-    // into the local store, reusing the same merge logic as CSV sync.
-    async function refreshAnimalFromSheet(id) {
-        const row = await fetchRowFromAppsScript(id);
-        if (row) mergeEngineRowsIntoAnimals([row]);
-        return row;
+  const submitBtn = form.querySelector("button[type=submit]");
+  if(submitBtn) submitBtn.disabled = true;
+  toast("Saving to spreadsheet…");
+  const result = await postToBackend({ action:"event", animalId:id, eventType:type, fields, user:{name:SESSION.name, role:SESSION.role} });
+  if(submitBtn) submitBtn.disabled = false;
+  if(!result || !result.success){
+    toast("Couldn't save to the spreadsheet: " + (result&&result.error ? result.error : "network error"), true);
+    return;
+  }
+
+  logEventLocal(id, type, `${EVENT_META[type].title} recorded.`, fields);
+  await refreshAnimalFromSheet(id, { sireId: fields.sireId });
+
+  if(type==="calving" && result.offspringIds && result.offspringIds.length){
+    for(let i=0;i<result.offspringIds.length;i++){
+      const newId = result.offspringIds[i];
+      const form_i = offspringForm[i];
+      logEventLocal(newId, "intake", `Ranch-born, dam ${a.id}, calving outcome: ${fields.outcome}.${form_i&&form_i.notes?' '+form_i.notes:''}`, {breed:a.breed, pen:a.pen, origin:"Born"});
+      const off = await refreshAnimalFromSheet(newId, {breed:a.breed, sireId:a.sireId});
+      // Sex isn't persisted by the backend for offspring yet — overlay it
+      // locally so it displays correctly for the rest of this session.
+      if(off && form_i) off.sex = form_i.sex;
     }
+  }
 
-    // ---------- Lightweight CSV parser (handles quoted commas) ----------
-    function parseCSVLine(line) {
-        const result = [];
-        let cur = "";
-        let inQuotes = false;
-        for (let i = 0; i < line.length; i++) {
-            const ch = line[i];
-            if (inQuotes) {
-                if (ch === '"') {
-                    if (line[i + 1] === '"') { cur += '"'; i++; }
-                    else { inQuotes = false; }
-                } else cur += ch;
-            } else {
-                if (ch === '"') inQuotes = true;
-                else if (ch === ',') { result.push(cur); cur = ""; }
-                else cur += ch;
-            }
-        }
-        result.push(cur);
-        return result;
-    }
+  toast(`${EVENT_META[type].title} saved for ${id}.`);
+  navigate("animalDetail",{id});
+}
 
-    function parseCSV(text) {
-        const lines = text.split(/\r\n|\n/).filter(l => l.trim().length > 0);
-        if (lines.length === 0) return [];
-        const headers = parseCSVLine(lines[0]).map(h => h.trim());
-        const rows = [];
-        for (let i = 1; i < lines.length; i++) {
-            const values = parseCSVLine(lines[i]);
-            const obj = {};
-            headers.forEach((h, idx) => { obj[h] = values[idx] !== undefined ? values[idx].trim() : ""; });
-            rows.push(obj);
-        }
-        return rows;
-    }
+/* ================= Reports ================= */
+function renderReports(){
+  return `
+  ${header("Reports", {back:false})}
+  <main>
+    <p class="screen-sub">Live views generated from current ranch data.</p>
+    <button class="report-tile" data-nav="reportDetail" data-params='${esc(JSON.stringify({type:"inventory"}))}'>
+      <div><h4>Current Inventory</h4><p>Every active animal, by species &amp; pen</p></div><span class="arrow">&#8250;</span>
+    </button>
+    <button class="report-tile" data-nav="reportDetail" data-params='${esc(JSON.stringify({type:"stage"}))}'>
+      <div><h4>Stage Distribution</h4><p>Where every animal sits in its lifecycle</p></div><span class="arrow">&#8250;</span>
+    </button>
+    <button class="report-tile" data-nav="reportDetail" data-params='${esc(JSON.stringify({type:"harvest"}))}'>
+      <div><h4>Harvest Pipeline</h4><p>Ready now &amp; overdue finishing</p></div><span class="arrow">&#8250;</span>
+    </button>
+    <button class="report-tile" data-nav="reportDetail" data-params='${esc(JSON.stringify({type:"breeding"}))}'>
+      <div><h4>Breeding Pipeline</h4><p>Females &amp; suggested breeding dates</p></div><span class="arrow">&#8250;</span>
+    </button>
+  </main>
+  ${bottomNav("reports")}`;
+}
+function renderReportDetail(type){
+  const titles = {inventory:"Current Inventory", stage:"Stage Distribution", harvest:"Harvest Pipeline", breeding:"Breeding Pipeline"};
+  let body = "";
+  const active = STATE.animals.filter(a=>a.status==="Active");
 
-    async function fetchCSV(url) {
-        const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const text = await res.text();
-        return parseCSV(text);
-    }
+  if(type==="inventory"){
+    const bySpecies = {};
+    active.forEach(a=>{ bySpecies[a.species]=(bySpecies[a.species]||0)+1; });
+    const max = Math.max(1,...Object.values(bySpecies));
+    body = Object.keys(bySpecies).length ? Object.entries(bySpecies).map(([sp,n])=>`
+      <div class="bar-row"><div class="bhead"><span>${sp}</span><span>${n}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(n/max*100)}%;background:${SPECIES_COLOR[sp]}"></div></div></div>
+    `).join("") : emptyReportMsg();
+    body += `<div class="settings-section"><h4>By pen</h4></div>` + Object.entries(
+      active.reduce((acc,a)=>{acc[a.pen||'Unassigned']=(acc[a.pen||'Unassigned']||0)+1;return acc;},{})
+    ).map(([pen,n])=>`<div class="list-row"><span>${esc(pen)}</span><b>${n}</b></div>`).join("");
+  }
 
-    // Fuzzy field lookup: matches header names loosely (case/space/underscore-insensitive)
-    function findVal(row, keywords) {
-        const keys = Object.keys(row);
-        for (const k of keys) {
-            const nk = k.toLowerCase().replace(/[^a-z0-9]/g, "");
-            for (const kw of keywords) {
-                if (nk.includes(kw)) {
-                    const v = row[k];
-                    if (v !== undefined && v !== "") return v;
-                }
-            }
-        }
-        return undefined;
-    }
+  if(type==="stage"){
+    const counts = {};
+    active.forEach(a=>{ const s = biologicalStage(a.species, ageDays(a.dob), a); counts[s]=(counts[s]||0)+1; });
+    const max = Math.max(1,...Object.values(counts));
+    body = Object.keys(counts).length ? Object.entries(counts).map(([s,n])=>`
+      <div class="bar-row"><div class="bhead"><span>${s}</span><span>${n}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(n/max*100)}%"></div></div></div>
+    `).join("") : emptyReportMsg();
+  }
 
-    function parseBoolLoose(val, fallback) {
-        if (val === undefined || val === "") return fallback;
-        const v = val.toString().trim().toLowerCase();
-        if (["yes", "true", "y", "1", "clear", "pass", "ok"].includes(v)) return true;
-        if (["no", "false", "n", "0", "fail", "pending"].includes(v)) return false;
-        return fallback;
-    }
+  if(type==="harvest"){
+    const ready = active.filter(isHarvestReady);
+    const overdue = active.filter(a=>isOverdueFinishing(a.species, ageDays(a.dob), false, a) && !isHarvestReady(a));
+    body = `<div class="settings-section"><h4>Ready for harvest (${ready.length})</h4></div>`;
+    body += ready.length ? renderAnimalListRows(ready) : emptyReportMsg();
+    body += `<div class="settings-section"><h4>Overdue finishing, clearances pending (${overdue.length})</h4></div>`;
+    body += overdue.length ? renderAnimalListRows(overdue) : emptyReportMsg();
+  }
 
-    // ===========================================================
-    // SYNC ORCHESTRATION
-    // ===========================================================
-    function setSyncStatus(text, cls) {
-        const homeEl = document.getElementById('home-sync-status-text');
-        const dashEl = document.getElementById('dash-sync-status-text');
-        [homeEl, dashEl].forEach(el => {
-            if (!el) return;
-            el.innerText = text;
-            el.className = "sync-status-text" + (cls ? " " + cls : "");
-        });
-    }
+  if(type==="breeding"){
+    const females = active.filter(a=>a.sex==="Female");
+    body = females.length ? females.map(a=>{
+      const ret = RETURN_TO_BREEDING[a.species];
+      let suggested = null;
+      if(ret){
+        const base = a.calvingDate || a.weaningDate;
+        if(base) suggested = new Date(new Date(base).getTime()+ret*86400000).toISOString().slice(0,10);
+      }
+      return `<div class="list-row"><div>
+          <div style="font-weight:700;font-family:var(--font-mono);">${esc(a.id)}</div>
+          <div style="font-size:11px;color:var(--ink-soft);">${a.species} · last bred ${a.breedingDate?fmtDate(a.breedingDate):'never'}</div>
+        </div>
+        <div style="text-align:right;font-size:11.5px;">${suggested?`Suggested<br><b>${fmtDate(suggested)}</b>`:'—'}</div>
+      </div>`;
+    }).join("") : emptyReportMsg();
+  }
 
-    async function syncAllData() {
-        if (syncInFlight) return;
-        syncInFlight = true;
-        setSyncStatus("Syncing with Google Sheets...");
-        try {
-            const [dRows, rRows, eRows, cRows] = await Promise.all([
-                fetchCSV(SHEET_URLS.Dashboard),
-                fetchCSV(SHEET_URLS.Lifecycle_Rules),
-                fetchCSV(SHEET_URLS.Lifecycle_Engine),
-                fetchCSV(SHEET_URLS.Lifecycle_Calendar)
-            ]);
+  return `
+  ${header(titles[type], {backTo:"reports"})}
+  <main>${body}</main>
+  ${bottomNav("reports")}`;
+}
+function emptyReportMsg(){ return `<div class="empty-state">${ICONS.empty}<div>Nothing to show yet.</div></div>`; }
 
-            dashboardData = dRows;
-            rulesData = rRows;
-            engineData = eRows;
-            calendarData = cRows;
+/* ================= Settings ================= */
+function renderSettings(){
+  const canEditFounder = SESSION.role==="founder";
+  return `
+  ${header("Settings", {back:false})}
+  <main>
+    <div class="settings-section"><h4>Species &amp; Lifecycle Rules</h4></div>
+    <div class="card">
+      <div class="note-inline" style="margin-top:0;">Reference only — mirrors the ranch's Lifecycle_Rules sheet.</div>
+      ${SPECIES_LIST.map(sp=>`
+        <div style="margin-bottom:10px;">
+          <b style="font-size:12.5px;">${sp}</b>
+          <table class="rules-table">
+            <tr><th>Stage</th><th>Min day</th><th>Max day</th></tr>
+            ${stagesFor(sp).map(r=>`<tr><td>${r.stage}</td><td>${r.min}</td><td>${r.max}</td></tr>`).join("")}
+          </table>
+        </div>`).join("")}
+    </div>
 
-            mergeEngineRowsIntoAnimals(engineData);
-            mergeCalendarIntoAnimals(calendarData);
+    <div class="settings-section"><h4>Pens &amp; Locations</h4></div>
+    <div class="card">
+      ${STATE.pens.map(p=>`<div class="list-row"><span>${esc(p)}</span></div>`).join("")}
+      <div class="btn-row" style="margin-top:4px;">
+        <input id="newPen" placeholder="New pen name" style="flex:1;padding:11px 12px;border-radius:8px;border:1.5px solid var(--line);">
+        <button class="btn btn-ghost btn-sm" id="addPenBtn">Add pen</button>
+      </div>
+    </div>
 
-            lastSyncTime = new Date();
-            setSyncStatus(`✓ Synced ${lastSyncTime.toLocaleTimeString()} — ${engineData.length} engine rows, ${calendarData.length} calendar rows, ${rulesData.length} rule rows`, "ok");
-
-            renderDashboardScreen();
-            refreshVisibleLists();
-        } catch (err) {
-            console.error("Sheet sync failed:", err);
-            setSyncStatus(`Sync failed: ${err.message}. Check the sheets are published to web (File → Share → Publish to web) and reachable from this browser.`, "err");
-        } finally {
-            syncInFlight = false;
-        }
-    }
-
-    function refreshVisibleLists() {
-        const activeId = document.querySelector('.screen.active')?.id;
-        if (activeId === 'screen-recent') renderRecentList();
-        if (activeId === 'screen-search') { buildSearchFilters(); renderSearchResults(); }
-        if (activeId === 'screen-profile' && currentAnimalId) loadProfile(currentAnimalId);
-    }
-
-    // ---------- Merge Lifecycle_Engine rows into local animals ----------
-    function mergeEngineRowsIntoAnimals(rows) {
-        rows.forEach(row => {
-            const id = findVal(row, ['animalid', 'tagid', 'earTag'.toLowerCase(), 'id']);
-            if (!id) return;
-
-            const existing = animals[id] || {};
-            const unifiedStage = findVal(row, ['unifiedcurrentstage', 'unifiedstage', 'currentstage', 'stage']) || existing.unifiedStage || 'Unknown';
-            const species = findVal(row, ['species']) || existing.species || 'Unknown';
-            const weightRaw = findVal(row, ['weight']);
-
-            animals[id] = {
-                id,
-                species,
-                sex: findVal(row, ['sex', 'gender']) || existing.sex || 'Unknown',
-                age: findVal(row, ['age']) || existing.age || '',
-                breed: findVal(row, ['breed', 'genetics']) || existing.breed || 'Unspecified',
-                unifiedStage,
-                nextStage: findVal(row, ['unifiednextstage', 'nextstage']) || existing.nextStage || nextStageFor(unifiedStage, species),
-                bioStage: findVal(row, ['biologicalstage', 'biostage']) || existing.bioStage || unifiedStage,
-                opsStage: findVal(row, ['operationalstage', 'opstage']) || existing.opsStage || unifiedStage,
-                pen: findVal(row, ['pen', 'location']) || existing.pen || 'Unassigned',
-                weight: weightRaw ? (/^[\d.]+$/.test(weightRaw) ? `${weightRaw} kg` : weightRaw) : (existing.weight || '—'),
-                source: findVal(row, ['source', 'origin']) || existing.source || 'Unknown',
-                clearances: {
-                    health: parseBoolLoose(findVal(row, ['health']), existing.clearances?.health ?? true),
-                    withdrawal: parseBoolLoose(findVal(row, ['withdrawal']), existing.clearances?.withdrawal ?? true),
-                    welfare: parseBoolLoose(findVal(row, ['welfare']), existing.clearances?.welfare ?? true)
-                },
-                forecastFinish: existing.forecastFinish || '—',
-                forecastHarvest: existing.forecastHarvest || '—',
-                enteredBy: existing.enteredBy || 'Synced — Lifecycle_Engine',
-                updatedBy: existing.updatedBy || 'Synced — Lifecycle_Engine',
-                isSynced: true
-            };
-        });
-    }
-
-    // ---------- Merge Lifecycle_Calendar forecasts into local animals ----------
-    function mergeCalendarIntoAnimals(rows) {
-        rows.forEach(row => {
-            const id = findVal(row, ['animalid', 'tagid', 'id']);
-            if (!id || !animals[id]) return;
-            const finish = findVal(row, ['expectedfinish', 'finishingdate', 'finishdate', 'finishing']);
-            const harvest = findVal(row, ['expectedharvest', 'harvestdate', 'harvest']);
-            if (finish) animals[id].forecastFinish = finish;
-            if (harvest) animals[id].forecastHarvest = harvest;
-        });
-    }
-
-    // ---------- Lifecycle_Rules-driven action validity (falls back to hardcoded logic) ----------
-    function ruleOverrideForAction(actionName, animal) {
-        if (!rulesData || rulesData.length === 0) return null;
-        for (const row of rulesData) {
-            const ruleAction = findVal(row, ['action']);
-            if (!ruleAction || ruleAction.trim().toLowerCase() !== actionName.trim().toLowerCase()) continue;
-
-            const ruleStage = findVal(row, ['stage']);
-            const ruleSex = findVal(row, ['sex']);
-            const ruleSpecies = findVal(row, ['species']);
-            const ruleValid = findVal(row, ['valid', 'allowed']);
-
-            if (ruleStage && ruleStage.trim().toLowerCase() !== (animal.unifiedStage || '').trim().toLowerCase()) continue;
-            if (ruleSex && ruleSex.trim().toLowerCase() !== (animal.sex || '').trim().toLowerCase()) continue;
-            if (ruleSpecies && ruleSpecies.trim().toLowerCase() !== (animal.species || '').trim().toLowerCase()) continue;
-
-            if (ruleValid !== undefined) return parseBoolLoose(ruleValid, true);
-        }
-        return null;
-    }
-
-    // ---------- Dashboard rendering (generic: metric cards or table) ----------
-    function renderDashboardScreen() {
-        const writeEl = document.getElementById('dash-write-status-text');
-        if (writeEl) {
-            writeEl.innerText = appsScriptConfigured()
-                ? "✓ Write-back configured (Apps Script)"
-                : "Write-back not configured — set APPS_SCRIPT_URL in the HTML to enable live saves.";
-            writeEl.className = "sync-status-text" + (appsScriptConfigured() ? " ok" : "");
-        }
-        document.getElementById('count-dashboard').innerText = dashboardData.length;
-        document.getElementById('count-engine').innerText = engineData.length;
-        document.getElementById('count-rules').innerText = rulesData.length;
-        document.getElementById('count-calendar').innerText = calendarData.length;
-
-        document.getElementById('raw-dashboard').innerHTML = renderRawTable(dashboardData);
-        document.getElementById('raw-engine').innerHTML = renderRawTable(engineData);
-        document.getElementById('raw-rules').innerHTML = renderRawTable(rulesData);
-        document.getElementById('raw-calendar').innerHTML = renderRawTable(calendarData);
-
-        const metricsContainer = document.getElementById('dashboard-metrics');
-        if (!dashboardData.length) {
-            metricsContainer.innerHTML = `<div class="empty-state">No Dashboard data yet. Tap Sync Now.</div>`;
-            return;
-        }
-        const headers = Object.keys(dashboardData[0]);
-        if (headers.length === 2) {
-            // Metric/Value style sheet
-            metricsContainer.innerHTML = `<div class="metric-grid">` + dashboardData.map(row => {
-                const vals = Object.values(row);
-                return `<div class="metric-card"><div class="metric-value">${vals[1] || '—'}</div><div class="metric-label">${vals[0] || ''}</div></div>`;
-            }).join("") + `</div>`;
-        } else {
-            metricsContainer.innerHTML = renderRawTable(dashboardData);
-        }
-    }
-
-    function renderRawTable(rows) {
-        if (!rows || rows.length === 0) return `<div class="empty-state">No data.</div>`;
-        const headers = Object.keys(rows[0]);
-        const previewRows = rows.slice(0, 15);
-        let html = `<table class="raw-table"><thead><tr>` + headers.map(h => `<th>${h}</th>`).join("") + `</tr></thead><tbody>`;
-        previewRows.forEach(r => {
-            html += `<tr>` + headers.map(h => `<td>${r[h] ?? ''}</td>`).join("") + `</tr>`;
-        });
-        html += `</tbody></table>`;
-        if (rows.length > 15) html += `<div class="empty-state">+ ${rows.length - 15} more rows</div>`;
-        return html;
-    }
-
-    // ===========================================================
-    // AUTH (mock role + password login)
-    // ===========================================================
-    const demoCredentials = {
-        "Ranch Worker": "worker123",
-        "Ranch Manager": "manager123",
-        "Founder": "founder123"
-    };
-
-    let pendingRole = "Ranch Worker";
-    let currentUser = null;
-
-    function selectRole(role, btn) {
-        pendingRole = role;
-        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    }
-
-    function attemptLogin() {
-        const name = document.getElementById('login-name').value.trim() || "Unnamed User";
-        const pw = document.getElementById('login-password').value;
-        const errorEl = document.getElementById('login-error');
-
-        if (pw !== demoCredentials[pendingRole]) {
-            errorEl.classList.remove('hidden');
-            return;
-        }
-        errorEl.classList.add('hidden');
-
-        currentUser = { name, role: pendingRole };
-        document.getElementById('header-user').innerText = `${currentUser.name} • ${currentUser.role}`;
-        document.getElementById('header-user').classList.remove('hidden');
-        document.getElementById('header-logout-btn').classList.remove('hidden');
-
-        showScreen('screen-home', { skipHistory: true });
-        screenHistory = [];
-        syncAllData();
-    }
-
-    function logout() {
-        currentUser = null;
-        document.getElementById('login-password').value = "";
-        document.getElementById('login-error').classList.add('hidden');
-        document.getElementById('header-user').classList.add('hidden');
-        document.getElementById('header-logout-btn').classList.add('hidden');
-        screenHistory = [];
-        showScreen('screen-login', { skipHistory: true });
-    }
-
-    // ===========================================================
-    // Breed catalog (standard set + crossbreeds per species)
-    // ===========================================================
-    const breedsBySpecies = {
-        "Cattle": ["Angus", "Wagyu", "Hereford", "Charolais", "Simmental", "Brahman", "Dexter", "Highland", "Jersey", "Holstein",
-                   "Angus x Wagyu", "Angus x Hereford", "Wagyu x Hereford", "Simmental x Angus", "Other / Custom Crossbreed"],
-        "Sheep": ["Suffolk", "Dorper", "Merino", "Romney", "Katahdin", "Texel", "Suffolk x Dorper", "Romney x Merino", "Other / Custom Crossbreed"],
-        "Goat": ["Boer", "Kiko", "Nubian", "Saanen", "Alpine", "Boer x Kiko", "Boer x Nubian", "Other / Custom Crossbreed"],
-        "Chicken": ["Rhode Island Red", "Plymouth Rock", "Leghorn", "Orpington", "Sussex", "Australorp", "Cornish Cross",
-                    "Rhode Island Red x Sussex", "Other / Custom Crossbreed"],
-        "Duck": ["Pekin", "Khaki Campbell", "Muscovy", "Indian Runner", "Rouen", "Other / Custom Crossbreed"],
-        "Rabbit": ["New Zealand White", "Californian", "Rex", "Flemish Giant", "New Zealand x Californian", "Other / Custom Crossbreed"],
-        "Fish": ["Rainbow Trout", "Tilapia", "Catfish", "Salmon", "Other / Custom Crossbreed"]
-    };
-
-    const speciesCode = {
-        "Cattle": "COW", "Sheep": "SHP", "Goat": "GOT", "Chicken": "CHK",
-        "Duck": "DCK", "Rabbit": "RBT", "Fish": "FSH"
-    };
-
-    // Per-species stage sequences — must match Lifecycle_Rules exactly
-    // (species, stage name, and order). These strings are what get
-    // written as Intake_Stage and, at the operational-override level,
-    // into Current_Operational_Stage / Next_Operational_Stage on the
-    // backend. A mismatch here silently breaks the workbook lookup.
-    const speciesStageSequences = {
-        "Cattle": ["Birth / Hatch", "Pre Weaning", "Weaning", "Grower", "Finishing", "Harvest"],
-        "Sheep":  ["Birth / Hatch", "Pre Weaning", "Weaning", "Grower", "Finishing", "Harvest"],
-        "Goat":   ["Birth / Hatch", "Pre Weaning", "Weaning", "Grower", "Finishing", "Harvest"],
-        "Chicken": ["Neonatal / Brooding", "Grower", "Finishing", "Harvest"],
-        "Duck":    ["Neonatal / Brooding", "Grower", "Finishing", "Harvest"],
-        "Rabbit":  ["Birth / Hatch", "Pre Weaning", "Grower", "Finishing", "Harvest"],
-        "Fish":    ["Hatchling", "Fingerling", "Grower", "Harvest"]
-    };
-
-    function populateBreedDropdown() {
-        const species = document.getElementById('intake-species').value;
-        const breedSelect = document.getElementById('intake-breed');
-        const list = breedsBySpecies[species] || ["Other / Custom Crossbreed"];
-        breedSelect.innerHTML = list.map(b => `<option>${b}</option>`).join("");
-        toggleBreedCustom();
-    }
-
-    function toggleBreedCustom() {
-        const val = document.getElementById('intake-breed').value;
-        document.getElementById('group-breed-custom').classList.toggle('hidden', val !== "Other / Custom Crossbreed");
-    }
-
-    function onSpeciesChange() {
-        populateBreedDropdown();
-        regenerateId();
-        rebuildIntakeStageOptions();
-    }
-
-    // Rebuilds the Intake Stage dropdown to match the selected species'
-    // exact stage vocabulary/order from Lifecycle_Rules. Preserves the
-    // current selection if it's still valid for the new species,
-    // otherwise falls back to the first stage in the sequence.
-    function rebuildIntakeStageOptions() {
-        const species = document.getElementById('intake-species').value;
-        const stages = speciesStageSequences[species] || speciesStageSequences["Cattle"];
-        const sel = document.getElementById('intake-stage');
-        const prevValue = sel.value;
-        sel.innerHTML = stages.map(s => `<option>${s}</option>`).join("");
-        sel.value = stages.includes(prevValue) ? prevValue : stages[0];
-    }
-
-    // ===========================================================
-    // Local animal store (seeded with demo data; merged with sheet data on sync)
-    // ===========================================================
-    let animals = {
-        "NR-COW-001234": {
-            id: "NR-COW-001234", species: "Cattle", sex: "Female", age: "412 days", breed: "Angus x Wagyu",
-            unifiedStage: "Grower", nextStage: "Finishing", bioStage: "Grower", opsStage: "Grower",
-            pen: "A3", weight: "412 kg", source: "Ranch-Born",
-            clearances: { health: true, withdrawal: true, welfare: true },
-            forecastFinish: "2026-09-12", forecastHarvest: "2026-10-03",
-            enteredBy: "T. Ngata • Ranch Worker", updatedBy: "T. Ngata • Ranch Worker", isSynced: false
-        },
-        "NR-COW-000871": {
-            id: "NR-COW-000871", species: "Cattle", sex: "Female", age: "780 days", breed: "Hereford",
-            unifiedStage: "Breeder", nextStage: "Gestation", bioStage: "Breeder", opsStage: "Breeder",
-            pen: "B1", weight: "560 kg", source: "Purchased — Livestock Auction",
-            clearances: { health: true, withdrawal: true, welfare: true },
-            forecastFinish: "—", forecastHarvest: "—",
-            enteredBy: "K. Marsh • Ranch Manager", updatedBy: "K. Marsh • Ranch Manager", isSynced: false
-        },
-        "NR-SHP-000045": {
-            id: "NR-SHP-000045", species: "Sheep", sex: "Male", age: "90 days", breed: "Suffolk x Dorper",
-            unifiedStage: "Weaning", nextStage: "Grower", bioStage: "Weaning", opsStage: "Weaning",
-            pen: "Pasture 4", weight: "28 kg", source: "Ranch-Born",
-            clearances: { health: true, withdrawal: false, welfare: true },
-            forecastFinish: "2026-11-01", forecastHarvest: "—",
-            enteredBy: "T. Ngata • Ranch Worker", updatedBy: "T. Ngata • Ranch Worker", isSynced: false
-        },
-        "NR-CHK-002210": {
-            id: "NR-CHK-002210", species: "Chicken", sex: "Female", age: "45 days", breed: "Rhode Island Red",
-            unifiedStage: "Grower", nextStage: "Finishing", bioStage: "Grower", opsStage: "Grower",
-            pen: "A3", weight: "1.4 kg", source: "Ranch-Born",
-            clearances: { health: true, withdrawal: true, welfare: true },
-            forecastFinish: "2026-08-20", forecastHarvest: "2026-08-27",
-            enteredBy: "S. Rongo • Founder", updatedBy: "S. Rongo • Founder", isSynced: false
-        }
-    };
-
-    let recentIds = ["NR-COW-001234", "NR-SHP-000045", "NR-COW-000871", "NR-CHK-002210"];
-    let currentAnimalId = null;
-    let activeEvent = "";
-    let screenHistory = [];
-    let pendingIntakeId = null;
-
-    // ===========================================================
-    // Screen / navigation management
-    // ===========================================================
-    const screenTitles = {
-        "screen-login": "NGAPORI LIVESTOCK APP",
-        "screen-home": "NGAPORI LIVESTOCK APP",
-        "screen-recent": "Recent Animals",
-        "screen-search": "Search Animal",
-        "screen-dashboard": "Dashboard & Sync",
-        "screen-intake": "Animal Intake",
-        "screen-profile": "Animal Profile",
-        "screen-actions": "Actions",
-        "screen-event": "Record Event",
-        "screen-continue": "Workflow"
-    };
-
-    function showScreen(screenId, opts) {
-        opts = opts || {};
-        const current = document.querySelector('.screen.active');
-        if (current && current.id !== screenId && !opts.skipHistory && current.id !== 'screen-login') {
-            screenHistory.push(current.id);
-        }
-
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
-
-        document.getElementById('header-title').innerText = screenTitles[screenId] || "NGAPORI LIVESTOCK APP";
-        document.getElementById('header-back-btn').classList.toggle('hidden', screenId === 'screen-home' || screenId === 'screen-login');
-
-        if (screenId === 'screen-recent') renderRecentList();
-        if (screenId === 'screen-search') { buildSearchFilters(); renderSearchResults(); }
-        if (screenId === 'screen-dashboard') renderDashboardScreen();
-        if (screenId === 'screen-actions') renderStageDrivenActions();
-    }
-
-    function goBack() {
-        const prev = screenHistory.pop();
-        if (prev) showScreen(prev, { skipHistory: true });
-        else showScreen('screen-home', { skipHistory: true });
-    }
-
-    function goToIntake() {
-        resetIntakeForm();
-        showScreen('screen-intake');
-    }
-
-    // ===========================================================
-    // Recent Animals & Search
-    // ===========================================================
-    function animalRowHTML(a) {
-        const syncBadge = a.isSynced ? `<span class="sync-pill">SHEET</span>` : "";
+    <div class="settings-section"><h4>Users &amp; Roles</h4></div>
+    <div class="card">
+      ${["worker","manager","founder"].map(r=>{
+        const editable = SESSION.role==="founder" || (SESSION.role==="manager" && r!=="founder");
         return `
-            <div class="animal-row" onclick="loadProfile('${a.id}')">
-                <div class="animal-row-main">
-                    <div class="animal-row-id">${a.id} ${syncBadge}</div>
-                    <div class="animal-row-sub">${a.species} • ${a.sex} • Pen ${a.pen} • ${a.breed}</div>
-                </div>
-                <div class="stage-pill">${a.unifiedStage}</div>
-            </div>
-        `;
+        <div class="list-row" style="align-items:flex-start;flex-direction:column;">
+          <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+            <span style="text-transform:capitalize;font-weight:700;">${r}</span>
+            ${editable?`<button class="btn btn-ghost btn-sm" data-pwd-toggle="${r}">Change password</button>`:`<span style="font-size:11px;color:var(--ink-soft);">Founder only</span>`}
+          </div>
+          ${editable?`
+          <div class="pwd-form" id="pwdForm_${r}">
+            <input type="password" placeholder="New password" id="pwd_${r}">
+            <button class="btn btn-dark btn-sm" data-pwd-save="${r}">Save new password</button>
+          </div>`:""}
+        </div>`;
+      }).join("")}
+    </div>
+
+    <div class="settings-section"><h4>Backend Connection Status</h4></div>
+    <div class="card">
+      <div class="list-row"><span>Data store</span><b style="color:#5C7A1E;">&#9679; Lifecycle_Engine (Google Sheets)</b></div>
+      <div class="list-row"><span>Storage mode</span><b>Shared (all ranch users, live sheet)</b></div>
+      <div class="list-row"><span>Animals on record</span><b>${STATE.animals.length}</b></div>
+      <div class="list-row"><span>Events logged</span><b>${STATE.eventLog.length}</b></div>
+      <button class="btn btn-outline btn-sm" id="refreshDataBtn" style="margin-top:6px;">${ICONS.history} Reload from spreadsheet</button>
+      <div class="note-inline" style="margin-top:8px;">Animals and events read/write directly to the ranch's Lifecycle_Engine spreadsheet through its Apps Script backend. Pens and role passwords are stored only on this device.</div>
+    </div>
+  </main>
+  ${bottomNav("settings")}`;
+}
+
+/* ================= Edit record / history ================= */
+function renderEditRecord(id){
+  const a = findAnimal(id);
+  if(!a) return `${header("Edit",{backTo:"animals"})}<main><div class="empty-state">Not found.</div></main>${bottomNav("animals")}`;
+  const fieldsOrder = [
+    ["species","Species"], ["sex","Sex"], ["dob","DOB (date)"], ["weight","Weight (kg)"],
+    ["pen","Pen"], ["breed","Breed"], ["origin","Origin"], ["status","Status"],
+    ["healthClearance","Health clearance (Yes/No)"], ["withdrawalClearance","Withdrawal clearance (Yes/No)"],
+    ["welfareClearance","Welfare clearance (Yes/No)"], ["notes","Notes"]
+  ];
+  return `
+  ${header("Edit Record", {backTo:"animalDetail", backParams:{id}})}
+  <main>
+    <div class="form-context"><b>${esc(a.id)}</b> — raw field edit. Manager/Founder only.</div>
+    <div class="card">
+      <form id="editForm">
+        ${fieldsOrder.map(([k,label])=>`
+          <div class="form-field"><label>${label}</label><input name="${k}" value="${esc(a[k]??'')}"></div>
+        `).join("")}
+        <div class="btn-row">
+          <button type="button" class="btn btn-ghost" data-nav="animalDetail" data-params='${esc(JSON.stringify({id}))}'>Cancel</button>
+          <button type="submit" class="btn btn-dark">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </main>
+  ${bottomNav("animals")}`;
+}
+function renderHistory(id){
+  const a = findAnimal(id);
+  const events = STATE.eventLog.filter(e=>e.animalId===id);
+  return `
+  ${header("History", {backTo:"animalDetail", backParams:{id}})}
+  <main>
+    <div class="form-context"><b>${esc(id)}</b> — full event history</div>
+    ${events.length ? events.map(ev=>`
+      <div class="list-row" style="flex-direction:column;align-items:flex-start;">
+        <div style="display:flex;justify-content:space-between;width:100%;">
+          <b style="font-family:var(--font-mono);font-size:12.5px;">${esc(ev.type)}</b>
+          <span style="font-size:11px;color:var(--ink-soft);">${fmtDate(ev.ts)}</span>
+        </div>
+        <div style="font-size:12.5px;margin-top:4px;">${esc(ev.notes||"")}</div>
+        <div style="font-size:10.5px;color:var(--ink-soft);margin-top:3px;">by ${esc(ev.user)} (${esc(ev.role)})</div>
+      </div>`).join("") : `<div class="empty-state">${ICONS.empty}<div>No events logged for this animal yet.</div></div>`}
+  </main>
+  ${bottomNav("animals")}`;
+}
+
+/* ================= Global + per-screen bindings ================= */
+function bindGlobal(){
+  root.querySelectorAll("[data-nav]").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      const params = el.dataset.params ? JSON.parse(el.dataset.params) : {};
+      navigate(el.dataset.nav, params);
+    });
+  });
+  const logoutBtn = root.querySelector("[data-action='logout']");
+  if(logoutBtn) logoutBtn.addEventListener("click", ()=>{ SESSION={role:null,name:null}; navigate("login"); });
+}
+
+function bindScreen(){
+  switch(NAV.screen){
+    case "animals": bindAnimalsScreen(); break;
+    case "intake": bindIntakeScreen(); break;
+    case "events": bindEventsScreen(); break;
+    case "eventForm": bindEventFormScreen(); break;
+    case "settings": bindSettingsScreen(); break;
+    case "editRecord": bindEditRecordScreen(); break;
+  }
+}
+
+function bindAnimalsScreen(){
+  const q = root.querySelector("#animalSearch");
+  q.addEventListener("input", ()=>{ animalFilters.q=q.value; document.getElementById("animalList").innerHTML = renderAnimalListRows(filteredAnimals()); bindGlobal(); });
+  root.querySelector("#fSpecies").addEventListener("change", e=>{ animalFilters.species=e.target.value; refreshAnimalList(); });
+  root.querySelector("#fStage").addEventListener("change", e=>{ animalFilters.stage=e.target.value; refreshAnimalList(); });
+  root.querySelectorAll("[data-pen]").forEach(b=>b.addEventListener("click", ()=>{ animalFilters.pen=b.dataset.pen; render(); }));
+  root.querySelector("#fabAdd").addEventListener("click", ()=>navigate("intake"));
+  function refreshAnimalList(){ document.getElementById("animalList").innerHTML = renderAnimalListRows(filteredAnimals()); bindGlobal(); }
+}
+
+function bindIntakeScreen(){
+  const originSel = root.querySelector("#originSel");
+  const sourceField = root.querySelector("#sourceField");
+  originSel.addEventListener("change", ()=>{ sourceField.style.display = originSel.value==="Purchased" ? "block":"none"; });
+  const speciesSel = root.querySelector("#intakeSpecies");
+  const idInput = root.querySelector("#intakeId");
+  speciesSel.addEventListener("change", ()=>{ idInput.value = generateId(speciesSel.value); });
+  root.querySelector("#regenId").addEventListener("click", ()=>{ idInput.value = generateId(speciesSel.value); });
+  root.querySelector("#intakeForm").addEventListener("submit", async e=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const id = fd.get("id").trim();
+    if(!id){ toast("An animal ID is required.", true); return; }
+    if(findAnimal(id)){ toast("That ID is already in use — try auto-generate.", true); return; }
+    const originSelVal = fd.get("origin"); // "Ranch-Born" or "Purchased"
+    const isBorn = originSelVal === "Ranch-Born";
+    const species = fd.get("species"), dob = fd.get("dob"), intakeDate = fd.get("intakeDate");
+    const weight = parseFloat(fd.get("weight"))||0;
+    const breed = fd.get("breed")||"", pen = fd.get("pen"), source = fd.get("source")||"", notes = fd.get("notes")||"";
+    // Local, pre-sheet-lookup estimate — biologicalStage(species, age) falls
+    // back to the hardcoded LIFECYCLE_RULES table since this animal has no
+    // sheet row (and so no animal._biologicalStage) yet.
+    const intakeStage = biologicalStage(species, ageDays(dob));
+
+    const submitBtn = e.target.querySelector("button[type=submit]");
+    if(submitBtn) submitBtn.disabled = true;
+    toast("Saving to spreadsheet…");
+    const result = await postToBackend({
+      action:"intake",
+      animal:{
+        id, species, sex:fd.get("sex"), weight, dob, intakeStage, intakeDate,
+        origin: isBorn ? "Born" : "Purchased",
+        clearHealth:true, clearWithdrawal:isBorn, clearWelfare:isBorn,
+        breed, pen, source, notes
+      },
+      user:{ name:SESSION.name, role:SESSION.role }
+    });
+    if(submitBtn) submitBtn.disabled = false;
+    if(!result || !result.success){
+      toast("Couldn't save to the spreadsheet: " + (result&&result.error ? result.error : "network error"), true);
+      return;
     }
+    logEventLocal(id,"intake",`${isBorn?"Ranch-Born":"Purchased"} intake — ${species}, ${weight}kg, pen ${pen}.${notes?' '+notes:''}`,
+      {breed, pen, source, origin: isBorn?"Born":"Purchased"});
+    await refreshAnimalFromSheet(id, {breed, pen, source, origin: isBorn?"Born":"Purchased"});
+    toast(`${id} added to the herd.`);
+    navigate("animalDetail",{id});
+  });
+}
 
-    function renderRecentList() {
-        const container = document.getElementById('recent-list');
-        if (recentIds.length === 0) {
-            container.innerHTML = `<div class="empty-state">No recent animals yet.</div>`;
-            return;
-        }
-        container.innerHTML = recentIds.map(id => animals[id]).filter(Boolean).map(animalRowHTML).join("");
+function bindEventsScreen(){
+  const box = root.querySelector("#eventSearch");
+  box.addEventListener("input", ()=>{
+    eventSearch = box.value;
+    root.querySelector("#eventMatches").innerHTML = eventSearch.trim() ?
+      (filteredAnimalsFor(eventSearch).length ? renderAnimalListRowsForEvents(filteredAnimalsFor(eventSearch)) : `<div class="empty-state" style="padding:20px;">No matches.</div>`) : "";
+    bindGlobal();
+  });
+}
+
+function bindEventFormScreen(){
+  const form = root.querySelector("#eventForm");
+  if(!form) return;
+  const type = form.dataset.type, id = form.dataset.id;
+
+  root.querySelectorAll("[data-toggle='clearance']").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      form.querySelector("input[name=clearance]").value = btn.dataset.val;
+      root.querySelectorAll("[data-toggle='clearance']").forEach(b=>b.classList.remove("on","deny"));
+      btn.classList.add("on", btn.dataset.val==="No" ? "deny":"");
+    });
+  });
+
+  if(type==="calving"){
+    offspringCount = 0;
+    const wrap = root.querySelector("#offspringWrap");
+    root.querySelector("#addOffspring").addEventListener("click", ()=>{
+      const div = document.createElement("div");
+      div.innerHTML = offspringBlockHtml(offspringCount);
+      wrap.appendChild(div.firstElementChild);
+      wrap.querySelector(`[data-rm-offspring='${offspringCount}']`).addEventListener("click", ev=>{
+        ev.target.closest(".offspring-block").remove();
+      });
+      offspringCount++;
+    });
+  }
+
+  form.addEventListener("submit", e=>{ e.preventDefault(); submitEvent(type, id, form); });
+}
+
+function bindSettingsScreen(){
+  const refreshBtn = root.querySelector("#refreshDataBtn");
+  if(refreshBtn) refreshBtn.addEventListener("click", async ()=>{
+    refreshBtn.disabled = true;
+    toast("Reloading from spreadsheet…");
+    await loadState(true);
+    refreshBtn.disabled = false;
+    toast("Ranch data reloaded.");
+    render();
+  });
+  const addPenBtn = root.querySelector("#addPenBtn");
+  if(addPenBtn) addPenBtn.addEventListener("click", async ()=>{
+    const v = root.querySelector("#newPen").value.trim();
+    if(!v){ toast("Enter a pen name first.", true); return; }
+    if(STATE.pens.includes(v)){ toast("That pen already exists.", true); return; }
+    STATE.pens.push(v); await saveConfig(); toast(`Pen "${v}" added.`); render();
+  });
+  root.querySelectorAll("[data-pwd-toggle]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const f = root.querySelector(`#pwdForm_${b.dataset.pwdToggle}`);
+      f.classList.toggle("open");
+    });
+  });
+  root.querySelectorAll("[data-pwd-save]").forEach(b=>{
+    b.addEventListener("click", async ()=>{
+      const role = b.dataset.pwdSave;
+      const val = root.querySelector(`#pwd_${role}`).value;
+      if(!val || val.length<4){ toast("Password must be at least 4 characters.", true); return; }
+      STATE.users[role].password = val;
+      await saveConfig();
+      toast(`Password updated for ${role}.`);
+      render();
+    });
+  });
+}
+
+// The Apps Script backend only exposes "intake" and "event" actions — there's
+// no generic "update any field" action — so a raw field edit can only be
+// persisted for the fields that map onto an existing event type: weight
+// (→ event weight), pen (→ event movement), and health clearance (→ event
+// health). Species/sex/DOB/breed/origin/status/withdrawal/welfare/notes
+// changes here would silently vanish on the next reload, so rather than
+// pretend they saved, this reports which fields actually reached the sheet.
+async function bindEditRecordScreen(){
+  root.querySelector("#editForm").addEventListener("submit", async e=>{
+    e.preventDefault();
+    const id = NAV.params.id;
+    const a = findAnimal(id);
+    const fd = new FormData(e.target);
+    const vals = Object.fromEntries(fd.entries());
+
+    const saved = [], unsupported = [];
+    const submitBtn = e.target.querySelector("button[type=submit]");
+    if(submitBtn) submitBtn.disabled = true;
+    toast("Saving to spreadsheet…");
+
+    const newWeight = parseFloat(vals.weight);
+    if(!isNaN(newWeight) && newWeight !== a.weight){
+      const r = await postToBackend({action:"event", animalId:id, eventType:"weight", fields:{weight:newWeight}, user:{name:SESSION.name, role:SESSION.role}});
+      if(r&&r.success){ saved.push("weight"); logEventLocal(id,"weight",`Weight recorded: ${newWeight} kg`,{weight:newWeight}); }
+      else unsupported.push("weight (save failed)");
     }
-
-    let activeSpeciesFilter = "";
-
-    function buildSearchFilters() {
-        const speciesRow = document.getElementById('species-chip-row');
-        const speciesPresent = ["", ...new Set(Object.values(animals).map(a => a.species))];
-        speciesRow.innerHTML = speciesPresent.map(s => {
-            const label = s === "" ? "All Species" : s;
-            const activeClass = (s === activeSpeciesFilter) ? "active" : "";
-            return `<button type="button" class="chip ${activeClass}" onclick="setSpeciesFilter('${s}')">${label}</button>`;
-        }).join("");
-
-        const stageSelect = document.getElementById('search-stage-filter');
-        const stages = [...new Set(Object.values(animals).map(a => a.unifiedStage))].sort();
-        stageSelect.innerHTML = `<option value="">All Stages</option>` + stages.map(s => `<option>${s}</option>`).join("");
-
-        const penSelect = document.getElementById('search-pen-filter');
-        const pens = [...new Set(Object.values(animals).map(a => a.pen))].sort();
-        penSelect.innerHTML = `<option value="">All Pens</option>` + pens.map(p => `<option>${p}</option>`).join("");
+    if(vals.pen && vals.pen !== a.pen){
+      const r = await postToBackend({action:"event", animalId:id, eventType:"movement", fields:{pen:vals.pen}, user:{name:SESSION.name, role:SESSION.role}});
+      if(r&&r.success){ saved.push("pen"); logEventLocal(id,"movement",`Moved to ${vals.pen}`,{pen:vals.pen}); }
+      else unsupported.push("pen (save failed)");
     }
-
-    function setSpeciesFilter(species) {
-        activeSpeciesFilter = species;
-        buildSearchFilters();
-        renderSearchResults();
+    if(vals.healthClearance && vals.healthClearance !== a.healthClearance){
+      const r = await postToBackend({action:"event", animalId:id, eventType:"health", fields:{clearHealth: vals.healthClearance==="Yes"}, user:{name:SESSION.name, role:SESSION.role}});
+      if(r&&r.success){ saved.push("health clearance"); logEventLocal(id,"health",`Clearance: ${vals.healthClearance}`,{clearHealth:vals.healthClearance==="Yes"}); }
+      else unsupported.push("health clearance (save failed)");
     }
+    ["species","sex","dob","breed","origin","status","withdrawalClearance","welfareClearance","notes"].forEach(k=>{
+      if(vals[k]!==undefined && vals[k]!==(a[k]??"")) unsupported.push(k);
+    });
 
-    function renderSearchResults() {
-        const query = (document.getElementById('search-input').value || "").trim().toLowerCase();
-        const stageFilter = document.getElementById('search-stage-filter').value;
-        const penFilter = document.getElementById('search-pen-filter').value;
-        const container = document.getElementById('search-results');
+    if(submitBtn) submitBtn.disabled = false;
+    await refreshAnimalFromSheet(id, {});
 
-        let matches = Object.values(animals);
-        if (activeSpeciesFilter) matches = matches.filter(a => a.species === activeSpeciesFilter);
-        if (stageFilter) matches = matches.filter(a => a.unifiedStage === stageFilter);
-        if (penFilter) matches = matches.filter(a => a.pen === penFilter);
-        if (query) {
-            matches = matches.filter(a =>
-                a.id.toLowerCase().includes(query) ||
-                a.species.toLowerCase().includes(query) ||
-                a.pen.toLowerCase().includes(query) ||
-                a.unifiedStage.toLowerCase().includes(query) ||
-                a.breed.toLowerCase().includes(query)
-            );
-        }
-
-        container.innerHTML = matches.length
-            ? matches.map(animalRowHTML).join("")
-            : `<div class="empty-state">No animals match your search/filters.</div>`;
+    if(unsupported.length){
+      toast(`Saved: ${saved.length?saved.join(", "):"nothing"}. Not supported by the current backend: ${unsupported.join(", ")}.`, true);
+    } else if(saved.length){
+      toast(`Saved: ${saved.join(", ")}.`);
+    } else {
+      toast("No changes to save.");
     }
+    navigate("animalDetail",{id});
+  });
+}
 
-    function touchRecent(id) {
-        recentIds = [id, ...recentIds.filter(x => x !== id)].slice(0, 10);
+/* ================= Boot ================= */
+(async function boot(){
+  try{
+    await loadState();
+    navigate("login");
+  }catch(err){
+    console.error("Ngapori Ranch failed to start:", err);
+    const rootEl = document.getElementById("root");
+    if(rootEl){
+      rootEl.innerHTML = `<div style="padding:24px;font-family:sans-serif;">
+        <h2>Couldn't start the app</h2>
+        <p>${esc(err && err.message ? err.message : String(err))}</p>
+        <p style="color:#888;font-size:13px;">Check the browser console for details. This usually means the spreadsheet CSV links or Apps Script URL aren't reachable from where this page is hosted.</p>
+      </div>`;
     }
+  }
+})();
 
-    // ===========================================================
-    // Intake
-    // ===========================================================
-    function generateAnimalId(species) {
-        const code = speciesCode[species] || "ANM";
-        let id;
-        do {
-            const num = Math.floor(Math.random() * 900000 + 100000);
-            id = `NR-${code}-${num}`;
-        } while (animals[id]);
-        return id;
-    }
-
-    function regenerateId() {
-        const species = document.getElementById('intake-species').value;
-        pendingIntakeId = generateAnimalId(species);
-        document.getElementById('intake-id-display').innerText = pendingIntakeId;
-    }
-
-    function resetIntakeForm() {
-        document.getElementById('intake-origin').value = "Born";
-        document.getElementById('intake-species').value = "Cattle";
-        populateBreedDropdown();
-        regenerateId();
-        rebuildIntakeStageOptions();
-        document.getElementById('intake-sex').value = "Female";
-        document.getElementById('intake-breed-custom').value = "";
-        document.getElementById('intake-source-type').value = "Livestock Auction";
-        document.getElementById('intake-source-detail').value = "";
-        document.getElementById('intake-dob').value = "";
-        document.getElementById('intake-age').value = "";
-        document.getElementById('intake-date').value = new Date().toISOString().split('T')[0];
-        document.getElementById('intake-stage').value = "Grower";
-        document.getElementById('intake-weight').value = "";
-        document.getElementById('intake-pen').value = "A3";
-        document.getElementById('intake-clear-health').checked = true;
-        document.getElementById('intake-clear-withdrawal').checked = true;
-        document.getElementById('intake-clear-welfare').checked = true;
-        document.getElementById('intake-notes').value = "";
-        toggleIntakeFields();
-    }
-
-    function toggleIntakeFields() {
-        const origin = document.getElementById('intake-origin').value;
-        const isBorn = origin === 'Born';
-        document.getElementById('group-dob').classList.toggle('hidden', !isBorn);
-        document.getElementById('group-age').classList.toggle('hidden', isBorn);
-        document.getElementById('group-source').classList.toggle('hidden', isBorn);
-        document.getElementById('group-source-detail').classList.toggle('hidden', isBorn);
-    }
-
-    // Mirrors the workbook's own required-field list — if any of these
-    // are missing, its lifecycle formulas can't compute stage, age, or
-    // forecasting for the new animal.
-    function validateIntakeFields(fields) {
-        const missing = [];
-        if (!fields.id) missing.push("Animal ID");
-        if (!fields.species) missing.push("Species");
-        if (!fields.sex) missing.push("Sex");
-        if (!fields.breed) missing.push("Breed");
-        if (!fields.dob && !fields.ageDays) missing.push("DOB or Age at Intake");
-        if (!fields.intakeDate) missing.push("Intake Date");
-        if (!fields.intakeStage) missing.push("Intake Stage");
-        if (!fields.weight || Number(fields.weight) <= 0) missing.push("Weight");
-        if (!fields.pen) missing.push("Pen");
-        return missing;
-    }
-
-    async function saveIntake() {
-        const id = pendingIntakeId || generateAnimalId(document.getElementById('intake-species').value);
-        const species = document.getElementById('intake-species').value;
-        const sex = document.getElementById('intake-sex').value;
-        const breedRaw = document.getElementById('intake-breed').value;
-        const breed = breedRaw === "Other / Custom Crossbreed"
-            ? (document.getElementById('intake-breed-custom').value.trim() || "Custom Crossbreed")
-            : breedRaw;
-        const origin = document.getElementById('intake-origin').value;
-        const stage = document.getElementById('intake-stage').value;
-        const weight = document.getElementById('intake-weight').value || "0";
-        const pen = document.getElementById('intake-pen').value;
-        const dob = document.getElementById('intake-dob').value;
-        const intakeDate = document.getElementById('intake-date').value;
-        const ageDaysVal = document.getElementById('intake-age').value;
-        const ageDays = origin !== 'Born' && ageDaysVal ? Number(ageDaysVal) : null;
-        const age = origin === 'Born' ? "0 days" : (ageDays ? `${ageDays} days` : "Unknown age");
-        const source = origin === 'Born'
-            ? "Ranch-Born"
-            : `${origin} — ${document.getElementById('intake-source-type').value}${document.getElementById('intake-source-detail').value ? ' (' + document.getElementById('intake-source-detail').value + ')' : ''}`;
-        const whoLabel = currentUser ? `${currentUser.name} • ${currentUser.role}` : "Unknown User";
-        const notes = document.getElementById('intake-notes').value;
-        const clearHealth = document.getElementById('intake-clear-health').checked;
-        const clearWithdrawal = document.getElementById('intake-clear-withdrawal').checked;
-        const clearWelfare = document.getElementById('intake-clear-welfare').checked;
-
-        const errorEl = document.getElementById('intake-validation-error');
-        const missing = validateIntakeFields({
-            id, species, sex, breed,
-            dob: origin === 'Born' ? dob : "", ageDays,
-            intakeDate, intakeStage: stage, weight, pen
-        });
-        if (missing.length) {
-            errorEl.innerText = `Missing required field(s): ${missing.join(", ")}`;
-            errorEl.classList.remove('hidden');
-            return;
-        }
-        errorEl.classList.add('hidden');
-
-        // Immediate local record so the UI responds instantly.
-        animals[id] = {
-            id, species, sex, age, breed,
-            unifiedStage: stage,
-            nextStage: nextStageFor(stage, species),
-            bioStage: stage,
-            opsStage: stage,
-            pen, weight: `${weight} kg`,
-            source,
-            clearances: { health: clearHealth, withdrawal: clearWithdrawal, welfare: clearWelfare },
-            forecastFinish: "TBD (calendar forecasting)",
-            forecastHarvest: "TBD (calendar forecasting)",
-            enteredBy: whoLabel,
-            updatedBy: whoLabel,
-            isSynced: false
-        };
-
-        touchRecent(id);
-        pendingIntakeId = null;
-        loadProfile(id);
-
-        if (appsScriptConfigured()) {
-            const result = await postToAppsScript({
-                action: "intake",
-                animal: {
-                    id, species, sex, breed, pen, source, notes, origin,
-                    weight, intakeStage: stage,
-                    dob: origin === 'Born' ? dob : "", ageDays: ageDays || "", intakeDate,
-                    clearHealth, clearWithdrawal, clearWelfare
-                },
-                user: currentUser
-            });
-            if (result.success) {
-                await refreshAnimalFromSheet(id);
-                if (currentAnimalId === id) loadProfile(id);
-                setSyncStatus(`✓ ${id} written to Lifecycle_Engine`, "ok");
-            } else {
-                setSyncStatus(`Sheet write failed: ${result.error}. Saved locally only.`, "err");
-            }
-        }
-    }
-
-    function nextStageFor(stage, species) {
-        const seq = speciesStageSequences[species] || speciesStageSequences["Cattle"];
-        const idx = seq.indexOf(stage);
-        if (idx >= 0 && idx < seq.length - 1) return seq[idx + 1];
-        // Breeder/Gestation cycle sits outside the growth sequence (mammals only)
-        if (stage === "Breeder") return "Gestation";
-        if (stage === "Gestation") return "Breeder";
-        return "—";
-    }
-
-    // ===========================================================
-    // Profile
-    // ===========================================================
-    function loadProfile(id) {
-        const a = animals[id];
-        if (!a) return;
-        currentAnimalId = id;
-        touchRecent(id);
-
-        document.getElementById('prof-id').innerText = a.id;
-        document.getElementById('prof-sub').innerText = `${a.species} • ${a.sex} • ${a.age} • ${a.breed}`;
-        document.getElementById('prof-unified').innerText = a.unifiedStage;
-        document.getElementById('prof-next').innerText = a.nextStage;
-        document.getElementById('prof-bio').innerText = a.bioStage;
-        document.getElementById('prof-ops').innerText = a.opsStage;
-        document.getElementById('prof-pen').innerText = a.pen;
-        document.getElementById('prof-weight').innerText = a.weight;
-        document.getElementById('prof-source').innerText = a.source || "—";
-        document.getElementById('prof-clear-health').innerText = a.clearances.health ? "Yes" : "No";
-        document.getElementById('prof-clear-withdrawal').innerText = a.clearances.withdrawal ? "Yes" : "No";
-        document.getElementById('prof-clear-welfare').innerText = a.clearances.welfare ? "Yes" : "No";
-        document.getElementById('prof-forecast-finish').innerText = a.forecastFinish;
-        document.getElementById('prof-forecast-harvest').innerText = a.forecastHarvest;
-        document.getElementById('prof-entered-by').innerText = a.enteredBy || "—";
-        document.getElementById('prof-updated-by').innerText = a.updatedBy || "—";
-        document.getElementById('prof-data-source').innerText = a.isSynced ? "Google Sheet (Lifecycle_Engine)" : "Local (not yet synced)";
-
-        showScreen('screen-profile', { skipHistory: true });
-        screenHistory = ['screen-home'];
-    }
-
-    // ===========================================================
-    // ⭐ Stage-Driven Action Menu (Lifecycle_Rules override, else hardcoded)
-    // ===========================================================
-    function renderStageDrivenActions() {
-        const a = animals[currentAnimalId];
-        const container = document.getElementById('action-buttons-container');
-        container.innerHTML = "";
-        if (!a) return;
-
-        const stage = a.unifiedStage;
-        const sex = a.sex;
-        const clearances = a.clearances;
-
-        const actions = [
-            { name: "Weight", id: "weight", valid: true },
-            { name: "Health", id: "health", valid: true },
-            { name: "Movement", id: "movement", valid: true },
-            { name: "Breeding", id: "breeding", valid: (sex === 'Female' && (stage === 'Grower' || stage === 'Breeder')) },
-            { name: "Calving", id: "calving", valid: (sex === 'Female' && stage === 'Gestation') },
-            { name: "Weaning", id: "weaning", valid: (stage === 'Pre Weaning' || stage === 'Weaning') },
-            { name: "Finishing", id: "finishing", valid: (stage === 'Grower') },
-            { name: "Harvest", id: "harvest", valid: (clearances.health && clearances.withdrawal && (stage === 'Finishing' || stage === 'Harvest')) },
-            { name: "Transport", id: "transport", valid: (stage === 'Finishing' || stage === 'Harvest') },
-            { name: "Mortality", id: "mortality", valid: true }
-        ];
-
-        document.getElementById('actions-source-note').innerText = rulesData.length
-            ? `Buttons validated against ${rulesData.length} rules from Lifecycle_Rules (falls back to built-in logic where no rule matches).`
-            : `Buttons shown only if valid for the animal's current stage, clearances, and species rules — preventing invalid lifecycle transitions.`;
-
-        actions.forEach(act => {
-            const override = ruleOverrideForAction(act.name, a);
-            const isValid = override !== null ? override : act.valid;
-            if (!isValid) return;
-            const btn = document.createElement('button');
-            btn.innerText = act.name;
-            if (act.id === 'mortality') btn.className = 'btn-danger';
-            btn.onclick = () => openEventScreen(act.id, act.name);
-            container.appendChild(btn);
-        });
-
-        const back = document.createElement('button');
-        back.innerText = "BACK TO PROFILE";
-        back.className = 'btn-secondary';
-        back.onclick = () => showScreen('screen-profile', { skipHistory: true });
-        container.appendChild(back);
-    }
-
-    // ===========================================================
-    // ⭐ Event Entry
-    // ===========================================================
-    function openEventScreen(eventId, eventTitle) {
-        activeEvent = eventId;
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('event-title').innerText = `${eventTitle.toUpperCase()} — ${currentAnimalId}`;
-        const container = document.getElementById('event-form-fields');
-
-        if (eventId === 'weight') {
-            container.innerHTML = `
-                <div class="form-group"><label>Weight (kg)</label><input type="number" id="ev-weight" placeholder="e.g. 425"></div>
-                <div class="form-group"><label>Date</label><input type="text" value="${today}" readonly></div>
-                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
-            `;
-        } else if (eventId === 'health') {
-            container.innerHTML = `
-                <div class="form-group"><label>Health Observation</label><input type="text" id="ev-health" placeholder="e.g. Routine check, no issues"></div>
-                <div class="form-group"><label>Health Clearance</label>
-                    <select id="ev-clear-health"><option value="Yes" selected>Yes</option><option value="No">No</option></select>
-                </div>
-                <div class="form-group"><label>Date</label><input type="text" value="${today}" readonly></div>
-                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
-            `;
-        } else if (eventId === 'movement') {
-            container.innerHTML = `
-                <div class="form-group"><label>New Pen</label>
-                    <select id="ev-pen"><option>A3</option><option>B1</option><option>Pasture 4</option></select>
-                </div>
-                <div class="form-group"><label>Operational Stage Override</label>
-                    <select id="ev-override"><option value="">None</option><option>Isolation</option><option>Finishing</option></select>
-                </div>
-                <div class="form-group"><label>Date</label><input type="text" value="${today}" readonly></div>
-            `;
-        } else if (eventId === 'breeding') {
-            container.innerHTML = `
-                <div class="form-group"><label>Breeding Date</label><input type="text" value="${today}" readonly></div>
-                <div class="form-group"><label>Male ID (Sire)</label><input type="text" id="ev-sire" placeholder="Optional"></div>
-                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
-            `;
-        } else if (eventId === 'calving') {
-            container.innerHTML = `
-                <div class="form-group"><label>Calving Date</label><input type="text" value="${today}" readonly></div>
-                <div class="form-group"><label>Outcome</label>
-                    <select id="ev-calving-outcome"><option>Live Birth</option><option>Stillbirth</option><option>Assisted Birth</option><option>Twins</option><option>Triplets</option><option>Other</option></select>
-                </div>
-                <div class="form-group"><label>Number of Offspring</label><input type="number" id="ev-offspring-count" value="1" min="0"></div>
-                <div class="form-group"><label>Avg. Birth Weight (kg)</label><input type="number" id="ev-birth-weight" placeholder="Optional"></div>
-                <div class="form-group"><label>Dam Condition</label>
-                    <select id="ev-dam-condition"><option>Excellent</option><option>Good</option><option>Fair</option><option>Poor</option><option>Requires Attention</option></select>
-                </div>
-                <div class="form-group"><label>Mark dam as Post-Calving → Lactation?</label>
-                    <select id="ev-update-stage"><option value="Yes">Yes</option><option value="No">No</option></select>
-                </div>
-                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
-            `;
-        } else if (eventId === 'weaning') {
-            container.innerHTML = `
-                <div class="form-group"><label>Weaning Date</label><input type="text" value="${today}" readonly></div>
-                <div class="form-group"><label>Weaning Weight (kg)</label><input type="number" id="ev-weight" placeholder="Optional"></div>
-                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
-            `;
-        } else if (eventId === 'finishing') {
-            container.innerHTML = `
-                <div class="form-group"><label>Finishing Start Date</label><input type="text" value="${today}" readonly></div>
-                <div class="form-group"><label>Target Weight (kg)</label><input type="number" id="ev-target" placeholder="Optional"></div>
-                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
-            `;
-        } else if (eventId === 'harvest') {
-            const a = animals[currentAnimalId];
-            container.innerHTML = `
-                <div class="card" style="background:#e8f5e9;"><p style="font-size:0.9rem; color:#2e7d32;">✓ Clearances auto-filled: Health ${a.clearances.health ? 'Yes' : 'No'} | Withdrawal ${a.clearances.withdrawal ? 'Yes' : 'No'}</p></div>
-                <div class="form-group"><label>Harvest Date</label><input type="text" value="${today}" readonly></div>
-                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
-            `;
-        } else if (eventId === 'transport') {
-            container.innerHTML = `
-                <div class="form-group"><label>Transport Date</label><input type="date" id="ev-transport-date"></div>
-                <div class="form-group"><label>Destination</label><input type="text" id="ev-dest" placeholder="e.g. Processing Facility"></div>
-                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
-            `;
-        } else if (eventId === 'mortality') {
-            container.innerHTML = `
-                <div class="form-group"><label>Date of Death</label><input type="text" value="${today}" readonly></div>
-                <div class="form-group"><label>Cause</label><input type="text" id="ev-cause" placeholder="e.g. Illness, Predation, Unknown"></div>
-                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
-            `;
-        } else {
-            container.innerHTML = `
-                <div class="form-group"><label>Date</label><input type="text" value="${today}" readonly></div>
-                <div class="form-group"><label>Notes</label><input type="text" id="ev-notes" placeholder="Optional"></div>
-            `;
-        }
-
-        const saveBtn = document.getElementById('event-save-btn');
-        saveBtn.innerText = `SAVE ${eventTitle.toUpperCase()}`;
-        saveBtn.className = eventId === 'mortality' ? 'btn-danger' : '';
-
-        showScreen('screen-event');
-    }
-
-    // ===========================================================
-    // ⭐ Save Event → Lifecycle Engine Recalculation (local simulation)
-    // ===========================================================
-    // Builds the {fields} payload sent to the Apps Script for the active
-    // event type, reading straight from the event form's inputs.
-    function collectEventFields() {
-        const val = (id) => { const el = document.getElementById(id); return el ? el.value : undefined; };
-        const notes = val('ev-notes');
-        switch (activeEvent) {
-            case 'weight': return { weight: val('ev-weight'), notes };
-            case 'health': return { observation: val('ev-health'), clearHealth: val('ev-clear-health') === 'Yes', notes };
-            case 'movement': return { pen: val('ev-pen'), override: val('ev-override') || "", notes };
-            case 'breeding': return { sire: val('ev-sire'), notes };
-            case 'calving': return {
-                outcome: val('ev-calving-outcome'), offspringCount: val('ev-offspring-count'),
-                birthWeight: val('ev-birth-weight'), damCondition: val('ev-dam-condition'),
-                updateStage: val('ev-update-stage') === 'Yes', notes
-            };
-            case 'weaning': return { weight: val('ev-weight'), notes };
-            case 'finishing': return { targetWeight: val('ev-target'), notes };
-            case 'harvest': return { notes };
-            case 'transport': return { transportDate: val('ev-transport-date'), destination: val('ev-dest'), notes };
-            case 'mortality': return { cause: val('ev-cause'), notes };
-            default: return { notes };
-        }
-    }
-
-    // Local-only fallback so the app stays usable before the Apps Script
-    // is deployed / if the sheet write fails. Mirrors the sheet's own
-    // stage logic approximately, for display purposes only.
-    function applyEventLocally(a, fields) {
-        if (activeEvent === 'weight' && fields.weight) a.weight = `${fields.weight} kg`;
-        else if (activeEvent === 'movement') {
-            if (fields.pen) a.pen = fields.pen;
-            if (fields.override) { a.opsStage = fields.override; a.unifiedStage = fields.override; a.nextStage = nextStageFor(fields.override, a.species); }
-        } else if (activeEvent === 'weaning') {
-            a.unifiedStage = 'Grower'; a.bioStage = 'Grower'; a.opsStage = 'Grower'; a.nextStage = nextStageFor('Grower', a.species);
-        } else if (activeEvent === 'finishing') {
-            a.unifiedStage = 'Finishing'; a.bioStage = 'Finishing'; a.opsStage = 'Finishing'; a.nextStage = nextStageFor('Finishing', a.species);
-        } else if (activeEvent === 'breeding') {
-            a.unifiedStage = 'Gestation'; a.bioStage = 'Gestation'; a.opsStage = 'Gestation'; a.nextStage = 'Breeder';
-        } else if (activeEvent === 'calving' && fields.updateStage) {
-            a.unifiedStage = 'Post-Calving'; a.opsStage = 'Post-Calving'; a.nextStage = 'Lactation';
-        } else if (activeEvent === 'harvest') {
-            a.unifiedStage = 'Harvested'; a.opsStage = 'Harvested'; a.nextStage = '—';
-        } else if (activeEvent === 'mortality') {
-            a.unifiedStage = 'Deceased'; a.opsStage = 'Deceased'; a.nextStage = '—';
-        }
-    }
-
-    async function saveEvent() {
-        const a = animals[currentAnimalId];
-        if (!a) return;
-
-        const fields = collectEventFields();
-        const whoLabel = currentUser ? `${currentUser.name} • ${currentUser.role}` : "Unknown User";
-
-        if (appsScriptConfigured()) {
-            const result = await postToAppsScript({
-                action: "event",
-                eventType: activeEvent,
-                animalId: a.id,
-                fields,
-                user: currentUser
-            });
-            if (result.success) {
-                await refreshAnimalFromSheet(a.id);
-                animals[a.id].updatedBy = whoLabel;
-                setSyncStatus(`✓ ${a.id} — ${activeEvent} written to Lifecycle_Engine`, "ok");
-            } else {
-                applyEventLocally(a, fields);
-                a.updatedBy = whoLabel;
-                setSyncStatus(`Sheet write failed: ${result.error}. Saved locally only.`, "err");
-            }
-        } else {
-            applyEventLocally(a, fields);
-            a.updatedBy = whoLabel;
-        }
-
-        touchRecent(a.id);
-        loadProfile(a.id);
-        showScreen('screen-continue');
-    }
+})();
 </script>
-
-</body>
-</html>
