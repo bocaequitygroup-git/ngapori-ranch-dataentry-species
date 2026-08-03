@@ -234,14 +234,14 @@
  * Apps Script action, so they still live in this device's window.storage
  * ("ranch-config") rather than the spreadsheet.
  */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJvZzQWfUG1TuOVKY_iLSdXJDyVU2qMA2w9xi5q5TTesV4llB_wiu4a06KkYPHD9Bw/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7L7lc5pM8vGQNhJU6ceTxpG7MaXTLLyZYe8y9x01NmtVpk-lnyg9YWcg6NMMSJ52J/exec";
 const CSV_URLS = {
-  engine:    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1221792036&single=true&output=csv",
-  dashboard: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1707463665&single=true&output=csv",
-  rules:     "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1329812469&single=true&output=csv",
-  calendar:  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1414380761&single=true&output=csv",
-  eventLog:  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=791668259&single=true&output=csv",
-  legend:    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1655967610&single=true&output=csv"
+  engine:    "https://docs.google.com/spreadsheets/d/e/2PACX-1vQs05if1fhs8qhao0EP7-FuUibBSIxy367Libt6I0tbza63-sMniZB0uqmdXdgFcZXqxEG7zG7fj8zj/pub?gid=1781506779&single=true&output=csv",
+  dashboard: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrOSZt-6hN4HMgziMFgAkcLSI9LaXIjLBYJxUhCWUyrGx4KByNtJRihLPXh-zNADwxuZvy10qNOVNj/pub?gid=1707463665&single=true&output=csv", // TODO: no new URL was given for the Dashboard tab — still points at the OLD workbook, replace when you have it
+  rules:     "https://docs.google.com/spreadsheets/d/e/2PACX-1vQs05if1fhs8qhao0EP7-FuUibBSIxy367Libt6I0tbza63-sMniZB0uqmdXdgFcZXqxEG7zG7fj8zj/pub?gid=48772557&single=true&output=csv",
+  calendar:  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQs05if1fhs8qhao0EP7-FuUibBSIxy367Libt6I0tbza63-sMniZB0uqmdXdgFcZXqxEG7zG7fj8zj/pub?gid=1172099208&single=true&output=csv",
+  eventLog:  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQs05if1fhs8qhao0EP7-FuUibBSIxy367Libt6I0tbza63-sMniZB0uqmdXdgFcZXqxEG7zG7fj8zj/pub?gid=523385374&single=true&output=csv",
+  legend:    "https://docs.google.com/spreadsheets/d/e/2PACX-1vQs05if1fhs8qhao0EP7-FuUibBSIxy367Libt6I0tbza63-sMniZB0uqmdXdgFcZXqxEG7zG7fj8zj/pub?gid=1105976987&single=true&output=csv"
 };
 
 // Minimal RFC4180-ish CSV parser (handles quoted fields, embedded commas/newlines, "" escapes).
