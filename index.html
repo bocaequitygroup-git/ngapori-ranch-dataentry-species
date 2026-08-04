@@ -435,6 +435,12 @@ function mkAnimal(o){
     healthClearance:"No", withdrawalClearance:"No", welfareClearance:"No",
     healthCondition:null, healthNotes:"", sireId:"", notes:"",
     status:"Active", weightHistory:[], createdAt:nowISO(),
+    // Breeding-forecast columns added to Lifecycle_Engine — sheet-calculated,
+    // so these are the source of truth (see mapEngineRowToAnimal below).
+    gestationDays:null, weaningDaysForecast:null, returnToBreedingDays:null,
+    expectedBirthDate:null, expectedWeaningDate:null,
+    nextBreedingWindowOpen:null, nextBreedingCycleStart:null,
+    suggestedBreedingDate:null,
     // Live values read back from Lifecycle_Engine's formula columns, when
     // available (see biologicalStage/isOverdueFinishing/isHarvestReady).
     _ageDays:null, _biologicalStage:null, _overdueFinishing:null,
@@ -506,6 +512,14 @@ function mapEngineRowToAnimal(row, events){
     healthClearance: row.Health_Clearance || "No",
     withdrawalClearance: row.Withdrawal_Clearance || "No",
     welfareClearance: row.Welfare_Clearance || "No",
+    gestationDays: row.Gestation_Days!==undefined && row.Gestation_Days!=="" ? Number(row.Gestation_Days) : null,
+    weaningDaysForecast: row.Weaning_Days_Forecast!==undefined && row.Weaning_Days_Forecast!=="" ? Number(row.Weaning_Days_Forecast) : null,
+    returnToBreedingDays: row.Return_To_Breeding_Days!==undefined && row.Return_To_Breeding_Days!=="" ? Number(row.Return_To_Breeding_Days) : null,
+    expectedBirthDate: row.Expected_Birth_Date ? fmtCSVDate(row.Expected_Birth_Date) : null,
+    expectedWeaningDate: row.Expected_Weaning_Date ? fmtCSVDate(row.Expected_Weaning_Date) : null,
+    nextBreedingWindowOpen: row.Next_Breeding_Window_Open ? fmtCSVDate(row.Next_Breeding_Window_Open) : null,
+    nextBreedingCycleStart: row.Next_Breeding_Cycle_Start ? fmtCSVDate(row.Next_Breeding_Cycle_Start) : null,
+    suggestedBreedingDate: row.Suggested_Breeding_Date ? fmtCSVDate(row.Suggested_Breeding_Date) : null,
     sireId: extra.sireId || "",
     notes: intakeEvent ? (intakeEvent.notes||"") : "",
     status: status,
@@ -1284,15 +1298,20 @@ function renderReportDetail(type){
   if(type==="breeding"){
     const females = active.filter(a=>a.sex==="Female");
     body = females.length ? females.map(a=>{
-      const ret = RETURN_TO_BREEDING[a.species];
-      let suggested = null;
-      if(ret){
+      // Suggested_Breeding_Date now comes straight from Lifecycle_Engine
+      // (sheet is the source of truth). Fall back to the old local estimate
+      // only for animals whose sheet row hasn't populated it yet.
+      let suggested = a.suggestedBreedingDate;
+      if(!suggested){
+        const ret = RETURN_TO_BREEDING[a.species];
         const base = a.calvingDate || a.weaningDate;
-        if(base) suggested = new Date(new Date(base).getTime()+ret*86400000).toISOString().slice(0,10);
+        if(ret && base) suggested = new Date(new Date(base).getTime()+ret*86400000).toISOString().slice(0,10);
       }
+      const pregnant = a.breedingDate && !a.calvingDate;
       return `<div class="list-row"><div>
           <div style="font-weight:700;font-family:var(--font-mono);">${esc(a.id)}</div>
           <div style="font-size:11px;color:var(--ink-soft);">${a.species} · last bred ${a.breedingDate?fmtDate(a.breedingDate):'never'}</div>
+          ${pregnant && a.expectedBirthDate?`<div style="font-size:11px;color:var(--ink-soft);">Expected birth ${fmtDate(a.expectedBirthDate)}</div>`:""}
         </div>
         <div style="text-align:right;font-size:11.5px;">${suggested?`Suggested<br><b>${fmtDate(suggested)}</b>`:'—'}</div>
       </div>`;
