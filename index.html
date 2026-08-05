@@ -281,15 +281,23 @@
 
   <!-- ============ UPDATE-MODE SEARCH ============ -->
   <div class="card" id="updateSearchCard" style="display:none;">
-    <div class="card-head"><h2>Find Animal</h2><span class="num">Tag ID</span></div>
+    <div class="card-head"><h2>Find Animal</h2><span class="num">Tag · Species · Breed</span></div>
     <div class="card-body">
-      <div class="searchwrap">
-        <input type="text" id="searchTagInput" placeholder="Scan or type Tag ID, e.g. NR-CTL-2026-08" list="allTagsList">
-        <button id="searchGoBtn" title="Find">→</button>
+      <div class="field ac-wrap" style="margin-bottom:0;">
+        <div class="searchwrap">
+          <input type="text" id="searchTagInput" placeholder="Search tag, species, or breed — e.g. goat, Wagyu, NR-CTL" autocomplete="off">
+          <button id="searchGoBtn" title="Find">→</button>
+        </div>
+        <div class="ac-list" id="searchAcList"></div>
       </div>
-      <datalist id="allTagsList"></datalist>
-      <div class="help">Loads that animal's record so you can log a new weigh-in, breeding update, or status change without re-entering everything.</div>
+      <div class="help">Loads that animal's full record so you can log a new weigh-in, breeding update, or status change without re-entering everything.</div>
     </div>
+  </div>
+
+  <!-- ============ FULL ANIMAL PROFILE (read-only, populates after a search match) ============ -->
+  <div class="card" id="profileCard" style="display:none;">
+    <div class="card-head"><h2>Full Animal Profile</h2><span class="num">Live from Master_Inventory</span></div>
+    <div class="card-body" id="profileBody"></div>
   </div>
 
   <!-- ============ 1. IDENTIFICATION ============ -->
@@ -593,7 +601,7 @@ function buildSpeciesTiles(){
 function wireStaticEvents(){
   document.getElementById('modeNewBtn').addEventListener('click', () => setMode('new'));
   document.getElementById('modeUpdateBtn').addEventListener('click', () => setMode('update'));
-  document.getElementById('searchGoBtn').addEventListener('click', loadForUpdate);
+  document.getElementById('searchGoBtn').addEventListener('click', () => loadForUpdate());
   document.getElementById('searchTagInput').addEventListener('keydown', e => { if(e.key==='Enter') loadForUpdate(); });
 
   document.getElementById('tagIdInput').addEventListener('input', e => { state.form.tagId = e.target.value; syncTagChip(); });
@@ -614,6 +622,7 @@ function wireStaticEvents(){
 
   wireAutocomplete('damInput', 'damAcList', 'Female');
   wireAutocomplete('sireInput', 'sireAcList', 'Male');
+  wireSearchAutocomplete();
 
   document.getElementById('breedingStatusSelect').addEventListener('change', e => { state.form.breedingStatus = e.target.value; toggleBreedingDate(); recalcPreview(); });
   document.getElementById('breedingDateInput').addEventListener('change', e => { state.form.breedingDate = e.target.value; recalcPreview(); });
@@ -675,8 +684,6 @@ async function loadMasterInventory(){
     const res = await fetch(CONFIG.MASTER_INVENTORY_CSV_URL, {cache:'no-store'});
     const rows = csvToRows(await res.text());
     state.animals = rows.filter(r => r.Tag_ID);
-    const dl = document.getElementById('allTagsList');
-    dl.innerHTML = state.animals.map(a => `<option value="${a.Tag_ID}">`).join('');
   } catch(e){ /* silent — dup-check/autocomplete just won't have live data */ }
 }
 
@@ -689,14 +696,26 @@ function setMode(mode){
   document.getElementById('modeUpdateBtn').classList.toggle('active', mode==='update');
   document.getElementById('updateSearchCard').style.display = mode==='update' ? 'block' : 'none';
   document.getElementById('saveBtn').textContent = mode==='update' ? 'Save Update' : 'Save to Master Inventory';
-  if(mode==='new'){ state.updatingTagId = null; resetForm(); }
+  if(mode==='new'){ state.updatingTagId = null; document.getElementById('profileCard').style.display = 'none'; resetForm(); }
 }
 
-function loadForUpdate(){
-  const q = document.getElementById('searchTagInput').value.trim();
-  const rec = state.animals.find(a => a.Tag_ID.toLowerCase() === q.toLowerCase());
+function loadForUpdate(tagOverride){
+  const q = (tagOverride || document.getElementById('searchTagInput').value).trim();
+  // Exact Tag_ID match if it looks like one; otherwise treat the box as a
+  // fuzzy query and jump to the first match (mirrors the dropdown behavior).
+  let rec = state.animals.find(a => a.Tag_ID.toLowerCase() === q.toLowerCase());
+  if(!rec && q){
+    const ql = q.toLowerCase();
+    rec = state.animals.find(a =>
+      (a.Tag_ID && a.Tag_ID.toLowerCase().includes(ql)) ||
+      (a.Species && a.Species.toLowerCase().includes(ql)) ||
+      (a.Breed_Pedigree && a.Breed_Pedigree.toLowerCase().includes(ql))
+    );
+  }
   hideBanners();
-  if(!rec){ showErr('No animal found with that Tag ID in the loaded inventory.'); return; }
+  if(!rec){ showErr('No animal found matching that search in the loaded inventory.'); document.getElementById('profileCard').style.display = 'none'; return; }
+  document.getElementById('searchTagInput').value = rec.Tag_ID;
+  document.getElementById('searchAcList').classList.remove('open');
   state.updatingTagId = rec.Tag_ID;
   const f = state.form = emptyForm();
   f.tagId = rec.Tag_ID; f.species = rec.Species; f.breed = rec.Breed_Pedigree; f.geneticType = rec.Genetic_Type || 'Purebred';
@@ -706,16 +725,100 @@ function loadForUpdate(){
   f.damId = rec.Dam_ID || ''; f.sireId = rec.Sire_ID || '';
   f.breedingStatus = rec.Breeding_Status || 'N/A'; f.breedingDate = toDateInputValue(rec.Breeding_Date);
   paintFormFromState();
+  renderFullProfile(rec);
   // Identification locked in update mode — only weight, breeding & status fields make sense to change quickly.
   document.getElementById('tagIdInput').setAttribute('readonly','readonly');
   showOk(`Loaded ${rec.Tag_ID}. Update the weight or breeding info and save.`);
 }
 
+/* Read-only display of every Master_Inventory field for the loaded animal —
+   not just the subset that's editable in the form below — so the user sees
+   the full profile (computed stage, age, pen, flags, forecasts) at a glance. */
+function renderFullProfile(rec){
+  const card = document.getElementById('profileCard');
+  const body = document.getElementById('profileBody');
+  const rows = [
+    ['Calculated Stage', rec.Calculated_Stage],
+    ['Harvest / Processing Flag', rec.Harvest_Ready_Flag],
+    ['Age', rec.Age_Days ? `${rec.Age_Days} days (~${rec.Age_Months} mo)` : ''],
+    ['Pen / Location', rec.Pen_Location],
+    ['Biological Stage', rec.Biological_Current_Stage],
+    ['Biological Next Stage', rec.Biological_Next_Stage ? `${rec.Biological_Next_Stage}${rec.Biological_Next_Stage_Start_Date ? ' — starts ' + rec.Biological_Next_Stage_Start_Date : ''}` : ''],
+    ['Operational Stage', rec.Operational_Current_Stage],
+    ['Unified Stage', rec.Unified_Current_Stage],
+    ['Scheduled Processing Date', rec.Scheduled_Processing_Date],
+    ['Harvest Overdue Flag', rec.Harvest_Overdue_Flag],
+    ['Harvest Candidate Flag', rec.Harvest_Candidate_Flag],
+    ['Suggested Progeny Label', rec.Suggested_Progeny_Label],
+    ['Projected Birth Month', rec.Projected_Birth_Month],
+    ['Projected Market-Ready Month', rec.Projected_Market_Ready_Month],
+    ['Expected Weaning Date', rec.Expected_Weaning_Date],
+    ['Next Breeding Window Open', rec.Next_Breeding_Window_Open],
+    ['Finishing Max Age (mo)', rec.Finishing_Max_Age_Months],
+    ['Entry Stage (if DOB unknown)', rec.Entry_Stage_If_DOB_Unknown]
+  ].filter(([,v]) => v !== undefined && v !== null && String(v).trim() !== '');
+
+  body.innerHTML = rows.length
+    ? `<div class="previewgrid" style="background:transparent;">${rows.map(([label,val]) => `
+        <div class="pcell" style="background:var(--surface-sunk); border-radius:8px;">
+          <div class="plabel" style="color:var(--ink-soft);">${label}</div>
+          <div class="pval" style="color:var(--ink);">${val}</div>
+        </div>`).join('')}</div>`
+    : '<div class="empty">No system-calculated fields available yet for this record.</div>';
+  card.style.display = 'block';
+}
+
+/* Fuzzy search-as-you-type across Tag_ID, Species, and Breed — replaces the
+   old plain text box (which required knowing the exact Tag_ID) with a
+   dropdown of matches, same pattern as the Dam/Sire autocomplete below. */
+function wireSearchAutocomplete(){
+  const input = document.getElementById('searchTagInput');
+  const list = document.getElementById('searchAcList');
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if(q === ''){ list.classList.remove('open'); return; }
+    const matches = state.animals.filter(a =>
+      (a.Tag_ID && a.Tag_ID.toLowerCase().includes(q)) ||
+      (a.Species && a.Species.toLowerCase().includes(q)) ||
+      (a.Breed_Pedigree && a.Breed_Pedigree.toLowerCase().includes(q))
+    ).slice(0, 10);
+    list.innerHTML = matches.length
+      ? matches.map(a => `<div class="ac-item" data-tag="${a.Tag_ID}">${a.Tag_ID}<div class="mini">${a.Species || ''}${a.Breed_Pedigree ? ' · '+a.Breed_Pedigree : ''}${a.Sex ? ' · '+a.Sex : ''}</div></div>`).join('')
+      : '<div class="ac-item" style="cursor:default;color:var(--ink-soft);">No matches in loaded inventory</div>';
+    list.classList.add('open');
+  });
+  list.addEventListener('click', e => {
+    const item = e.target.closest('.ac-item');
+    if(!item || !item.dataset.tag) return;
+    loadForUpdate(item.dataset.tag);
+  });
+  document.addEventListener('click', e => { if(!input.contains(e.target) && !list.contains(e.target)) list.classList.remove('open'); });
+}
+
+/* Master_Inventory's DOB/Entry_Date/Breeding_Date columns are formatted
+   dd/mm/yyyy in the sheet, so the published CSV exports the *displayed*
+   text in that order (e.g. "08/04/2026" = 8 April 2026). JS's native
+   new Date("08/04/2026") assumes US mm/dd/yyyy and silently reads that
+   as August 4 instead — a day/month swap. That mis-read is what was
+   showing up as the wrong DOB (e.g. "04/08/2026") whenever an existing
+   record was loaded in Update mode. Parse both formats explicitly by
+   component instead of handing slash-dates to the Date constructor. */
+function parseSheetDate(v){
+  if(!v) return null;
+  const s = String(v).trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);           // ISO: 2026-08-04
+  if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);              // Sheet locale: dd/mm/yyyy
+  if(m) return new Date(+m[3], +m[2]-1, +m[1]);
+  const d = new Date(s);                                      // last-resort fallback
+  return isNaN(d) ? null : d;
+}
+
 function toDateInputValue(v){
-  if(!v) return '';
-  const d = new Date(v);
-  if(isNaN(d)) return '';
-  return d.toISOString().slice(0,10);
+  const d = parseSheetDate(v);
+  if(!d) return '';
+  const y = d.getFullYear(), mo = String(d.getMonth()+1).padStart(2,'0'), da = String(d.getDate()).padStart(2,'0');
+  return `${y}-${mo}-${da}`;
 }
 
 function paintFormFromState(){
@@ -1184,6 +1287,8 @@ function resetForm(){
   document.getElementById('breedingDateField').style.display = 'none';
   document.getElementById('breedingDateInput').value = '';
   document.getElementById('searchTagInput').value = '';
+  document.getElementById('searchAcList').classList.remove('open');
+  document.getElementById('profileCard').style.display = 'none';
   hideBanners();
   recalcPreview();
 }
