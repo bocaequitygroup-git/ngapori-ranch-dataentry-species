@@ -1,377 +1,1192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ngapori Ranch — Field Data Entry</title>
-  <style>
-    :root {
-      --primary: #2d5a27;
-      --accent: #8c6d46;
-      --bg: #f4f6f3;
-      --card-bg: #ffffff;
-      --text: #2c3e50;
-      --border: #dcdfe6;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Ngapori Ranch — Livestock Data Entry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F2ECDA;
+    --surface:#FFFEFA;
+    --surface-sunk:#EAE2C9;
+    --ink:#251F16;
+    --ink-soft:#655D48;
+    --line:#D7CBA6;
+    --pasture:#33502B;
+    --pasture-dark:#213A1B;
+    --rust:#A8431F;
+    --rust-dark:#832F14;
+    --ready:#3F7D3A;
+    --ready-bg:#E4EEDD;
+    --warn:#C98A22;
+    --warn-bg:#F7EAD2;
+    --danger:#B23B2E;
+    --danger-bg:#F6E0DA;
+    --focus:#3E7CB1;
+    --radius:10px;
+    --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px;
+    --tap:52px;
+    --c-cattle:#B5482A; --c-sheep:#6E7F5C; --c-goat:#8C5A2B; --c-poultry:#C9932A;
+    --c-duck:#3E7CB1; --c-rabbit:#8C7FA8; --c-catfish:#2E6E62; --c-tilapia:#4FA697;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'IBM Plex Sans',system-ui,sans-serif;
+    padding-bottom:120px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  ::selection{background:var(--warn-bg);}
+  .eyebrow{
+    font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.14em;
+    font-size:12px; font-weight:600; color:var(--ink-soft);
+  }
+  h1,h2,h3{font-family:'Oswald',sans-serif; margin:0; letter-spacing:.01em;}
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 15px;
-    }
+  /* ---------- Header ---------- */
+  header.topbar{
+    background:var(--pasture); color:#EFE9D6;
+    padding:var(--sp-4) var(--sp-4) var(--sp-3);
+    position:sticky; top:0; z-index:40;
+    box-shadow:0 2px 0 var(--pasture-dark);
+  }
+  .topbar-row{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3);}
+  .brandmark{display:flex; align-items:center; gap:10px;}
+  .brandmark .tagicon{
+    width:34px; height:26px; border-radius:6px 6px 6px 2px;
+    background:var(--rust); position:relative; flex:none;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.25);
+  }
+  .brandmark .tagicon::after{
+    content:''; position:absolute; left:6px; top:50%; transform:translateY(-50%);
+    width:6px; height:6px; border-radius:50%; background:var(--pasture);
+  }
+  .brandmark h1{font-size:19px; color:#fff; line-height:1.15;}
+  .brandmark .sub{font-size:11px; color:#C9D6BE; letter-spacing:.08em; text-transform:uppercase;}
+  .statuspill{
+    display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+    padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.1); color:#EFE9D6;
+    white-space:nowrap;
+  }
+  .statuspill .dot{width:8px; height:8px; border-radius:50%; background:#7FCB6E;}
+  .statuspill.offline .dot{background:#E0B23A;}
+  .statuspill.syncing .dot{background:#E0B23A; animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
 
-    .container {
-      max-width: 650px;
-      margin: 0 auto;
-      background: var(--card-bg);
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
+  .modebar{display:flex; gap:8px; margin-top:var(--sp-3); flex-wrap:wrap;}
+  .modebtn{
+    flex:1; min-width:140px; border:1.5px solid rgba(255,255,255,.25); background:transparent;
+    color:#EFE9D6; padding:10px 14px; border-radius:8px; font-family:'Oswald',sans-serif;
+    font-size:13px; letter-spacing:.05em; text-transform:uppercase; cursor:pointer; font-weight:500;
+    transition:background .15s, border-color .15s;
+  }
+  .modebtn.active{background:var(--rust); border-color:var(--rust); color:#fff;}
 
-    .header {
-      text-align: center;
-      border-bottom: 2px solid var(--primary);
-      padding-bottom: 12px;
-      margin-bottom: 20px;
-    }
+  /* ---------- Layout ---------- */
+  main{max-width:760px; margin:0 auto; padding:var(--sp-4);}
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    margin-bottom:var(--sp-4); overflow:hidden;
+  }
+  .card-head{
+    padding:var(--sp-3) var(--sp-4); border-bottom:1px solid var(--line);
+    display:flex; align-items:baseline; justify-content:space-between; gap:8px;
+    background:var(--surface-sunk);
+  }
+  .card-head h2{font-size:16px;}
+  .card-head .num{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft);
+  }
+  .card-body{padding:var(--sp-4);}
 
-    .header h1 {
-      margin: 0;
-      color: var(--primary);
-      font-size: 1.5rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
+  .field{margin-bottom:var(--sp-4);}
+  .field:last-child{margin-bottom:0;}
+  label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; letter-spacing:.02em;}
+  label .req{color:var(--rust);}
+  input[type=text], input[type=number], input[type=date], select, textarea{
+    width:100%; height:var(--tap); border:1.5px solid var(--line); border-radius:8px;
+    padding:0 14px; font-size:16px; font-family:'IBM Plex Sans',sans-serif; background:#fff; color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{outline:2.5px solid var(--focus); outline-offset:1px; border-color:var(--focus);}
+  input[readonly]{background:var(--surface-sunk); color:var(--ink-soft);}
+  .help{font-size:12px; color:var(--ink-soft); margin-top:5px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3);}
+  @media (max-width:520px){.row2{grid-template-columns:1fr;}}
 
-    .header p {
-      margin: 5px 0 0;
-      color: var(--accent);
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
+  /* Tile groups (species, sex, entry type) */
+  .tilegroup{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  @media (max-width:560px){.tilegroup{grid-template-columns:repeat(4,1fr);}}
+  .tilegroup.two{grid-template-columns:1fr 1fr;}
+  .tile{
+    min-height:var(--tap); border:2px solid var(--line); background:#fff; border-radius:9px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    cursor:pointer; padding:8px 4px; font-family:'Oswald',sans-serif; font-size:12.5px;
+    font-weight:500; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em;
+    transition:border-color .12s, background .12s, color .12s;
+  }
+  .tile .glyph{font-size:19px; line-height:1;}
+  .tile.active{color:#fff; border-color:transparent;}
+  .tile:focus-visible{outline:2.5px solid var(--focus); outline-offset:2px;}
 
-    .form-group {
-      margin-bottom: 16px;
-    }
+  /* Tag ID badge */
+  .tagbadge{
+    display:flex; align-items:center; gap:10px; background:var(--surface-sunk);
+    border:1.5px dashed var(--line); border-radius:9px; padding:10px 14px; margin-bottom:var(--sp-4);
+  }
+  .tagbadge .chip{
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:15px; color:#fff;
+    background:var(--ink-soft); padding:8px 14px; border-radius:6px 6px 6px 2px; position:relative;
+    letter-spacing:.02em;
+  }
+  .tagbadge .chip::after{
+    content:''; position:absolute; left:7px; top:50%; transform:translateY(-50%);
+    width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.55);
+  }
+  .tagbadge input{flex:1; height:40px; font-family:'IBM Plex Mono',monospace; font-size:14px;}
+  .tagbadge .lbl{font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em;}
 
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 6px;
-      font-size: 0.9rem;
-      color: #34495e;
-    }
+  /* Weight stepper */
+  .weightrow{display:flex; align-items:stretch; gap:8px;}
+  .weightrow input{flex:1; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:20px; font-weight:600;}
+  .stepbtn{
+    width:52px; height:var(--tap); border:1.5px solid var(--line); background:#fff; border-radius:8px;
+    font-size:20px; font-weight:600; color:var(--pasture); cursor:pointer;
+  }
+  .stepbtn:active{background:var(--surface-sunk);}
+  .stepgroup{display:flex; gap:4px;}
 
-    input, select, textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      box-sizing: border-box;
-      font-size: 1rem;
-      background-color: #fafafa;
-    }
+  /* Autocomplete */
+  .ac-wrap{position:relative;}
+  .ac-list{
+    position:absolute; left:0; right:0; top:calc(100% + 4px); background:#fff; border:1.5px solid var(--line);
+    border-radius:8px; max-height:200px; overflow-y:auto; z-index:20; box-shadow:0 6px 18px rgba(37,31,22,.12);
+    display:none;
+  }
+  .ac-list.open{display:block;}
+  .ac-item{padding:10px 14px; cursor:pointer; font-size:14px; border-bottom:1px solid var(--surface-sunk);}
+  .ac-item:last-child{border-bottom:none;}
+  .ac-item:hover, .ac-item.hi{background:var(--surface-sunk);}
+  .ac-item .mini{color:var(--ink-soft); font-size:12px;}
 
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      background-color: #fff;
-    }
+  /* Toggle chip row for entry type / breeding etc */
+  .chiprow{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{
+    border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:9px 16px;
+    font-size:13.5px; font-weight:600; cursor:pointer; color:var(--ink-soft);
+  }
+  .chip.active{background:var(--pasture); border-color:var(--pasture); color:#fff;}
 
-    .row {
-      display: flex;
-      gap: 12px;
-    }
+  .checkline{display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--ink-soft); margin-top:6px;}
+  .checkline input{width:18px; height:18px;}
 
-    .row .form-group {
-      flex: 1;
-    }
+  /* Preview */
+  .previewcard{
+    background:var(--pasture-dark); color:#EFE9D6; border-radius:var(--radius); margin-bottom:var(--sp-4);
+    border:1px solid var(--pasture-dark);
+  }
+  .previewcard .card-head{background:var(--pasture); border-color:var(--pasture-dark); color:#fff;}
+  .previewcard .card-head h2{color:#fff;}
+  .previewgrid{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:rgba(255,255,255,.08);}
+  @media (max-width:520px){.previewgrid{grid-template-columns:1fr;}}
+  .pcell{background:var(--pasture-dark); padding:14px 16px;}
+  .pcell .plabel{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#B9C7AE; margin-bottom:5px;}
+  .pcell .pval{font-family:'Oswald',sans-serif; font-size:16px; font-weight:500;}
+  .badge{display:inline-block; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700;}
+  .badge.ready{background:var(--ready-bg); color:var(--ready);}
+  .badge.growing{background:rgba(255,255,255,.12); color:#EFE9D6;}
+  .badge.warn{background:var(--warn-bg); color:var(--warn);}
+  .badge.danger{background:var(--danger-bg); color:var(--danger);}
+  .deadlinebar{
+    margin:0 16px 16px; padding:10px 14px; border-radius:8px; font-size:13px; font-weight:600;
+    display:none; align-items:center; gap:8px;
+  }
+  .deadlinebar.show{display:flex;}
+  .deadlinebar.warn{background:var(--warn-bg); color:#7A5711;}
+  .deadlinebar.danger{background:var(--danger-bg); color:#7A2418;}
 
-    .status-badge {
-      padding: 12px;
-      border-radius: 6px;
-      font-weight: bold;
-      text-align: center;
-      margin-top: 15px;
-      display: none;
-    }
+  /* Banners */
+  .banner{
+    padding:12px 16px; border-radius:9px; font-size:13.5px; font-weight:600; margin-bottom:var(--sp-4);
+    display:none; align-items:center; gap:8px;
+  }
+  .banner.show{display:flex;}
+  .banner.err{background:var(--danger-bg); color:var(--danger);}
+  .banner.ok{background:var(--ready-bg); color:var(--ready);}
+  .banner.info{background:#DEEAF3; color:#245374;}
 
-    .status-growing {
-      background-color: #e8f4f8;
-      color: #2980b9;
-      border: 1px solid #3498db;
-    }
+  /* Recent entries */
+  .recentlist{display:flex; flex-direction:column; gap:8px;}
+  .recentitem{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface-sunk);
+    border-radius:8px; font-size:13px;
+  }
+  .recentitem .rtag{font-family:'IBM Plex Mono',monospace; font-weight:600;}
+  .recentitem .rmeta{color:var(--ink-soft); flex:1;}
+  .syncbadge{font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px;}
+  .syncbadge.sent{background:var(--ready-bg); color:var(--ready);}
+  .syncbadge.queued{background:var(--warn-bg); color:var(--warn);}
+  .syncbadge.failed{background:var(--danger-bg); color:var(--danger);}
+  .empty{color:var(--ink-soft); font-size:13.5px; font-style:italic;}
 
-    .status-harvest {
-      background-color: #eafaf1;
-      color: #27ae60;
-      border: 1px solid #2ecc71;
-    }
+  /* Action bar */
+  .actionbar{
+    position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1.5px solid var(--line);
+    padding:12px var(--sp-4); display:flex; gap:10px; z-index:50; box-shadow:0 -4px 16px rgba(37,31,22,.08);
+  }
+  .actionbar .spacer{flex:1;}
+  button.btn{
+    height:var(--tap); border-radius:9px; font-family:'Oswald',sans-serif; font-size:14.5px;
+    letter-spacing:.04em; text-transform:uppercase; font-weight:600; cursor:pointer; border:none;
+    padding:0 20px;
+  }
+  .btn-primary{background:var(--rust); color:#fff; flex:2;}
+  .btn-primary:active{background:var(--rust-dark);}
+  .btn-primary:disabled{background:#C9BFA6; cursor:not-allowed;}
+  .btn-ghost{background:transparent; color:var(--ink-soft); border:1.5px solid var(--line); flex:1;}
+  .btn-sync{background:var(--pasture); color:#fff;}
 
-    .status-breeding {
-      background-color: #fef9e7;
-      color: #d35400;
-      border: 1px solid #f39c12;
-    }
+  .searchwrap{display:flex; gap:8px;}
+  .searchwrap input{flex:1;}
+  .searchwrap button{width:52px; height:var(--tap); border-radius:8px; border:1.5px solid var(--pasture);
+    background:var(--pasture); color:#fff; font-size:18px; cursor:pointer;}
 
-    .btn-submit {
-      width: 100%;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      padding: 14px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    .btn-submit:hover {
-      background-color: #23471f;
-    }
-
-    .hidden {
-      display: none;
-    }
-  </style>
+  .loadingnote{font-size:12.5px; color:var(--ink-soft); padding:2px 4px 10px;}
+</style>
 </head>
 <body>
 
-<div class="container">
-  <div class="header">
-    <h1>Ngapori Ranch</h1>
-    <p>Livestock Logging & Field Entry GUI</p>
+<header class="topbar">
+  <div class="topbar-row">
+    <div class="brandmark">
+      <div class="tagicon"></div>
+      <div>
+        <h1>Ngapori Ranch</h1>
+        <div class="sub">Livestock Data Entry</div>
+      </div>
+    </div>
+    <div class="statuspill" id="statusPill"><span class="dot"></span><span id="statusText">Online</span></div>
+  </div>
+  <div class="modebar">
+    <button class="modebtn active" data-mode="new" id="modeNewBtn">New Animal</button>
+    <button class="modebtn" data-mode="update" id="modeUpdateBtn">Update Existing</button>
+  </div>
+</header>
+
+<main>
+
+  <div class="banner err" id="errBanner"></div>
+  <div class="banner ok" id="okBanner"></div>
+
+  <!-- ============ UPDATE-MODE SEARCH ============ -->
+  <div class="card" id="updateSearchCard" style="display:none;">
+    <div class="card-head"><h2>Find Animal</h2><span class="num">Tag ID</span></div>
+    <div class="card-body">
+      <div class="searchwrap">
+        <input type="text" id="searchTagInput" placeholder="Scan or type Tag ID, e.g. NR-CTL-2026-08" list="allTagsList">
+        <button id="searchGoBtn" title="Find">→</button>
+      </div>
+      <datalist id="allTagsList"></datalist>
+      <div class="help">Loads that animal's record so you can log a new weigh-in, breeding update, or status change without re-entering everything.</div>
+    </div>
   </div>
 
-  <form id="livestockForm">
-    
-    <!-- Tag ID & Entry Type -->
-    <div class="row">
-      <div class="form-group">
-        <label for="tagId">Tag / Batch ID *</label>
-        <input type="text" id="tagId" placeholder="e.g. NR-CTL-2026-08" required>
-      </div>
-      <div class="form-group">
-        <label for="entryType">Entry Type *</label>
-        <select id="entryType" required>
-          <option value="Born on Ranch">Born on Ranch</option>
-          <option value="Purchased">Purchased / Acquired</option>
-        </select>
-      </div>
-    </div>
+  <!-- ============ 1. IDENTIFICATION ============ -->
+  <div class="card" id="idCard">
+    <div class="card-head"><h2>1. Identification</h2><span class="num">Tag_ID · Species · Breed</span></div>
+    <div class="card-body">
 
-    <!-- Species & Breed Selection -->
-    <div class="row">
-      <div class="form-group">
-        <label for="species">Species *</label>
-        <select id="species" onchange="updateBreeds()" required>
-          <option value="">-- Select Species --</option>
-          <option value="Cattle">Cattle</option>
-          <option value="Sheep">Sheep</option>
-          <option value="Goat">Goat</option>
-          <option value="Poultry">Poultry / Chicken</option>
-          <option value="Duck">Duck</option>
-          <option value="Rabbit">Rabbit</option>
-        </select>
+      <div class="tagbadge">
+        <div class="chip" id="tagChip">NR-···</div>
+        <div style="flex:1;">
+          <div class="lbl">Tag ID (auto — override if using RFID/physical tag)</div>
+          <input type="text" id="tagIdInput" placeholder="Auto-generates once species is chosen">
+        </div>
       </div>
-      <div class="form-group">
-        <label for="breed">Breed / Crossbreed *</label>
-        <select id="breed" required>
-          <option value="">-- Select Species First --</option>
-        </select>
-      </div>
-    </div>
 
-    <!-- Sex & Scale Weight -->
-    <div class="row">
-      <div class="form-group">
-        <label for="sex">Sex *</label>
-        <select id="sex" onchange="toggleBreedingFields()" required>
-          <option value="Female">Female</option>
-          <option value="Male-Castrated">Male (Castrated / Steer, Wether)</option>
-          <option value="Male-Intact">Male (Intact / Breeding Sire)</option>
-        </select>
+      <div class="field">
+        <label>Species <span class="req">*</span></label>
+        <div class="tilegroup" id="speciesTiles"></div>
       </div>
-      <div class="form-group">
-        <label for="scaleWeight">Scale Weight (lbs) *</label>
-        <input type="number" id="scaleWeight" step="0.1" placeholder="Current scale weight" oninput="checkStatus()" required>
-      </div>
-    </div>
 
-    <!-- Dates -->
-    <div class="row">
-      <div class="form-group">
-        <label for="dob">Date of Birth (DOB)</label>
-        <input type="date" id="dob">
-      </div>
-      <div class="form-group">
-        <label for="entryDate">Onboarding / Intake Date *</label>
-        <input type="date" id="entryDate" required>
-      </div>
-    </div>
-
-    <!-- Female Breeding & Gestation Fields -->
-    <div id="breedingSection" class="hidden">
-      <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 0;">
-      <div class="row">
-        <div class="form-group">
-          <label for="breedingStatus">Reproductive Status</label>
-          <select id="breedingStatus" onchange="toggleGestationDate()">
-            <option value="Open">Open / Not Bred</option>
-            <option value="Pregnant">Confirmed Pregnant</option>
-            <option value="Breeding Ready">Breeding Pool Candidate</option>
+      <div class="row2">
+        <div class="field">
+          <label>Breed / Pedigree <span class="req">*</span></label>
+          <select id="breedSelect"><option value="">— choose species first —</option></select>
+          <div class="help">Must match Breed_Matrix exactly — this list is pulled live from it, so typos aren't possible.</div>
+        </div>
+        <div class="field">
+          <label>Genetic Type</label>
+          <select id="geneticTypeSelect">
+            <option>Purebred</option>
+            <option>F1 Cross</option>
+            <option>F2 Cross</option>
+            <option>Composite</option>
+            <option>Hybrid</option>
           </select>
         </div>
-        <div class="form-group hidden" id="gestationDateGroup">
-          <label for="breedingDate">Breeding Date</label>
-          <input type="date" id="breedingDate">
+      </div>
+
+      <div class="field">
+        <label>Sex <span class="req">*</span></label>
+        <div class="tilegroup two" id="sexTiles">
+          <div class="tile" data-sex="Female"><span class="glyph">♀</span>Female</div>
+          <div class="tile" data-sex="Male"><span class="glyph">♂</span>Male</div>
         </div>
       </div>
+
     </div>
+  </div>
 
-    <!-- Dynamic Real-Time Status Badge -->
-    <div id="statusIndicator" class="status-badge"></div>
+  <!-- ============ 2. INTAKE & ORIGIN ============ -->
+  <div class="card" id="intakeCard">
+    <div class="card-head"><h2>2. Intake &amp; Origin</h2><span class="num">Entry_Type · DOB</span></div>
+    <div class="card-body">
 
-    <!-- Notes -->
-    <div class="form-group" style="margin-top: 15px;">
-      <label for="notes">Worker Notes / Pasture Rotation Group</label>
-      <textarea id="notes" rows="2" placeholder="Pasture location, body condition score, vaccinations..."></textarea>
+      <div class="field">
+        <label>Entry Type <span class="req">*</span></label>
+        <div class="chiprow" id="entryTypeChips">
+          <div class="chip active" data-entry="Born on Ranch">Born on Ranch</div>
+          <div class="chip" data-entry="Purchased">Purchased / Intake</div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field" id="dobField">
+          <label>Date of Birth</label>
+          <input type="date" id="dobInput">
+        </div>
+        <div class="field">
+          <label>Entry Date <span class="req">*</span></label>
+          <input type="date" id="entryDateInput">
+        </div>
+      </div>
+
+      <div class="checkline" id="dobUnknownWrap" style="display:none;">
+        <input type="checkbox" id="dobUnknownCheck">
+        <label for="dobUnknownCheck" style="margin:0;">DOB unknown — estimate from current stage instead</label>
+      </div>
+
+      <div class="field" id="entryStageField" style="display:none; margin-top:var(--sp-3);">
+        <label>Entry Stage (used to back-calculate an effective DOB)</label>
+        <select id="entryStageSelect">
+          <option>Weaned / Starter</option>
+          <option>Grower / Stocker</option>
+          <option>Finisher</option>
+          <option>Market Ready</option>
+        </select>
+      </div>
+
     </div>
+  </div>
 
-    <button type="submit" class="btn-submit">SAVE LIVESTOCK ENTRY</button>
-  </form>
+  <!-- ============ 3. WEIGHT & PARENTAGE ============ -->
+  <div class="card" id="weightCard">
+    <div class="card-head"><h2>3. Weight &amp; Parentage</h2><span class="num">lbs · Dam/Sire · Breeding</span></div>
+    <div class="card-body">
+
+      <div class="field">
+        <label>Current Scale Weight (lbs) <span class="req">*</span></label>
+        <div class="weightrow">
+          <div class="stepgroup">
+            <button class="stepbtn" data-step="-10">−10</button>
+            <button class="stepbtn" data-step="-1">−1</button>
+          </div>
+          <input type="number" id="weightInput" step="0.1" inputmode="decimal" placeholder="0">
+          <div class="stepgroup">
+            <button class="stepbtn" data-step="1">+1</button>
+            <button class="stepbtn" data-step="10">+10</button>
+          </div>
+        </div>
+        <div class="help" id="weightTargetHelp"></div>
+      </div>
+
+      <div class="row2">
+        <div class="field ac-wrap">
+          <label>Dam ID</label>
+          <input type="text" id="damInput" placeholder="Type to search females on file" autocomplete="off">
+          <div class="ac-list" id="damAcList"></div>
+        </div>
+        <div class="field ac-wrap">
+          <label>Sire ID</label>
+          <input type="text" id="sireInput" placeholder="Type to search males on file" autocomplete="off">
+          <div class="ac-list" id="sireAcList"></div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label>Breeding Status</label>
+          <select id="breedingStatusSelect">
+            <option value="N/A">N/A</option>
+            <option>Open</option>
+            <option>Bred</option>
+            <option>Pregnant</option>
+            <option>Lactating</option>
+          </select>
+        </div>
+        <div class="field" id="breedingDateField" style="display:none;">
+          <label>Breeding Date</label>
+          <input type="date" id="breedingDateInput">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============ LIVE PREVIEW ============ -->
+  <div class="card previewcard">
+    <div class="card-head"><h2>Live Engine Preview</h2><span class="num" style="color:#C9D6BE;">Read-only</span></div>
+    <div class="previewgrid">
+      <div class="pcell">
+        <div class="plabel">Calculated Stage</div>
+        <div class="pval" id="prevStage">—</div>
+      </div>
+      <div class="pcell">
+        <div class="plabel">Harvest / Processing Flag</div>
+        <div class="pval"><span class="badge growing" id="prevFlag">—</span></div>
+      </div>
+      <div class="pcell">
+        <div class="plabel">Suggested Progeny Label</div>
+        <div class="pval" id="prevProgeny">—</div>
+      </div>
+      <div class="pcell">
+        <div class="plabel">Projected Birth Month</div>
+        <div class="pval" id="prevBirth">—</div>
+      </div>
+      <div class="pcell" style="grid-column:1/-1;">
+        <div class="plabel">Projected Market-Ready Month <span style="text-transform:none; letter-spacing:0;">(estimate — engine confirms on save)</span></div>
+        <div class="pval" id="prevMarket">—</div>
+      </div>
+    </div>
+    <div class="deadlinebar" id="deadlineBar"></div>
+  </div>
+
+  <!-- ============ RECENT ENTRIES ============ -->
+  <div class="card">
+    <div class="card-head"><h2>Recent This Session</h2><span class="num" id="queueCount"></span></div>
+    <div class="card-body">
+      <div class="recentlist" id="recentList"><div class="empty">Nothing logged yet this session.</div></div>
+    </div>
+  </div>
+
+</main>
+
+<div class="actionbar">
+  <button class="btn btn-ghost" id="resetBtn">Reset</button>
+  <div class="spacer"></div>
+  <button class="btn btn-sync" id="syncBtn" style="display:none;">Sync Queue</button>
+  <button class="btn btn-primary" id="saveBtn">Save to Master Inventory</button>
 </div>
 
 <script>
-  // Complete Breed & Crossbreed List for Ngapori Ranch
-  const breedData = {
-    "Cattle": [
-      "Angus", 
-      "Wagyu", 
-      "F1 Wagyu (Angus × Wagyu)", 
-      "Commercial Cow"
-    ],
-    "Sheep": [
-      "Katahdin", 
-      "Suffolk"
-    ],
-    "Goat": [
-      "Boer", 
-      "Kalahari Red", 
-      "Galla", 
-      "Galla × Kalahari Red F1", 
-      "F2 Kids"
-    ],
-    "Poultry": [
-      "Cornish Cross", 
-      "Freedom Ranger", 
-      "Naked Neck", 
-      "Naked Neck × Ranger-type", 
-      "Delaware", 
-      "New Hampshire Red", 
-      "Boschveld", 
-      "Kuroiler", 
-      "Ayam Cemani"
-    ],
-    "Duck": [
-      "Pekin", 
-      "Moulard"
-    ],
-    "Rabbit": [
-      "New Zealand White", 
-      "Californian", 
-      "New Zealand White × Californian"
-    ]
+/* ============================================================
+   CONFIG — fill in your published-CSV and Apps Script URLs
+   ============================================================ */
+const CONFIG = {
+  BREED_MATRIX_CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGB0vhCWfElJ0l40wVJmnm5MVzAFy6F59BKHHGkDWtPq-q5RLMwflrk2K3yiab5QDwreFOmX9olige/pub?gid=1472190125&single=true&output=csv',
+  MASTER_INVENTORY_CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGB0vhCWfElJ0l40wVJmnm5MVzAFy6F59BKHHGkDWtPq-q5RLMwflrk2K3yiab5QDwreFOmX9olige/pub?gid=1668091266&single=true&output=csv',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx5YPO7vvJxv3-oKLcahaPGRF8TXl9Vq3cye4vLAWsld35duOVMYW_9RLQn99fKoykL/exec',
+  QUEUE_KEY: 'ngapori_offline_queue_v1',
+  ANIMAL_SLOTS: 100 // Master_Inventory rows 5-104 per Settings note 11/17
+};
+
+/* ============================================================
+   STATIC REFERENCE DATA (fallback if CSV fetch fails/offline —
+   mirrors Breed_Matrix; keep in sync if breeds are added there)
+   ============================================================ */
+const SPECIES = [
+  {key:'Cattle',   glyph:'🐄', color:'--c-cattle'},
+  {key:'Sheep',    glyph:'🐑', color:'--c-sheep'},
+  {key:'Goat',     glyph:'🐐', color:'--c-goat'},
+  {key:'Poultry',  glyph:'🐔', color:'--c-poultry'},
+  {key:'Duck',     glyph:'🦆', color:'--c-duck'},
+  {key:'Rabbit',   glyph:'🐇', color:'--c-rabbit'},
+  {key:'Catfish',  glyph:'🐟', color:'--c-catfish'},
+  {key:'Tilapia',  glyph:'🐠', color:'--c-tilapia'}
+];
+const SPECIES_CODE = {Cattle:'CTL', Sheep:'SHP', Goat:'GOT', Poultry:'PLT', Duck:'DCK', Rabbit:'RBT', Catfish:'CAT', Tilapia:'TLP'};
+const GESTATION_DAYS = {Cattle:283, Sheep:147, Goat:150, Poultry:21, Duck:28, Rabbit:31, Catfish:6, Tilapia:4};
+const FALLBACK_BREEDS = [
+  {Species:'Cattle',Breed:'Angus',HarvestWt:1200,BreedingWt:800,GenType:'Purebred'},
+  {Species:'Cattle',Breed:'Wagyu',HarvestWt:1200,BreedingWt:750,GenType:'Purebred'},
+  {Species:'Cattle',Breed:'F1 Wagyu (Angus × Wagyu)',HarvestWt:1250,BreedingWt:800,GenType:'F1 Cross'},
+  {Species:'Cattle',Breed:'Commercial Cow',HarvestWt:1200,BreedingWt:800,GenType:'Composite'},
+  {Species:'Sheep',Breed:'Katahdin',HarvestWt:110,BreedingWt:80,GenType:'Purebred'},
+  {Species:'Sheep',Breed:'Suffolk',HarvestWt:130,BreedingWt:90,GenType:'Purebred'},
+  {Species:'Goat',Breed:'Boer',HarvestWt:80,BreedingWt:60,GenType:'Purebred'},
+  {Species:'Goat',Breed:'Kalahari Red',HarvestWt:75,BreedingWt:55,GenType:'Purebred'},
+  {Species:'Goat',Breed:'Galla',HarvestWt:65,BreedingWt:50,GenType:'Purebred'},
+  {Species:'Goat',Breed:'Galla × Kalahari Red F1',HarvestWt:80,BreedingWt:60,GenType:'F1 Cross'},
+  {Species:'Goat',Breed:'F2 Kids',HarvestWt:70,BreedingWt:55,GenType:'F2 Cross'},
+  {Species:'Poultry',Breed:'Cornish Cross',HarvestWt:4.5,BreedingWt:null,GenType:'Purebred'},
+  {Species:'Poultry',Breed:'Freedom Ranger',HarvestWt:5,BreedingWt:null,GenType:'Purebred'},
+  {Species:'Poultry',Breed:'Naked Neck',HarvestWt:4.5,BreedingWt:null,GenType:'Purebred'},
+  {Species:'Poultry',Breed:'Naked Neck × Ranger-type',HarvestWt:4.75,BreedingWt:null,GenType:'F1 Cross'},
+  {Species:'Poultry',Breed:'Delaware',HarvestWt:4.5,BreedingWt:null,GenType:'Purebred'},
+  {Species:'Poultry',Breed:'New Hampshire Red',HarvestWt:5,BreedingWt:null,GenType:'Purebred'},
+  {Species:'Poultry',Breed:'Boschveld',HarvestWt:4,BreedingWt:null,GenType:'Purebred'},
+  {Species:'Poultry',Breed:'Kuroiler',HarvestWt:4.5,BreedingWt:null,GenType:'Purebred'},
+  {Species:'Poultry',Breed:'Ayam Cemani',HarvestWt:3.5,BreedingWt:null,GenType:'Purebred'},
+  {Species:'Duck',Breed:'Pekin',HarvestWt:7,BreedingWt:null,GenType:'Purebred'},
+  {Species:'Duck',Breed:'Moulard',HarvestWt:7.5,BreedingWt:null,GenType:'Hybrid'},
+  {Species:'Rabbit',Breed:'New Zealand White',HarvestWt:5,BreedingWt:8,GenType:'Purebred'},
+  {Species:'Rabbit',Breed:'Californian',HarvestWt:5,BreedingWt:8,GenType:'Purebred'},
+  {Species:'Rabbit',Breed:'New Zealand White × Californian',HarvestWt:5,BreedingWt:8,GenType:'F1 Cross'},
+  {Species:'Catfish',Breed:'Channel Catfish',HarvestWt:1,BreedingWt:null,GenType:'Purebred'},
+  {Species:'Tilapia',Breed:'Nile Tilapia (assumed variety — doc does not name one)',HarvestWt:1.5,BreedingWt:null,GenType:'Purebred'}
+];
+// Market-ready starting age (months) per species — approximation of Lifecycle_Stages for the live preview only.
+const MARKET_READY_MIN_AGE = {
+  Cattle:18, Sheep:9, Goat:8, Poultry:1.5, Duck:1.6, Rabbit:2.1, Catfish:15, Tilapia:6
+};
+// Hard cutoffs (Settings note 14)
+const HARD_CUTOFFS = {
+  Sheep: {ageMonths:12, label:"Must be processed before 12 months old or reclassified from lamb to lower-value mutton."},
+  Duck_Pekin: {ageMonths:2.1, label:"Pekin ducks must be harvested by ~9 weeks (2.1 months) or hit a pinfeather molt that ruins the carcass."}
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let state = {
+  mode: 'new',
+  breeds: [],            // loaded from Breed_Matrix CSV (or fallback)
+  animals: [],           // loaded from Master_Inventory CSV (for dup-check, autocomplete, next-seq)
+  online: navigator.onLine,
+  updatingTagId: null,   // set when in Update mode and a record is loaded
+  form: emptyForm()
+};
+
+function emptyForm(){
+  return {
+    tagId:'', species:'', breed:'', geneticType:'Purebred', sex:'',
+    entryType:'Born on Ranch', dob:'', entryDate:'', dobUnknown:false, entryStage:'Weaned / Starter',
+    weight:'', damId:'', sireId:'', breedingStatus:'N/A', breedingDate:''
+  };
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  buildSpeciesTiles();
+  wireStaticEvents();
+  loadBreedMatrix();
+  loadMasterInventory();
+  updateOnlineStatus();
+  renderRecent();
+  window.addEventListener('online', () => { updateOnlineStatus(); trySyncQueue(); });
+  window.addEventListener('offline', updateOnlineStatus);
+});
+
+function buildSpeciesTiles(){
+  const wrap = document.getElementById('speciesTiles');
+  wrap.innerHTML = SPECIES.map(s => `
+    <div class="tile" data-species="${s.key}" style="--tile-color:var(${s.color})">
+      <span class="glyph">${s.glyph}</span>${s.key}
+    </div>`).join('');
+  wrap.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => selectSpecies(t.dataset.species)));
+}
+
+function wireStaticEvents(){
+  document.getElementById('modeNewBtn').addEventListener('click', () => setMode('new'));
+  document.getElementById('modeUpdateBtn').addEventListener('click', () => setMode('update'));
+  document.getElementById('searchGoBtn').addEventListener('click', loadForUpdate);
+  document.getElementById('searchTagInput').addEventListener('keydown', e => { if(e.key==='Enter') loadForUpdate(); });
+
+  document.getElementById('tagIdInput').addEventListener('input', e => { state.form.tagId = e.target.value; syncTagChip(); });
+
+  document.querySelectorAll('#sexTiles .tile').forEach(t => t.addEventListener('click', () => selectSex(t.dataset.sex)));
+  document.querySelectorAll('#entryTypeChips .chip').forEach(c => c.addEventListener('click', () => selectEntryType(c.dataset.entry)));
+
+  document.getElementById('breedSelect').addEventListener('change', e => { state.form.breed = e.target.value; onBreedChange(); });
+  document.getElementById('geneticTypeSelect').addEventListener('change', e => { state.form.geneticType = e.target.value; });
+
+  document.getElementById('dobInput').addEventListener('change', e => { state.form.dob = e.target.value; recalcPreview(); });
+  document.getElementById('entryDateInput').addEventListener('change', e => { state.form.entryDate = e.target.value; recalcPreview(); });
+  document.getElementById('dobUnknownCheck').addEventListener('change', e => { state.form.dobUnknown = e.target.checked; toggleDobUnknown(); });
+  document.getElementById('entryStageSelect').addEventListener('change', e => { state.form.entryStage = e.target.value; recalcPreview(); });
+
+  document.getElementById('weightInput').addEventListener('input', e => { state.form.weight = e.target.value; recalcPreview(); });
+  document.querySelectorAll('.stepbtn').forEach(b => b.addEventListener('click', () => stepWeight(parseFloat(b.dataset.step))));
+
+  wireAutocomplete('damInput', 'damAcList', 'Female');
+  wireAutocomplete('sireInput', 'sireAcList', 'Male');
+
+  document.getElementById('breedingStatusSelect').addEventListener('change', e => { state.form.breedingStatus = e.target.value; toggleBreedingDate(); recalcPreview(); });
+  document.getElementById('breedingDateInput').addEventListener('change', e => { state.form.breedingDate = e.target.value; recalcPreview(); });
+
+  document.getElementById('resetBtn').addEventListener('click', resetForm);
+  document.getElementById('saveBtn').addEventListener('click', saveAnimal);
+  document.getElementById('syncBtn').addEventListener('click', trySyncQueue);
+}
+
+/* ============================================================
+   DATA LOADING (published CSV — read-only, no auth needed)
+   ============================================================ */
+function csvToRows(text){
+  const lines = text.replace(/\r/g,'').split('\n').filter(l => l.length);
+  const parseLine = l => {
+    const out=[]; let cur=''; let q=false;
+    for(let i=0;i<l.length;i++){
+      const c=l[i];
+      if(c === '"'){ if(q && l[i+1] === '"'){cur+='"'; i++;} else q=!q; }
+      else if(c === ',' && !q){ out.push(cur); cur=''; }
+      else cur += c;
+    }
+    out.push(cur);
+    return out;
+  };
+  const header = parseLine(lines[0]);
+  return lines.slice(1).map(l => {
+    const cells = parseLine(l);
+    const row = {};
+    header.forEach((h,i) => row[h.trim()] = (cells[i] ?? '').trim());
+    return row;
+  });
+}
+
+async function loadBreedMatrix(){
+  const note = document.getElementById('weightTargetHelp');
+  if(!CONFIG.BREED_MATRIX_CSV_URL || CONFIG.BREED_MATRIX_CSV_URL.startsWith('PASTE_')){
+    state.breeds = FALLBACK_BREEDS; refreshBreedOptions(); return;
+  }
+  try{
+    const res = await fetch(CONFIG.BREED_MATRIX_CSV_URL, {cache:'no-store'});
+    const rows = csvToRows(await res.text());
+    state.breeds = rows.filter(r => r.Species).map(r => ({
+      Species: r.Species, Breed: r.Breed,
+      HarvestWt: parseFloat(r['Default Harvest Target Wt (lbs)']) || null,
+      BreedingWt: parseFloat(r['Breeding Target Wt (lbs)']) || null,
+      GenType: r['Typical Genetic_Type'] || 'Purebred'
+    }));
+  } catch(e){
+    state.breeds = FALLBACK_BREEDS;
+    if(note) note.textContent = 'Could not reach Breed_Matrix — using built-in reference weights.';
+  }
+  refreshBreedOptions();
+}
+
+async function loadMasterInventory(){
+  if(!CONFIG.MASTER_INVENTORY_CSV_URL || CONFIG.MASTER_INVENTORY_CSV_URL.startsWith('PASTE_')) return;
+  try{
+    const res = await fetch(CONFIG.MASTER_INVENTORY_CSV_URL, {cache:'no-store'});
+    const rows = csvToRows(await res.text());
+    state.animals = rows.filter(r => r.Tag_ID);
+    const dl = document.getElementById('allTagsList');
+    dl.innerHTML = state.animals.map(a => `<option value="${a.Tag_ID}">`).join('');
+  } catch(e){ /* silent — dup-check/autocomplete just won't have live data */ }
+}
+
+/* ============================================================
+   MODE SWITCHING
+   ============================================================ */
+function setMode(mode){
+  state.mode = mode;
+  document.getElementById('modeNewBtn').classList.toggle('active', mode==='new');
+  document.getElementById('modeUpdateBtn').classList.toggle('active', mode==='update');
+  document.getElementById('updateSearchCard').style.display = mode==='update' ? 'block' : 'none';
+  document.getElementById('saveBtn').textContent = mode==='update' ? 'Save Update' : 'Save to Master Inventory';
+  if(mode==='new'){ state.updatingTagId = null; resetForm(); }
+}
+
+function loadForUpdate(){
+  const q = document.getElementById('searchTagInput').value.trim();
+  const rec = state.animals.find(a => a.Tag_ID.toLowerCase() === q.toLowerCase());
+  hideBanners();
+  if(!rec){ showErr('No animal found with that Tag ID in the loaded inventory.'); return; }
+  state.updatingTagId = rec.Tag_ID;
+  const f = state.form = emptyForm();
+  f.tagId = rec.Tag_ID; f.species = rec.Species; f.breed = rec.Breed_Pedigree; f.geneticType = rec.Genetic_Type || 'Purebred';
+  f.sex = rec.Sex; f.entryType = rec.Entry_Type || 'Born on Ranch';
+  f.dob = toDateInputValue(rec.DOB); f.entryDate = toDateInputValue(rec.Entry_Date);
+  f.weight = rec.Current_Scale_Weight_lbs || '';
+  f.damId = rec.Dam_ID || ''; f.sireId = rec.Sire_ID || '';
+  f.breedingStatus = rec.Breeding_Status || 'N/A'; f.breedingDate = toDateInputValue(rec.Breeding_Date);
+  paintFormFromState();
+  // Identification locked in update mode — only weight, breeding & status fields make sense to change quickly.
+  document.getElementById('tagIdInput').setAttribute('readonly','readonly');
+  showOk(`Loaded ${rec.Tag_ID}. Update the weight or breeding info and save.`);
+}
+
+function toDateInputValue(v){
+  if(!v) return '';
+  const d = new Date(v);
+  if(isNaN(d)) return '';
+  return d.toISOString().slice(0,10);
+}
+
+function paintFormFromState(){
+  const f = state.form;
+  document.getElementById('tagIdInput').value = f.tagId;
+  syncTagChip();
+  document.querySelectorAll('#speciesTiles .tile').forEach(t => t.classList.toggle('active', t.dataset.species === f.species));
+  colorizeSpeciesTiles();
+  refreshBreedOptions();
+  document.getElementById('breedSelect').value = f.breed;
+  document.getElementById('geneticTypeSelect').value = f.geneticType;
+  document.querySelectorAll('#sexTiles .tile').forEach(t => t.classList.toggle('active', t.dataset.sex === f.sex));
+  document.querySelectorAll('#entryTypeChips .chip').forEach(c => c.classList.toggle('active', c.dataset.entry === f.entryType));
+  document.getElementById('dobInput').value = f.dob;
+  document.getElementById('entryDateInput').value = f.entryDate;
+  document.getElementById('weightInput').value = f.weight;
+  document.getElementById('damInput').value = f.damId;
+  document.getElementById('sireInput').value = f.sireId;
+  document.getElementById('breedingStatusSelect').value = f.breedingStatus;
+  document.getElementById('breedingDateInput').value = f.breedingDate;
+  toggleBreedingDate();
+  toggleEntryDateLock();
+  recalcPreview();
+}
+
+/* ============================================================
+   FIELD INTERACTIONS
+   ============================================================ */
+function selectSpecies(sp){
+  state.form.species = sp;
+  state.form.breed = ''; state.form.geneticType = 'Purebred';
+  document.querySelectorAll('#speciesTiles .tile').forEach(t => t.classList.toggle('active', t.dataset.species === sp));
+  colorizeSpeciesTiles();
+  refreshBreedOptions();
+  autoGenerateTagId();
+  recalcPreview();
+}
+
+function colorizeSpeciesTiles(){
+  document.querySelectorAll('#speciesTiles .tile').forEach(t => {
+    if(t.classList.contains('active')){
+      t.style.background = `var(${SPECIES.find(s=>s.key===t.dataset.species).color})`;
+      t.style.borderColor = 'transparent';
+    } else {
+      t.style.background = '#fff'; t.style.borderColor = 'var(--line)';
+    }
+  });
+}
+
+function selectSex(sex){
+  state.form.sex = sex;
+  document.querySelectorAll('#sexTiles .tile').forEach(t => {
+    const on = t.dataset.sex === sex;
+    t.classList.toggle('active', on);
+    t.style.background = on ? 'var(--pasture)' : '#fff';
+  });
+  recalcPreview();
+}
+
+function selectEntryType(type){
+  state.form.entryType = type;
+  document.querySelectorAll('#entryTypeChips .chip').forEach(c => c.classList.toggle('active', c.dataset.entry === type));
+  const dobUnknownWrap = document.getElementById('dobUnknownWrap');
+  if(type === 'Purchased'){
+    dobUnknownWrap.style.display = 'flex';
+  } else {
+    dobUnknownWrap.style.display = 'none';
+    state.form.dobUnknown = false;
+    document.getElementById('dobUnknownCheck').checked = false;
+    toggleDobUnknown();
+    // Born on Ranch: Entry Date defaults to DOB and stays locked to it.
+    if(state.form.dob){ state.form.entryDate = state.form.dob; document.getElementById('entryDateInput').value = state.form.dob; }
+  }
+  toggleEntryDateLock();
+  recalcPreview();
+}
+
+function toggleEntryDateLock(){
+  const entryDateInput = document.getElementById('entryDateInput');
+  if(state.form.entryType === 'Born on Ranch'){
+    entryDateInput.readOnly = true;
+    entryDateInput.value = state.form.dob;
+  } else {
+    entryDateInput.readOnly = false;
+  }
+}
+
+function toggleDobUnknown(){
+  const dobField = document.getElementById('dobField');
+  const stageField = document.getElementById('entryStageField');
+  if(state.form.dobUnknown){
+    dobField.style.opacity = '.4'; document.getElementById('dobInput').disabled = true;
+    stageField.style.display = 'block';
+  } else {
+    dobField.style.opacity = '1'; document.getElementById('dobInput').disabled = false;
+    stageField.style.display = 'none';
+  }
+  recalcPreview();
+}
+
+function onBreedChange(){
+  const match = state.breeds.find(b => b.Species === state.form.species && b.Breed === state.form.breed);
+  if(match){
+    state.form.geneticType = match.GenType || state.form.geneticType;
+    document.getElementById('geneticTypeSelect').value = state.form.geneticType;
+    document.getElementById('weightTargetHelp').textContent =
+      `${state.form.breed}: harvest target ≈ ${match.HarvestWt ?? '—'} lbs` +
+      (match.BreedingWt ? ` · breeding target ≈ ${match.BreedingWt} lbs` : '');
+  }
+  recalcPreview();
+}
+
+function refreshBreedOptions(){
+  const sel = document.getElementById('breedSelect');
+  if(!state.form.species){
+    sel.innerHTML = '<option value="">— choose species first —</option>';
+    return;
+  }
+  const opts = state.breeds.filter(b => b.Species === state.form.species);
+  sel.innerHTML = '<option value="">— select breed —</option>' +
+    opts.map(b => `<option value="${b.Breed}">${b.Breed}</option>`).join('');
+  if(state.form.breed) sel.value = state.form.breed;
+}
+
+function stepWeight(delta){
+  const cur = parseFloat(state.form.weight) || 0;
+  const next = Math.max(0, cur + delta);
+  state.form.weight = String(next);
+  document.getElementById('weightInput').value = state.form.weight;
+  recalcPreview();
+}
+
+function toggleBreedingDate(){
+  const show = ['Bred','Pregnant'].includes(state.form.breedingStatus);
+  document.getElementById('breedingDateField').style.display = show ? 'block' : 'none';
+}
+
+/* ---- Autocomplete for Dam / Sire ---- */
+function wireAutocomplete(inputId, listId, sexFilter){
+  const input = document.getElementById(inputId);
+  const list = document.getElementById(listId);
+  input.addEventListener('input', () => {
+    const key = inputId === 'damInput' ? 'damId' : 'sireId';
+    state.form[key] = input.value;
+    const q = input.value.trim().toLowerCase();
+    const matches = state.animals.filter(a =>
+      (!state.form.species || a.Species === state.form.species) &&
+      a.Sex === sexFilter &&
+      (q === '' || a.Tag_ID.toLowerCase().includes(q))
+    ).slice(0, 8);
+    if(matches.length && q !== ''){
+      list.innerHTML = matches.map(a => `<div class="ac-item" data-tag="${a.Tag_ID}">${a.Tag_ID}<div class="mini">${a.Breed_Pedigree || ''}</div></div>`).join('');
+      list.classList.add('open');
+    } else { list.classList.remove('open'); }
+    recalcPreview();
+  });
+  list.addEventListener('click', e => {
+    const item = e.target.closest('.ac-item');
+    if(!item) return;
+    input.value = item.dataset.tag;
+    state.form[inputId === 'damInput' ? 'damId' : 'sireId'] = item.dataset.tag;
+    list.classList.remove('open');
+    recalcPreview();
+  });
+  document.addEventListener('click', e => { if(!input.contains(e.target) && !list.contains(e.target)) list.classList.remove('open'); });
+}
+
+/* ============================================================
+   TAG ID AUTO-GENERATION
+   ============================================================ */
+function autoGenerateTagId(){
+  if(document.getElementById('tagIdInput').hasAttribute('readonly')) return;
+  if(!state.form.species) return;
+  const code = SPECIES_CODE[state.form.species];
+  const year = new Date().getFullYear();
+  const prefix = `NR-${code}-${year}-`;
+  const existingSeqs = state.animals
+    .filter(a => a.Tag_ID && a.Tag_ID.startsWith(prefix))
+    .map(a => parseInt(a.Tag_ID.slice(prefix.length), 10))
+    .filter(n => !isNaN(n));
+  const next = (existingSeqs.length ? Math.max(...existingSeqs) : 0) + 1;
+  state.form.tagId = `${prefix}${String(next).padStart(2,'0')}`;
+  document.getElementById('tagIdInput').value = state.form.tagId;
+  syncTagChip();
+}
+
+function syncTagChip(){
+  document.getElementById('tagChip').textContent = state.form.tagId || 'NR-···';
+}
+
+/* ============================================================
+   LIVE ENGINE PREVIEW (mirrors Master_Inventory formulas)
+   ============================================================ */
+function monthsBetween(d1, d2){
+  return (d2.getFullYear()-d1.getFullYear())*12 + (d2.getMonth()-d1.getMonth()) + (d2.getDate()-d1.getDate())/30.4;
+}
+
+function recalcPreview(){
+  const f = state.form;
+  const match = state.breeds.find(b => b.Species === f.species && b.Breed === f.breed);
+  const weight = parseFloat(f.weight);
+  const stageEl = document.getElementById('prevStage');
+  const flagEl = document.getElementById('prevFlag');
+  const progenyEl = document.getElementById('prevProgeny');
+  const birthEl = document.getElementById('prevBirth');
+  const marketEl = document.getElementById('prevMarket');
+  const deadlineBar = document.getElementById('deadlineBar');
+
+  // Calculated_Stage / Harvest_Ready_Flag
+  if(isNaN(weight) || !f.species){
+    stageEl.textContent = '—'; flagEl.className='badge growing'; flagEl.textContent='—';
+  } else {
+    let stage;
+    if(f.species === 'Cattle' && weight >= 1200) stage = 'Harvest Ready (Weight Met)';
+    else if(f.breedingStatus === 'Pregnant') stage = 'Gestating';
+    else if(f.sex === 'Female' && match?.BreedingWt && weight >= match.BreedingWt) stage = 'Breeding Ready';
+    else if(match?.HarvestWt && weight >= match.HarvestWt) stage = 'Harvest Window';
+    else stage = 'Grow-Out / Finishing';
+    stageEl.textContent = stage;
+
+    const ready = match?.HarvestWt && weight >= match.HarvestWt;
+    flagEl.textContent = ready ? 'READY FOR PROCESSING' : 'Growing';
+    flagEl.className = 'badge ' + (ready ? 'ready' : 'growing');
+  }
+
+  // Suggested_Progeny_Label
+  if(f.damId && f.sireId){
+    const dam = state.animals.find(a => a.Tag_ID === f.damId);
+    const sire = state.animals.find(a => a.Tag_ID === f.sireId);
+    progenyEl.textContent = (dam && sire) ? `F1 ${sire.Breed_Pedigree} (${dam.Breed_Pedigree} × ${sire.Breed_Pedigree})` : 'Dam/Sire not found in loaded inventory';
+  } else progenyEl.textContent = '—';
+
+  // Projected_Birth_Month
+  if(f.breedingStatus === 'Pregnant' && f.breedingDate && f.species){
+    const bd = new Date(f.breedingDate);
+    bd.setDate(bd.getDate() + (GESTATION_DAYS[f.species] || 0));
+    birthEl.textContent = bd.toLocaleDateString('en-US', {month:'short', year:'numeric'});
+  } else birthEl.textContent = 'N/A';
+
+  // Projected_Market_Ready_Month (approximation)
+  const effectiveDob = f.dobUnknown && f.entryDate ? f.entryDate : f.dob;
+  if(effectiveDob && f.species && MARKET_READY_MIN_AGE[f.species]){
+    const dob = new Date(effectiveDob);
+    const target = new Date(dob);
+    target.setDate(target.getDate() + MARKET_READY_MIN_AGE[f.species]*30.4);
+    marketEl.textContent = (match?.HarvestWt && weight >= match.HarvestWt)
+      ? 'Ready this month (weight met early)'
+      : target.toLocaleDateString('en-US', {month:'short', year:'numeric'});
+  } else marketEl.textContent = '—';
+
+  // Hard-cutoff deadline warnings
+  deadlineBar.className = 'deadlinebar';
+  if(effectiveDob){
+    const ageMonths = monthsBetween(new Date(effectiveDob), new Date());
+    let cutoff = null;
+    if(f.species === 'Sheep') cutoff = HARD_CUTOFFS.Sheep;
+    if(f.species === 'Duck' && f.breed === 'Pekin') cutoff = HARD_CUTOFFS.Duck_Pekin;
+    if(cutoff){
+      const remaining = cutoff.ageMonths - ageMonths;
+      if(remaining <= 0){
+        deadlineBar.classList.add('show','danger');
+        deadlineBar.innerHTML = `⚠ PAST DEADLINE — ${cutoff.label}`;
+      } else if(remaining <= cutoff.ageMonths * 0.2){
+        deadlineBar.classList.add('show','warn');
+        deadlineBar.innerHTML = `⚠ APPROACHING — ${cutoff.label}`;
+      }
+    }
+  }
+}
+
+/* ============================================================
+   VALIDATION + SAVE
+   ============================================================ */
+function validate(){
+  const f = state.form;
+  if(!f.species) return 'Select a species.';
+  if(!f.breed) return 'Select a breed.';
+  if(!f.sex) return 'Select sex.';
+  if(!f.tagId) return 'Tag ID is required.';
+  if(f.weight === '' || isNaN(parseFloat(f.weight))) return 'Enter the current scale weight.';
+  if(!f.dobUnknown && f.entryType === 'Born on Ranch' && !f.dob) return 'Date of birth is required for ranch-born animals.';
+  if(f.entryType === 'Purchased' && !f.entryDate) return 'Entry date is required for purchased animals.';
+  if(state.mode === 'new'){
+    const dup = state.animals.some(a => a.Tag_ID.toLowerCase() === f.tagId.toLowerCase());
+    if(dup) return `Tag ID ${f.tagId} already exists in the inventory — check for a typo or use Update Existing.`;
+  }
+  return null;
+}
+
+async function saveAnimal(){
+  hideBanners();
+  const err = validate();
+  if(err){ showErr(err); return; }
+
+  const f = state.form;
+  const payload = {
+    action: state.mode === 'update' ? 'updateAnimal' : 'addAnimal',
+    tagId: f.tagId,
+    fields: {
+      Species: f.species,
+      Breed_Pedigree: f.breed,
+      Genetic_Type: f.geneticType,
+      Sex: f.sex,
+      Entry_Type: f.entryType,
+      DOB: f.dobUnknown ? '' : f.dob,
+      Entry_Date: f.entryDate || f.dob,
+      Current_Scale_Weight_lbs: parseFloat(f.weight),
+      Dam_ID: f.damId,
+      Sire_ID: f.sireId,
+      Breeding_Status: f.breedingStatus,
+      Breeding_Date: f.breedingDate,
+      Entry_Stage_If_DOB_Unknown: f.dobUnknown ? f.entryStage : ''
+    },
+    ts: Date.now()
   };
 
-  function updateBreeds() {
-    const species = document.getElementById("species").value;
-    const breedSelect = document.getElementById("breed");
-    breedSelect.innerHTML = '<option value="">-- Select Breed --</option>';
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
 
-    if (species && breedData[species]) {
-      breedData[species].forEach(b => {
-        let opt = document.createElement("option");
-        opt.value = b;
-        opt.textContent = b;
-        breedSelect.appendChild(opt);
+  const result = await sendToBackend(payload);
+
+  saveBtn.disabled = false;
+  saveBtn.textContent = state.mode==='update' ? 'Save Update' : 'Save to Master Inventory';
+
+  if(result.ok){
+    pushRecent(f, 'sent');
+    showOk(`${f.tagId} saved.`);
+    if(state.mode === 'new') state.animals.push({Tag_ID:f.tagId, Species:f.species, Sex:f.sex, Breed_Pedigree:f.breed});
+    resetForm();
+  } else if(result.queued){
+    pushRecent(f, 'queued');
+    showErr(`Offline — ${f.tagId} queued and will sync automatically when connection returns.`);
+    resetForm();
+  } else {
+    showErr(`Could not save ${f.tagId}: ${result.message || 'unknown error'}`);
+  }
+}
+
+async function sendToBackend(payload){
+  if(!CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_URL.startsWith('PASTE_')){
+    queuePayload(payload);
+    return {ok:false, queued:true};
+  }
+  if(!navigator.onLine){
+    queuePayload(payload);
+    return {ok:false, queued:true};
+  }
+  try{
+    // text/plain avoids a CORS preflight against the Apps Script Web App.
+    const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({success:true}));
+    if(data.success === false) return {ok:false, message:data.message};
+    return {ok:true};
+  } catch(e){
+    queuePayload(payload);
+    return {ok:false, queued:true};
+  }
+}
+
+/* ============================================================
+   OFFLINE QUEUE (localStorage — this file is deployed standalone,
+   not run inside the claude.ai artifact sandbox, so this is safe)
+   ============================================================ */
+function getQueue(){ try{ return JSON.parse(localStorage.getItem(CONFIG.QUEUE_KEY) || '[]'); } catch(e){ return []; } }
+function setQueue(q){ localStorage.setItem(CONFIG.QUEUE_KEY, JSON.stringify(q)); updateQueueUI(); }
+function queuePayload(payload){ const q = getQueue(); q.push(payload); setQueue(q); }
+
+async function trySyncQueue(){
+  if(!navigator.onLine) return;
+  let q = getQueue();
+  if(!q.length) return;
+  const statusPill = document.getElementById('statusPill');
+  statusPill.classList.add('syncing');
+  const remaining = [];
+  for(const payload of q){
+    if(!CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_URL.startsWith('PASTE_')){ remaining.push(payload); continue; }
+    try{
+      const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+        method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload)
       });
-    }
-    checkStatus();
+      const data = await res.json().catch(() => ({success:true}));
+      if(data.success === false) remaining.push(payload);
+    } catch(e){ remaining.push(payload); }
   }
+  setQueue(remaining);
+  statusPill.classList.remove('syncing');
+  markRecentSynced(q.length - remaining.length);
+  if(remaining.length === 0) showOk('Queue synced.'); 
+}
 
-  function toggleBreedingFields() {
-    const sex = document.getElementById("sex").value;
-    const breedingSection = document.getElementById("breedingSection");
-    if (sex === "Female") {
-      breedingSection.classList.remove("hidden");
-    } else {
-      breedingSection.classList.add("hidden");
-    }
-  }
+function updateQueueUI(){
+  const q = getQueue();
+  const btn = document.getElementById('syncBtn');
+  const countEl = document.getElementById('queueCount');
+  btn.style.display = q.length ? 'block' : 'none';
+  btn.textContent = `Sync Queue (${q.length})`;
+  countEl.textContent = q.length ? `${q.length} queued offline` : '';
+}
 
-  function toggleGestationDate() {
-    const status = document.getElementById("breedingStatus").value;
-    const dateGroup = document.getElementById("gestationDateGroup");
-    if (status === "Pregnant") {
-      dateGroup.classList.remove("hidden");
-    } else {
-      dateGroup.classList.add("hidden");
-    }
-  }
+function updateOnlineStatus(){
+  state.online = navigator.onLine;
+  const pill = document.getElementById('statusPill');
+  const text = document.getElementById('statusText');
+  pill.classList.toggle('offline', !state.online);
+  text.textContent = state.online ? 'Online' : 'Offline';
+  updateQueueUI();
+}
 
-  function checkStatus() {
-    const species = document.getElementById("species").value;
-    const weight = parseFloat(document.getElementById("scaleWeight").value);
-    const indicator = document.getElementById("statusIndicator");
+/* ============================================================
+   RECENT ENTRIES (session log)
+   ============================================================ */
+let recent = [];
+function pushRecent(f, status){
+  recent.unshift({tag:f.tagId, species:f.species, breed:f.breed, status});
+  recent = recent.slice(0, 8);
+  renderRecent();
+  updateQueueUI();
+}
+function markRecentSynced(n){
+  let toFlip = n;
+  for(const r of recent){ if(toFlip<=0) break; if(r.status==='queued'){ r.status='sent'; toFlip--; } }
+  renderRecent();
+}
+function renderRecent(){
+  const list = document.getElementById('recentList');
+  if(!recent.length){ list.innerHTML = '<div class="empty">Nothing logged yet this session.</div>'; return; }
+  list.innerHTML = recent.map(r => `
+    <div class="recentitem">
+      <span class="rtag">${r.tag}</span>
+      <span class="rmeta">${r.species} · ${r.breed}</span>
+      <span class="syncbadge ${r.status}">${r.status === 'sent' ? 'Sent' : r.status === 'queued' ? 'Queued' : 'Failed'}</span>
+    </div>`).join('');
+}
 
-    if (!species || isNaN(weight)) {
-      indicator.style.display = "none";
-      return;
-    }
+/* ============================================================
+   BANNERS / RESET
+   ============================================================ */
+function showErr(msg){ const b=document.getElementById('errBanner'); b.textContent=msg; b.classList.add('show'); }
+function showOk(msg){ const b=document.getElementById('okBanner'); b.textContent=msg; b.classList.add('show'); setTimeout(()=>b.classList.remove('show'), 4000); }
+function hideBanners(){ document.getElementById('errBanner').classList.remove('show'); document.getElementById('okBanner').classList.remove('show'); }
 
-    indicator.style.display = "block";
-
-    // Strict Weight Rule Check for Cattle
-    if (species === "Cattle") {
-      if (weight >= 1200) {
-        indicator.className = "status-badge status-harvest";
-        indicator.innerHTML = "STATUS: HARVEST READY (Weight Target 1,200+ lbs Reached)";
-      } else if (weight >= 800) {
-        indicator.className = "status-badge status-breeding";
-        indicator.innerHTML = "STATUS: FINISHING / BREEDING POOL CANDIDATE";
-      } else {
-        indicator.className = "status-badge status-growing";
-        indicator.innerHTML = "STATUS: ACTIVE GROW-OUT";
-      }
-    } 
-    else if (species === "Sheep" && weight >= 110) {
-      indicator.className = "status-badge status-harvest";
-      indicator.innerHTML = "STATUS: HARVEST READY";
-    } else if (species === "Goat" && weight >= 60) {
-      indicator.className = "status-badge status-harvest";
-      indicator.innerHTML = "STATUS: HARVEST READY";
-    } else {
-      indicator.className = "status-badge status-growing";
-      indicator.innerHTML = "STATUS: ACTIVE GROW-OUT";
-    }
-  }
-
-  document.getElementById("entryDate").valueAsDate = new Date();
-
-  document.getElementById("livestockForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const tag = document.getElementById("tagId").value;
-    alert(`Livestock record saved successfully for Tag: ${tag}`);
-    this.reset();
-    document.getElementById("entryDate").valueAsDate = new Date();
-    document.getElementById("statusIndicator").style.display = "none";
-  });
+function resetForm(){
+  state.form = emptyForm();
+  state.updatingTagId = null;
+  document.getElementById('tagIdInput').removeAttribute('readonly');
+  document.getElementById('tagIdInput').value = '';
+  syncTagChip();
+  document.querySelectorAll('#speciesTiles .tile').forEach(t => { t.classList.remove('active'); t.style.background='#fff'; t.style.borderColor='var(--line)'; });
+  document.getElementById('breedSelect').innerHTML = '<option value="">— choose species first —</option>';
+  document.getElementById('geneticTypeSelect').value = 'Purebred';
+  document.querySelectorAll('#sexTiles .tile').forEach(t => { t.classList.remove('active'); t.style.background='#fff'; });
+  document.querySelectorAll('#entryTypeChips .chip').forEach(c => c.classList.toggle('active', c.dataset.entry === 'Born on Ranch'));
+  document.getElementById('dobUnknownWrap').style.display = 'none';
+  document.getElementById('dobUnknownCheck').checked = false;
+  document.getElementById('entryStageField').style.display = 'none';
+  document.getElementById('dobInput').value = ''; document.getElementById('dobInput').disabled = false;
+  document.getElementById('entryDateInput').value = ''; document.getElementById('entryDateInput').readOnly = false;
+  document.getElementById('weightInput').value = '';
+  document.getElementById('weightTargetHelp').textContent = '';
+  document.getElementById('damInput').value = ''; document.getElementById('sireInput').value = '';
+  document.getElementById('breedingStatusSelect').value = 'N/A';
+  document.getElementById('breedingDateField').style.display = 'none';
+  document.getElementById('breedingDateInput').value = '';
+  document.getElementById('searchTagInput').value = '';
+  hideBanners();
+  recalcPreview();
+}
 </script>
-
 </body>
 </html>
