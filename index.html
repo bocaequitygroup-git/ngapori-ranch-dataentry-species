@@ -628,7 +628,16 @@ function wireStaticEvents(){
   document.getElementById('breedingDateInput').addEventListener('change', e => { state.form.breedingDate = e.target.value; recalcPreview(); });
 
   document.getElementById('resetBtn').addEventListener('click', resetForm);
-  document.getElementById('saveBtn').addEventListener('click', saveAnimal);
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    saveAnimal().catch(err => {
+      // Safety net: any unexpected error now surfaces as a visible banner
+      // instead of failing silently (the Save button re-enables too).
+      console.error('saveAnimal failed:', err);
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = false; saveBtn.textContent = state.mode==='update' ? 'Save Update' : 'Save to Master Inventory';
+      showErr('Unexpected error while saving: ' + (err && err.message ? err.message : err));
+    });
+  });
   document.getElementById('syncBtn').addEventListener('click', trySyncQueue);
 }
 
@@ -1260,8 +1269,12 @@ function renderRecent(){
 /* ============================================================
    BANNERS / RESET
    ============================================================ */
-function showErr(msg){ const b=document.getElementById('errBanner'); b.textContent=msg; b.classList.add('show'); }
-function showOk(msg){ const b=document.getElementById('okBanner'); b.textContent=msg; b.classList.add('show'); setTimeout(()=>b.classList.remove('show'), 4000); }
+// Banners live at the top of a tall, scrollable form while Save sits in a
+// fixed bottom bar — without this, a validation error or "queued offline"
+// confirmation can fire off-screen and look like the tap did nothing.
+function scrollBannerIntoView(b){ if(typeof b.scrollIntoView === 'function') b.scrollIntoView({behavior:'smooth', block:'center'}); }
+function showErr(msg){ const b=document.getElementById('errBanner'); b.textContent=msg; b.classList.add('show'); scrollBannerIntoView(b); }
+function showOk(msg){ const b=document.getElementById('okBanner'); b.textContent=msg; b.classList.add('show'); scrollBannerIntoView(b); setTimeout(()=>b.classList.remove('show'), 4000); }
 function hideBanners(){ document.getElementById('errBanner').classList.remove('show'); document.getElementById('okBanner').classList.remove('show'); }
 
 function resetForm(){
