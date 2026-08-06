@@ -88,12 +88,17 @@
   main{max-width:760px; margin:0 auto; padding:var(--sp-4);}
   .card{
     background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    margin-bottom:var(--sp-4); overflow:hidden;
+    margin-bottom:var(--sp-4);
+    /* NOTE: intentionally no overflow:hidden here — it was clipping the
+       position:absolute autocomplete dropdown (.ac-list), making search
+       suggestions invisible even though they were rendering correctly.
+       Rounded corners are preserved below via card-head/card-body instead. */
   }
   .card-head{
     padding:var(--sp-3) var(--sp-4); border-bottom:1px solid var(--line);
     display:flex; align-items:baseline; justify-content:space-between; gap:8px;
     background:var(--surface-sunk);
+    border-radius:var(--radius) var(--radius) 0 0;
   }
   .card-head h2{font-size:16px;}
   .card-head .num{
@@ -1045,10 +1050,40 @@ function wireAutocomplete(inputId, listId, sexFilter){
 /* ============================================================
    TAG ID AUTO-GENERATION
    ============================================================ */
-function autoGenerateTagId(){
-  if(document.getElementById('tagIdInput').hasAttribute('readonly')) return;
+// Bumped every call; a response only gets applied if it's still the latest
+// request (guards against a slow response for a previously-selected species
+// landing after the user has since clicked a different species tile).
+let tagGenToken = 0;
+
+async function autoGenerateTagId(){
+  const input = document.getElementById('tagIdInput');
+  if(input.hasAttribute('readonly')) return;
   if(!state.form.species) return;
-  const code = SPECIES_CODE[state.form.species];
+  const species = state.form.species;
+  const myToken = ++tagGenToken;
+
+  // Ask the live sheet for the true next ID — the published CSV used
+  // elsewhere in the GUI (dup-check, autocomplete) can lag real edits by
+  // several minutes, which is exactly what made this look "not working":
+  // it kept suggesting an ID that had already been taken.
+  if(CONFIG.APPS_SCRIPT_URL && !CONFIG.APPS_SCRIPT_URL.startsWith('PASTE_') && navigator.onLine){
+    input.placeholder = 'Generating…';
+    try{
+      const res = await fetch(`${CONFIG.APPS_SCRIPT_URL}?action=nextTagId&species=${encodeURIComponent(species)}`);
+      const data = await res.json();
+      if(myToken !== tagGenToken) return; // superseded by a newer request
+      if(data.success && data.tagId){
+        applyGeneratedTagId(data.tagId);
+        return;
+      }
+    } catch(e){ /* fall through to local estimate below */ }
+    if(myToken !== tagGenToken) return;
+    input.placeholder = 'Auto-generates once species is chosen';
+  }
+
+  // Offline / backend unreachable fallback — best guess from whatever
+  // inventory data (plus this session's own additions) we have locally.
+  const code = SPECIES_CODE[species];
   const year = new Date().getFullYear();
   const prefix = `NR-${code}-${year}-`;
   const existingSeqs = state.animals
@@ -1056,8 +1091,14 @@ function autoGenerateTagId(){
     .map(a => parseInt(a.Tag_ID.slice(prefix.length), 10))
     .filter(n => !isNaN(n));
   const next = (existingSeqs.length ? Math.max(...existingSeqs) : 0) + 1;
-  state.form.tagId = `${prefix}${String(next).padStart(2,'0')}`;
-  document.getElementById('tagIdInput').value = state.form.tagId;
+  applyGeneratedTagId(`${prefix}${String(next).padStart(2,'0')}`);
+}
+
+function applyGeneratedTagId(tagId){
+  state.form.tagId = tagId;
+  const input = document.getElementById('tagIdInput');
+  input.value = tagId;
+  input.placeholder = 'Auto-generates once species is chosen';
   syncTagChip();
 }
 
