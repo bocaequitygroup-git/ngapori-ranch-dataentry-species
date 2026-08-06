@@ -644,7 +644,13 @@ function wireStaticEvents(){
 /* ============================================================
    DATA LOADING (published CSV — read-only, no auth needed)
    ============================================================ */
-function csvToRows(text){
+/* requiredCol: when given, the header row is the first CSV line that
+   actually contains that column name, rather than always line 0. Some
+   sheets (Master_Inventory) publish a title row + a legend row above the
+   real header ("Tag_ID,Species,..."), so blindly using line 0 as the
+   header silently produced rows keyed by the title text instead — every
+   r.Tag_ID lookup came back undefined and state.animals stayed empty. */
+function csvToRows(text, requiredCol){
   const lines = text.replace(/\r/g,'').split('\n').filter(l => l.length);
   const parseLine = l => {
     const out=[]; let cur=''; let q=false;
@@ -657,11 +663,18 @@ function csvToRows(text){
     out.push(cur);
     return out;
   };
-  const header = parseLine(lines[0]);
-  return lines.slice(1).map(l => {
+  let headerIdx = 0;
+  if(requiredCol){
+    const found = lines.findIndex(l => parseLine(l).some(cell => cell.trim() === requiredCol));
+    if(found !== -1) headerIdx = found;
+  }
+  const header = parseLine(lines[headerIdx]);
+  return lines.slice(headerIdx + 1).map(l => {
     const cells = parseLine(l);
     const row = {};
-    header.forEach((h,i) => row[h.trim()] = (cells[i] ?? '').trim());
+    // Skip blank header cells so trailing empty columns don't all collide
+    // on the same '' key and clobber each other.
+    header.forEach((h,i) => { if(h.trim()) row[h.trim()] = (cells[i] ?? '').trim(); });
     return row;
   });
 }
@@ -691,7 +704,7 @@ async function loadMasterInventory(){
   if(!CONFIG.MASTER_INVENTORY_CSV_URL || CONFIG.MASTER_INVENTORY_CSV_URL.startsWith('PASTE_')) return;
   try{
     const res = await fetch(CONFIG.MASTER_INVENTORY_CSV_URL, {cache:'no-store'});
-    const rows = csvToRows(await res.text());
+    const rows = csvToRows(await res.text(), 'Tag_ID');
     state.animals = rows.filter(r => r.Tag_ID);
   } catch(e){ /* silent — dup-check/autocomplete just won't have live data */ }
 }
@@ -742,11 +755,32 @@ function loadForUpdate(tagOverride){
 
 /* Read-only display of every Master_Inventory field for the loaded animal —
    not just the subset that's editable in the form below — so the user sees
-   the full profile (computed stage, age, pen, flags, forecasts) at a glance. */
+   the full profile (identity, computed stage, age, pen, flags, forecasts)
+   at a glance. */
 function renderFullProfile(rec){
   const card = document.getElementById('profileCard');
   const body = document.getElementById('profileBody');
-  const rows = [
+  const spec = SPECIES.find(s => s.key === rec.Species);
+  const breedRef = state.breeds.find(b => b.Species === rec.Species && b.Breed === rec.Breed_Pedigree);
+
+  const idRows = [
+    ['Species', rec.Species],
+    ['Breed / Pedigree', rec.Breed_Pedigree],
+    ['Genetic Type', rec.Genetic_Type],
+    ['Sex', rec.Sex],
+    ['Entry Type', rec.Entry_Type],
+    ['DOB', rec.DOB],
+    ['Entry Date', rec.Entry_Date],
+    ['Current Weight (lbs)', rec.Current_Scale_Weight_lbs && breedRef && breedRef.HarvestWt
+      ? `${rec.Current_Scale_Weight_lbs} (target ${breedRef.HarvestWt})`
+      : rec.Current_Scale_Weight_lbs],
+    ['Dam ID', rec.Dam_ID],
+    ['Sire ID', rec.Sire_ID],
+    ['Breeding Status', rec.Breeding_Status],
+    ['Breeding Date', rec.Breeding_Date]
+  ].filter(([,v]) => v !== undefined && v !== null && String(v).trim() !== '');
+
+  const calcRows = [
     ['Calculated Stage', rec.Calculated_Stage],
     ['Harvest / Processing Flag', rec.Harvest_Ready_Flag],
     ['Age', rec.Age_Days ? `${rec.Age_Days} days (~${rec.Age_Months} mo)` : ''],
@@ -767,13 +801,26 @@ function renderFullProfile(rec){
     ['Entry Stage (if DOB unknown)', rec.Entry_Stage_If_DOB_Unknown]
   ].filter(([,v]) => v !== undefined && v !== null && String(v).trim() !== '');
 
-  body.innerHTML = rows.length
-    ? `<div class="previewgrid" style="background:transparent;">${rows.map(([label,val]) => `
-        <div class="pcell" style="background:var(--surface-sunk); border-radius:8px;">
-          <div class="plabel" style="color:var(--ink-soft);">${label}</div>
-          <div class="pval" style="color:var(--ink);">${val}</div>
-        </div>`).join('')}</div>`
-    : '<div class="empty">No system-calculated fields available yet for this record.</div>';
+  const section = (title, rows) => rows.length ? `
+    <div class="plabel" style="text-transform:uppercase; letter-spacing:.08em; font-size:11px; color:var(--ink-soft); margin:${title==='Identification'?'0':'14px'} 0 6px;">${title}</div>
+    <div class="previewgrid" style="background:transparent;">${rows.map(([label,val]) => `
+      <div class="pcell" style="background:var(--surface-sunk); border-radius:8px;">
+        <div class="plabel" style="color:var(--ink-soft);">${label}</div>
+        <div class="pval" style="color:var(--ink);">${val}</div>
+      </div>`).join('')}</div>` : '';
+
+  const heading = `
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <span style="font-size:26px; line-height:1;">${spec ? spec.glyph : ''}</span>
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:15px;">${rec.Tag_ID || ''}</div>
+        <div style="font-size:12.5px; color:var(--ink-soft);">${[rec.Species, rec.Breed_Pedigree, rec.Sex].filter(Boolean).join(' · ')}</div>
+      </div>
+    </div>`;
+
+  body.innerHTML = (idRows.length || calcRows.length)
+    ? heading + section('Identification', idRows) + section('Calculated / System Fields', calcRows)
+    : '<div class="empty">No record data available yet for this animal.</div>';
   card.style.display = 'block';
 }
 
@@ -1154,13 +1201,16 @@ async function saveAnimal(){
 
   if(result.ok){
     pushRecent(f, 'sent');
-    showOk(`${f.tagId} saved.`);
     if(state.mode === 'new') state.animals.push({Tag_ID:f.tagId, Species:f.species, Sex:f.sex, Breed_Pedigree:f.breed});
+    // resetForm() calls hideBanners() internally, so it must run BEFORE we
+    // show the confirmation — showing it first meant resetForm() wiped the
+    // "saved" banner in the same tick and it never became visible.
     resetForm();
+    showOk(`${f.tagId} saved.`);
   } else if(result.queued){
     pushRecent(f, 'queued');
-    showErr(`Offline — ${f.tagId} queued and will sync automatically when connection returns.`);
     resetForm();
+    showErr(`Offline — ${f.tagId} queued and will sync automatically when connection returns.`);
   } else {
     showErr(`Could not save ${f.tagId}: ${result.message || 'unknown error'}`);
   }
